@@ -227,7 +227,7 @@ struct RepositoryTests {
         let store = SwiftDataStore(context: persistence.mainContext)
         let repository = SwiftDataJournalEntryRepository(store: store)
         let danceRepository = SwiftDataDanceRepository(store: store)
-        let rumba = try #require(danceRepository.dance(named: "Rumba"))
+        let rumba = try #require(try danceRepository.dance(named: "Rumba"))
         #expect(try repository.fetch(byDance: rumba).count == 1)
         #expect(try repository.fetch(byCategory: .accomplishment).count == 2)
         #expect(try repository.fetch(byCategory: .challenge).count == 1)
@@ -241,7 +241,7 @@ struct RepositoryTests {
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
         let repository = SwiftDataDrillRepository(store: store)
-        let drill = try #require(repository.fetchAll().first { $0.name == "Samba Bounce Basics" })
+        let drill = try #require(try repository.fetchAll().first { $0.name == "Samba Bounce Basics" })
         let before = drill.lastPracticedDate
         try repository.markPracticed(drill, on: Date())
         #expect(drill.lastPracticedDate != before)
