@@ -53,6 +53,7 @@ private struct LaunchView: View {
             // (same versioned schema in two containers in one process),
             // so launch stays on the spinner while tests run.
             guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+            await MainActor.run { FirebaseService.shared.configureIfPresent() }
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.ensureDanceTaxonomy() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }

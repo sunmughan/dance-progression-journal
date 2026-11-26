@@ -321,6 +321,43 @@ def main() -> int:
         f"\t\t\t); sourceTree = \"<group>\"; }};"
     )
 
+    # Firebase Swift Package Manager products. Both the user app and
+    # the admin app link the same five products. Firebase 13, SPM
+    # only, minimum 13.0.0. The SDK is configured only when a real
+    # GoogleService-Info.plist is present in the bundle; without it
+    # FirebaseService stays a no op and the apps work fully offline.
+    firebase_products = [
+        "FirebaseAnalytics",
+        "FirebaseCrashlytics",
+        "FirebaseAuth",
+        "FirebaseFirestore",
+        "FirebaseStorage",
+    ]
+    package_id = pbx_id("package:firebase")
+    package_section = Section("XCRemoteSwiftPackageReference")
+    package_section.add(
+        f"\t\t{package_id} /* XCRemoteSwiftPackageReference \"firebase-ios-sdk\" */ = {{isa = XCRemoteSwiftPackageReference; "
+        f"repositoryURL = \"https://github.com/firebase/firebase-ios-sdk\"; "
+        f"requirement = {{kind = upToNextMajorVersion; minimumVersion = 13.0.0; }}; }};"
+    )
+    product_dep_section = Section("XCSwiftPackageProductDependency")
+    product_dep_ids: dict[str, str] = {}
+    for product in firebase_products:
+        dep_id = pbx_id("productdep:" + product)
+        product_dep_ids[product] = dep_id
+        product_dep_section.add(
+            f"\t\t{dep_id} /* {product} */ = {{isa = XCSwiftPackageProductDependency; "
+            f"package = {package_id} /* XCRemoteSwiftPackageReference \"firebase-ios-sdk\" */; productName = {product}; }};"
+        )
+        bf = pbx_id("buildfile:firebase:" + product)
+        build_files.add(
+            f"\t\t{bf} /* {product} in Frameworks */ = {{isa = PBXBuildFile; productRef = {dep_id} /* {product} */; }};"
+        )
+    firebase_frameworks_app = [
+        pbx_id("buildfile:firebase:" + product) for product in firebase_products
+    ]
+    firebase_frameworks_admin = list(firebase_frameworks_app)
+
     # Build phases.
     sources_app_id = pbx_id("phase:sources:app")
     sources_admin_id = pbx_id("phase:sources:admin")
@@ -346,11 +383,21 @@ def main() -> int:
     resources_section.add(phase_list(resources_app_id, "PBXResourcesBuildPhase", "Resources", resources_app, "app"))
     resources_section.add(phase_list(resources_admin_id, "PBXResourcesBuildPhase", "Resources", resources_admin, "admin"))
     frameworks_section = Section("PBXFrameworksBuildPhase")
-    frameworks_section.add(
-        f"\t\t{frameworks_app_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
+    frameworks_app_files = "".join(
+        f"\t\t\t\t{bf} /* {product} in Frameworks */,\n"
+        for bf, product in zip(firebase_frameworks_app, firebase_products)
+    )
+    frameworks_admin_files = "".join(
+        f"\t\t\t\t{bf} /* {product} in Frameworks */,\n"
+        for bf, product in zip(firebase_frameworks_admin, firebase_products)
     )
     frameworks_section.add(
-        f"\t\t{frameworks_admin_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
+        f"\t\t{frameworks_app_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (\n"
+        f"{frameworks_app_files}\t\t\t); runOnlyForDeploymentPostprocessing = 0; }};"
+    )
+    frameworks_section.add(
+        f"\t\t{frameworks_admin_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (\n"
+        f"{frameworks_admin_files}\t\t\t); runOnlyForDeploymentPostprocessing = 0; }};"
     )
     frameworks_section.add(
         f"\t\t{frameworks_test_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
@@ -369,6 +416,10 @@ def main() -> int:
     dependency_id = pbx_id("dependency:testdep")
 
     targets_section = Section("PBXNativeTarget")
+    package_deps_text = "".join(
+        f"\t\t\t\t{product_dep_ids[product]} /* {product} */,\n"
+        for product in firebase_products
+    )
     targets_section.add(
         f"\t\t{app_target_id} /* DanceProgressionJournal */ = {{isa = PBXNativeTarget; "
         f"buildConfigurationList = {app_config_list} /* Build configuration list for PBXNativeTarget \"DanceProgressionJournal\" */; "
@@ -377,6 +428,7 @@ def main() -> int:
         f"\t\t\t\t{frameworks_app_id} /* Frameworks */,\n"
         f"\t\t\t\t{resources_app_id} /* Resources */,\n"
         f"\t\t\t); buildRules = (); dependencies = (); name = DanceProgressionJournal; "
+        f"packageProductDependencies = (\n{package_deps_text}\t\t\t); "
         f"productName = DanceProgressionJournal; productReference = {app_product_id} /* DanceProgressionJournal.app */; "
         f"productType = \"com.apple.product-type.application\"; }};"
     )
@@ -388,6 +440,7 @@ def main() -> int:
         f"\t\t\t\t{frameworks_admin_id} /* Frameworks */,\n"
         f"\t\t\t\t{resources_admin_id} /* Resources */,\n"
         f"\t\t\t); buildRules = (); dependencies = (); name = DanceProgressionJournalAdmin; "
+        f"packageProductDependencies = (\n{package_deps_text}\t\t\t); "
         f"productName = DanceProgressionJournalAdmin; productReference = {admin_product_id} /* DanceProgressionJournalAdmin.app */; "
         f"productType = \"com.apple.product-type.application\"; }};"
     )
@@ -625,6 +678,9 @@ def main() -> int:
         f"buildConfigurationList = {project_config_list} /* Build configuration list for PBXProject \"DanceProgressionJournal\" */; "
         f"compatibilityVersion = \"Xcode 14.0\"; developmentRegion = en; hasScannedForEncodings = 0; "
         f"knownRegions = (en, Base, ); mainGroup = {main_group_id}; "
+        f"packageReferences = (\n"
+        f"\t\t\t\t{package_id} /* XCRemoteSwiftPackageReference \"firebase-ios-sdk\" */,\n"
+        f"\t\t\t); "
         f"productRefGroup = {products_group_id} /* Products */; projectDirPath = \"\"; "
         f"projectRoot = \"\"; targets = (\n"
         f"\t\t\t\t{app_target_id} /* DanceProgressionJournal */,\n"
@@ -646,6 +702,8 @@ def main() -> int:
         dependency_section,
         configs_section,
         config_lists_section,
+        package_section,
+        product_dep_section,
     ]
     out = ["// !$*UTF8*$!", "{", "\tarchiveVersion = 1;", "\tclasses = {", "\t};", "\tobjectVersion = 60;", "\tobjects = {"]
     for section in sections:

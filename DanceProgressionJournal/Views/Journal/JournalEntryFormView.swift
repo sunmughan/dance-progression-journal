@@ -175,6 +175,7 @@ struct JournalEntryFormView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     if let savedId = viewModel.save() {
+                        FirebaseService.shared.logEvent("journal_entry_saved")
                         onSaved(savedId)
                     }
                 }

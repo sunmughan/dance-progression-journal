@@ -166,6 +166,7 @@ struct FigureFormView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     if let savedId = viewModel.save() {
+                        FirebaseService.shared.logEvent("figure_saved")
                         dismiss()
                         onSaved(savedId)
                     }

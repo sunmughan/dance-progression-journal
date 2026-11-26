@@ -43,6 +43,7 @@ private struct AdminLaunchView: View {
             // guard applies here so a test run never opens the real
             // on disk container from the admin target.
             guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+            await MainActor.run { FirebaseService.shared.configureIfPresent() }
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.ensureDanceTaxonomy() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }

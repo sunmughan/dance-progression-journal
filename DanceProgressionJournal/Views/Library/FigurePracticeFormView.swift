@@ -143,6 +143,7 @@ struct FigurePracticeFormView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     if let savedId = viewModel.save() {
+                        FirebaseService.shared.logEvent("practice_logged")
                         dismiss()
                         onSaved(savedId)
                     }

@@ -283,6 +283,7 @@ struct VideoFormView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     if let savedId = viewModel.save() {
+                        FirebaseService.shared.logEvent("video_saved")
                         dismiss()
                         onSaved(savedId)
                     }

@@ -178,6 +178,7 @@ struct CompetitionFormView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     if let savedId = viewModel.save() {
+                        FirebaseService.shared.logEvent("competition_saved")
                         onSaved(savedId)
                     }
                 }

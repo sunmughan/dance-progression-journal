@@ -191,6 +191,7 @@ final class JournalEntryFormViewModel {
                 return entry.id
             }
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This entry could not be saved. Check storage and try again."
             return nil
         }
@@ -373,6 +374,7 @@ final class DrillFormViewModel {
                 return drill.id
             }
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This drill could not be saved. Check storage and try again."
             return nil
         }
@@ -522,6 +524,7 @@ final class VideoFormViewModel {
                 return video.id
             }
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This video could not be saved. Check storage and try again."
             return nil
         }
@@ -584,6 +587,7 @@ final class FigurePracticeFormViewModel {
             try repository.insert(log)
             return log.id
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This practice could not be saved. Check storage and try again."
             return nil
         }
@@ -678,6 +682,7 @@ final class CompetitionFormViewModel {
                 return competition.id
             }
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This competition could not be saved. Check storage and try again."
             return nil
         }
@@ -767,6 +772,7 @@ final class FigureFormViewModel {
                 return figure.id
             }
         } catch {
+            FirebaseService.shared.recordNonFatal(error)
             errorMessage = "This figure could not be saved. Check storage and try again."
             return nil
         }
