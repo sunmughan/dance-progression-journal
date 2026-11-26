@@ -363,6 +363,7 @@
 				TARGETED_DEVICE_FAMILY = "1";
 			}; name = Release; };
 		84F9322E66EE35E48CCB22FE /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf";
@@ -377,8 +378,10 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = "6.0";
 				TARGETED_DEVICE_FAMILY = "1";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DanceProgressionJournal.app/DanceProgressionJournal";
 			}; name = Debug; };
 		95D0608A0642C6FDF4DD406E /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -392,6 +395,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = "6.0";
 				TARGETED_DEVICE_FAMILY = "1";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DanceProgressionJournal.app/DanceProgressionJournal";
 			}; name = Release; };
 /* End XCBuildConfiguration section */
 

@@ -446,6 +446,7 @@ def main() -> int:
     configs_section.add(config(app_release, "Release", app_release_settings))
 
     test_common = {
+        "BUNDLE_LOADER": "$(TEST_HOST)",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "GENERATE_INFOPLIST_FILE": "YES",
@@ -456,6 +457,7 @@ def main() -> int:
         "PRODUCT_NAME": "$(TARGET_NAME)",
         "SWIFT_VERSION": "6.0",
         "TARGETED_DEVICE_FAMILY": "1",
+        "TEST_HOST": "$(BUILT_PRODUCTS_DIR)/DanceProgressionJournal.app/DanceProgressionJournal",
     }
     test_debug_settings = dict(test_common)
     test_debug_settings.update({
