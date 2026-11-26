@@ -22,7 +22,7 @@ import SwiftData
 //   Figure practice logs delete with the figure (.cascade).
 
 enum AppSchemaV1_0: VersionedSchema {
-    static var versionIdentifier = Schema.Version(1, 0, 0)
+    static let versionIdentifier = Schema.Version(1, 0, 0)
     static var models: [any PersistentModel.Type] {
         [
             Dance.self,
