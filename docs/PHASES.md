@@ -209,11 +209,32 @@ Deliverables:
 5. CI green on every commit in this phase. Unit tests extended for
    video metadata, figure practice totals, competition countdown.
 
-Done: nothing yet.
+Done: video plus figures plus competitions, 26 Nov 2026, CI green
+run 45859628193, 35 tests pass.
 
-Next: Phase 2 must be done first. Video bytes live in Application
-Support in a Videos folder, one file per asset, UUID plus extension
-filename, SwiftData stores the relative path only.
+1. Video: PHPicker import and camera recording, thumbnail and size
+   preview, title, date, dance, type with choreography name or drill
+   picker, notes, Instagram link. Form disabled until a video is
+   picked. Real AVPlayer playback, Edit and Delete, type filter, grid
+   and list toggle. Commits e968842, 1dc8fbd, 059dd2d, CI green run
+   45857833708.
+2. Figures: dance tabs, level filter chip, favourites toggle, star in
+   rows. Figure detail: favourite star toggle, Log Practice button.
+   Log Figure Practice form: date, repetitions, duration, confidence
+   1 to 5, notes, optional linked video. Practice History: date, dance
+   and figure filter chips with totals over the filtered set.
+3. Competitions: list with search, NDCC/NDCA source filter,
+   upcoming/past segment, Add Competition button, reached from the
+   Home Dashboard countdown card. Competition form: name, source,
+   location, venue, start and end dates, optional registration
+   deadline, entry status, notes, save disabled until a name is
+   entered. Competition detail: checklist add with title and category,
+   ticking, Edit and Delete. Commits 1c23dfc, b66d3c1, c045b76, CI
+   green run 45859628193.
+4. The competition list screen is now reachable from the Home
+   Dashboard. Every screen is reachable.
+
+Next: Phase 4 polish and internal TestFlight build.
 
 Blocked on the client:
 
