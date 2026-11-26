@@ -130,23 +130,26 @@ final class StorageBackupService {
     }
 
     /// Best effort remote delete when a video is deleted locally.
-    /// A failure here is silent: the local delete already happened,
-    /// and the remote file is an orphan, not lost data.
-    func deleteRemoteVideo(_ video: Video) async {
+    /// Takes the id and file name, not the video object: the caller
+    /// deleted the object from the store already, so its properties
+    /// are not safe to read here. A failure is silent: the local
+    /// delete already happened, and the remote file is an orphan,
+    /// not lost data.
+    func deleteRemoteVideo(id: UUID, fileName: String) async {
         guard FirebaseService.shared.isConfigured, auth.isSignedIn, let uid = auth.userId else { return }
         var ids = backedUpIds
-        ids.remove(video.id.uuidString)
+        ids.remove(id.uuidString)
         backedUpIds = ids
         #if canImport(FirebaseStorage)
-        let ref = Storage.storage().reference().child(remotePath(video, uid: uid))
+        let ref = Storage.storage().reference().child(remotePath(id: id, fileName: fileName, uid: uid))
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             ref.delete { _ in continuation.resume() }
         }
         #endif
     }
 
-    private func remotePath(_ video: Video, uid: String) -> String {
-        "users/\(uid)/videos/\(video.id.uuidString)/\(video.fileName)"
+    private func remotePath(id: UUID, fileName: String, uid: String) -> String {
+        "users/\(uid)/videos/\(id.uuidString)/\(fileName)"
     }
 
     private func upload(_ video: Video, uid: String) async throws {
@@ -155,7 +158,7 @@ final class StorageBackupService {
             throw StorageBackupError.missingFile
         }
         #if canImport(FirebaseStorage)
-        let ref = Storage.storage().reference().child(remotePath(video, uid: uid))
+        let ref = Storage.storage().reference().child(remotePath(id: video.id, fileName: video.fileName, uid: uid))
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             ref.putFile(from: fileURL, metadata: nil) { _, error in
                 if let error {
