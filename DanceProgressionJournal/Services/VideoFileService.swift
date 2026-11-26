@@ -10,15 +10,18 @@ import UIKit
 // the same folder. This service is the only place that touches video files
 // on disk. Week 3 adds the picker and recording flows that call it.
 
-struct VideoFileService {
-    private let fileManager = FileManager.default
+/// Sendable on purpose: the video form inspects a picked video with an
+/// async duration load, and the service crosses that await. It holds no
+/// mutable state, only the base directory, so FileManager.default is
+/// used inline instead of a stored instance.
+struct VideoFileService: Sendable {
     let baseDirectory: URL
 
     init(baseDirectory: URL? = nil) {
         if let baseDirectory {
             self.baseDirectory = baseDirectory
         } else {
-            let support = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             self.baseDirectory = support
         }
     }
@@ -29,7 +32,7 @@ struct VideoFileService {
     }
 
     private func ensureVideosDirectory() throws {
-        try fileManager.createDirectory(at: videosDirectory, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: videosDirectory, withIntermediateDirectories: true)
     }
 
     /// A fresh relative path for a new asset, for example
@@ -48,36 +51,36 @@ struct VideoFileService {
         try ensureVideosDirectory()
         let relativePath = freshRelativePath(fileExtension: fileExtension)
         let destination = url(forRelativePath: relativePath)
-        if fileManager.fileExists(atPath: destination.path) {
-            try fileManager.removeItem(at: destination)
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
         }
-        try fileManager.copyItem(at: sourceURL, to: destination)
+        try FileManager.default.copyItem(at: sourceURL, to: destination)
         return relativePath
     }
 
     /// Deletes one video file and its thumbnail, if they exist.
     func deleteVideo(relativePath: String, thumbnailRelativePath: String?) throws {
         let videoURL = url(forRelativePath: relativePath)
-        if fileManager.fileExists(atPath: videoURL.path) {
-            try fileManager.removeItem(at: videoURL)
+        if FileManager.default.fileExists(atPath: videoURL.path) {
+            try FileManager.default.removeItem(at: videoURL)
         }
         if let thumbnailRelativePath {
             let thumbnailURL = url(forRelativePath: thumbnailRelativePath)
-            if fileManager.fileExists(atPath: thumbnailURL.path) {
-                try fileManager.removeItem(at: thumbnailURL)
+            if FileManager.default.fileExists(atPath: thumbnailURL.path) {
+                try FileManager.default.removeItem(at: thumbnailURL)
             }
         }
     }
 
     func deleteAllVideos() throws {
-        if fileManager.fileExists(atPath: videosDirectory.path) {
-            try fileManager.removeItem(at: videosDirectory)
+        if FileManager.default.fileExists(atPath: videosDirectory.path) {
+            try FileManager.default.removeItem(at: videosDirectory)
         }
     }
 
     /// Total bytes used by stored videos and thumbnails.
     func storageUsedBytes() -> Int64 {
-        guard let files = try? fileManager.contentsOfDirectory(
+        guard let files = try? FileManager.default.contentsOfDirectory(
             at: videosDirectory,
             includingPropertiesForKeys: [.fileSizeKey]
         ) else {
