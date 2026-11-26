@@ -62,6 +62,8 @@
 		F14FA5C44760B53EFBDC6749 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 570D25E52251444D9666F2D8 /* FirebaseAuth */; };
 		9382D0EA598B0FB6DBD2B7E8 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 77EA301B7C70B610EBF01909 /* FirebaseFirestore */; };
 		930857596E193DD275DD63CE /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 681BAE006D6D6A414AA272BE /* FirebaseStorage */; };
+		DA05F53666627D065BA4CE93 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 292DA22AA6D7ECCA32A02D5C /* GoogleService-Info.plist */; };
+		ABADE59598D57E5CCF237AE4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 27306FB4A3429DBE6258E03E /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +128,8 @@
 		133A80E69B9DAA15345972C0 /* DanceProgressionJournal.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournal.app"; path = DanceProgressionJournal.app; sourceTree = "<group>"; };
 		A20A95D8A59714E71E6A5018 /* DanceProgressionJournalAdmin.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournalAdmin.app"; path = DanceProgressionJournalAdmin.app; sourceTree = "<group>"; };
 		76F0CB77870E475EB52783E1 /* DanceProgressionJournalTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = "DanceProgressionJournalTests.xctest"; path = DanceProgressionJournalTests.xctest; sourceTree = "<group>"; };
+		292DA22AA6D7ECCA32A02D5C /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		27306FB4A3429DBE6258E03E /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -230,6 +234,7 @@
 				BB43517A2E02E3B0259D25E2 /* Info.plist */,
 				BFD2FC6B311F7AD526675EF1 /* DanceProgressionJournal.entitlements */,
 				99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */,
+				292DA22AA6D7ECCA32A02D5C /* GoogleService-Info.plist */,
 			); path = DanceProgressionJournal; sourceTree = "<group>"; };
 		82B3DD94CD19249EB4EC2ECE /* Views */ = {isa = PBXGroup; children = (
 				91DE5A1D253A66F5D5908012 /* AdminRootView.swift */,
@@ -245,6 +250,7 @@
 				82B3DD94CD19249EB4EC2ECE /* Views */,
 				2F3735CF8387FD493B809AF3 /* Info.plist */,
 				6FD1CAEF6271912305E72131 /* DanceProgressionJournalAdmin.entitlements */,
+				27306FB4A3429DBE6258E03E /* GoogleService-Info.plist */,
 			); path = DanceProgressionJournalAdmin; sourceTree = "<group>"; };
 		F5FA1223E19EE299280D706E /* DanceProgressionJournalTests */ = {isa = PBXGroup; children = (
 				B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */,
@@ -306,9 +312,11 @@
 /* Begin PBXResourcesBuildPhase section */
 		F6AD09023A80268DFA48D911 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
 				7D1DBA83F5517888388F38D2 /* Resources */,
+				DA05F53666627D065BA4CE93 /* GoogleService-Info.plist in Resources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 		6AE06FC28721BFA76C598B7A /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
 				7D1DBA83F5517888388F38D2 /* Resources */,
+				ABADE59598D57E5CCF237AE4 /* GoogleService-Info.plist in Resources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
 
