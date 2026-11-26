@@ -41,7 +41,8 @@ jobs:
           if [ -n "$NEWEST" ]; then
             python3 - "$NEWEST" <<'PY'
           import json, sys
-          d = json.load(open(sys.argv[1]))
+          raw = open(sys.argv[1]).read()
+          d, _ = json.JSONDecoder().raw_decode(raw)
           print("exception:", d.get("exception", {}).get("type"), d.get("exception", {}).get("signal"))
           print("termination:", d.get("termination", {}))
           for t in d.get("threads", []):
