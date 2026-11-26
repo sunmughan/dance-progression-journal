@@ -13,6 +13,7 @@ enum SyncCollection: String, CaseIterable {
     case checklistItems
     case figures
     case practiceLogs
+    case drillSessions
     case videos
     case dances
 }
@@ -32,12 +33,12 @@ enum SyncCollection: String, CaseIterable {
 //
 // Last write wins by updatedDate applies to journal entries,
 // drills and competitions, the three records that carry an
-// updatedDate. Figures, practice logs, checklist items, videos
-// and dances have no updatedDate on the model, so they sync by
-// push plus pull create: a remote record the device does not
-// have yet is created locally, and a local record is never
-// overwritten from remote. Local SwiftData stays the source of
-// truth offline.
+// updatedDate. Figures, practice logs, drill sessions, checklist
+// items, videos and dances have no updatedDate on the model, so
+// they sync by push plus pull create: a remote record the device
+// does not have yet is created locally, and a local record is
+// never overwritten from remote. Local SwiftData stays the source
+// of truth offline.
 
 enum FirestoreMapping {
     static func encodeJournalEntry(_ entry: JournalEntry) -> [String: Any] {
@@ -278,6 +279,31 @@ enum FirestoreMapping {
             confidenceRating: data["confidenceRating"] as? Int ?? 3,
             notes: data["notes"] as? String ?? "",
             linkedVideoId: (data["linkedVideoId"] as? String).flatMap(UUID.init(uuidString:)),
+            createdDate: createdDate
+        )
+    }
+
+    static func encodeDrillSession(_ session: DrillPracticeSession) -> [String: Any] {
+        var fields: [String: Any] = [
+            "practicedDate": session.practicedDate.timeIntervalSince1970,
+            "repetitions": session.repetitions,
+            "durationMinutes": session.durationMinutes,
+            "createdDate": session.createdDate.timeIntervalSince1970
+        ]
+        if let drillId = session.drill?.id.uuidString { fields["drillId"] = drillId }
+        return fields
+    }
+
+    static func decodeDrillSession(_ data: [String: Any], id: UUID, drills: [Drill]) -> DrillPracticeSession? {
+        guard let practicedDate = (data["practicedDate"] as? Double).map(Date.init(timeIntervalSince1970:)),
+              let createdDate = (data["createdDate"] as? Double).map(Date.init(timeIntervalSince1970:)) else { return nil }
+        let drillId = (data["drillId"] as? String).flatMap(UUID.init(uuidString:))
+        return DrillPracticeSession(
+            id: id,
+            drill: drills.first { $0.id == drillId },
+            practicedDate: practicedDate,
+            repetitions: data["repetitions"] as? Int ?? 0,
+            durationMinutes: data["durationMinutes"] as? Int ?? 0,
             createdDate: createdDate
         )
     }

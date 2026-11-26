@@ -37,6 +37,8 @@ protocol DrillRepositoryProtocol: AnyObject {
     func insert(_ drill: Drill) throws
     func delete(_ drill: Drill) throws
     func markPracticed(_ drill: Drill, on date: Date) throws
+    func fetchAllSessions() throws -> [DrillPracticeSession]
+    func insertSession(_ session: DrillPracticeSession) throws
     func save() throws
 }
 

@@ -19,11 +19,11 @@ import FirebaseFirestore
 // deletes the remote documents named by the delete tombstones.
 //
 // Last write wins by updatedDate applies to journal entries,
-// drills and competitions. Figures, practice logs, checklist
-// items, videos and dances have no updatedDate on the model, so
-// they sync by push plus pull create: a remote record the device
-// does not have yet is created locally, and a local record is
-// never overwritten from remote.
+// drills and competitions. Figures, practice logs, drill
+// sessions, checklist items, videos and dances have no
+// updatedDate on the model, so they sync by push plus pull create:
+// a remote record the device does not have yet is created
+// locally, and a local record is never overwritten from remote.
 //
 // Only changed documents are pulled: every document carries
 // updatedAt, the time of its last push, and the pull queries for
@@ -124,6 +124,7 @@ final class FirestoreSyncService {
         let localCompetitions = try competitions.fetchAllSortedByStartDate()
         let localFigures = try figures.fetchAll()
         let localLogs = try practiceLogs.fetchAllSortedNewestFirst()
+        let localDrillSessions = try drills.fetchAllSessions()
         let localVideos = try videos.fetchAllSortedNewestFirst()
 
         applied += try await pullEntries(db: db, uid: uid, since: since, local: localEntries, dances: localDances)
@@ -132,6 +133,7 @@ final class FirestoreSyncService {
         applied += try await pullChecklistItems(db: db, uid: uid, since: since, local: localCompetitions)
         applied += try await pullFigures(db: db, uid: uid, since: since, local: localFigures, dances: localDances)
         applied += try await pullPracticeLogs(db: db, uid: uid, since: since, local: localLogs, figures: localFigures, dances: localDances)
+        applied += try await pullDrillSessions(db: db, uid: uid, since: since, local: localDrillSessions, localDrills: localDrills)
         applied += try await pullVideos(db: db, uid: uid, since: since, local: localVideos, dances: localDances)
         applied += try await pullDances(db: db, uid: uid, since: since, local: localDances)
         try dances.save()
@@ -143,6 +145,7 @@ final class FirestoreSyncService {
         try await pushChecklistItems(db: db, uid: uid, now: now)
         try await pushFigures(db: db, uid: uid, now: now)
         try await pushPracticeLogs(db: db, uid: uid, now: now)
+        try await pushDrillSessions(db: db, uid: uid, now: now)
         try await pushVideos(db: db, uid: uid, now: now)
         try await pushDances(db: db, uid: uid, now: now)
         try await pushTombstones(db: db, uid: uid)
@@ -306,6 +309,19 @@ final class FirestoreSyncService {
         return applied
     }
 
+    private func pullDrillSessions(db: Firestore, uid: String, since: Double, local: [DrillPracticeSession], localDrills: [Drill]) async throws -> Int {
+        var applied = 0
+        let existingIds = Set(local.map { $0.id })
+        for document in try await changedDocuments(db: db, uid: uid, .drillSessions, since: since) {
+            guard let id = UUID(uuidString: document.documentID),
+                  !existingIds.contains(id),
+                  let remote = FirestoreMapping.decodeDrillSession(document.data(), id: id, drills: localDrills) else { continue }
+            try drills.insertSession(remote)
+            applied += 1
+        }
+        return applied
+    }
+
     private func pullVideos(db: Firestore, uid: String, since: Double, local: [Video], dances: [Dance]) async throws -> Int {
         var applied = 0
         let existingIds = Set(local.map { $0.id })
@@ -381,6 +397,14 @@ final class FirestoreSyncService {
             var fields = FirestoreMapping.encodePracticeLog(log)
             fields["updatedAt"] = now
             try await collection(db, uid: uid, .practiceLogs).document(log.id.uuidString).setData(fields)
+        }
+    }
+
+    private func pushDrillSessions(db: Firestore, uid: String, now: Double) async throws {
+        for session in try drills.fetchAllSessions() {
+            var fields = FirestoreMapping.encodeDrillSession(session)
+            fields["updatedAt"] = now
+            try await collection(db, uid: uid, .drillSessions).document(session.id.uuidString).setData(fields)
         }
     }
 

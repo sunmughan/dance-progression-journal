@@ -289,7 +289,8 @@ final class JournalEntry {
 
 // MARK: - Drill
 //
-// Roadmap section 7 item 3.
+// Roadmap section 7 item 3. Deleting a drill deletes its practice
+// sessions with it; the history belongs to the drill.
 
 @Model
 final class Drill {
@@ -312,6 +313,9 @@ final class Drill {
     var lastPracticedDate: Date?
     var createdDate: Date
     var updatedDate: Date
+
+    @Relationship(deleteRule: .cascade, inverse: \DrillPracticeSession.drill)
+    var sessions: [DrillPracticeSession] = []
 
     var focusAreaDisplayName: String {
         FocusArea.displayName(for: focusArea)
@@ -343,6 +347,41 @@ final class Drill {
         self.lastPracticedDate = lastPracticedDate
         self.createdDate = createdDate
         self.updatedDate = updatedDate
+    }
+}
+
+// MARK: - Drill practice session
+//
+// One completed set of a drill. Mark Practiced writes one row per
+// tap, carrying the drill targets at the time, so the drill detail
+// screen can show real practice history instead of only the last
+// practiced date. The audit finding 7 model. Mirrors
+// FigurePracticeLog, minus confidence and notes, which the spec
+// does not ask for on drill sets.
+
+@Model
+final class DrillPracticeSession {
+    @Attribute(.unique) var id: UUID
+    var drill: Drill?
+    var practicedDate: Date
+    var repetitions: Int
+    var durationMinutes: Int
+    var createdDate: Date
+
+    init(
+        id: UUID = UUID(),
+        drill: Drill? = nil,
+        practicedDate: Date,
+        repetitions: Int = 0,
+        durationMinutes: Int = 0,
+        createdDate: Date = Date()
+    ) {
+        self.id = id
+        self.drill = drill
+        self.practicedDate = practicedDate
+        self.repetitions = repetitions
+        self.durationMinutes = durationMinutes
+        self.createdDate = createdDate
     }
 }
 

@@ -6,13 +6,20 @@ import SwiftData
 // Versioned from day one. Schema version 1.0.0 holds all 10 entities from
 // roadmap section 7. Version 1.1.0 adds the ManagedListItem entity,
 // stores drill focus areas and checklist categories as plain strings
-// instead of enums, and adds AppSettings.videoBackupEnabled. The old
-// shapes live frozen in Models/SchemaV1_0.swift. When a later week
-// changes a model, add a new schema version and a migration stage
-// here, never an unversioned change.
+// instead of enums, and adds AppSettings.videoBackupEnabled. Version
+// 1.2.0 adds the DrillPracticeSession entity and a cascade
+// relationship from Drill to its sessions. The old shapes live
+// frozen in Models/SchemaV1_0.swift and Models/SchemaV1_1.swift.
+// When a later week changes a model, add a new schema version and a
+// migration stage here, never an unversioned change.
 
-enum AppSchemaV1_1: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 1, 0)
+/// The live schema, version 1.2.0. The 1.1.0 to 1.2.0 step is a
+/// lightweight migration: one new entity and one new relationship,
+/// both additive, so no custom stage is needed. The 1.0.0 to 1.1.0
+/// step stays custom, because Core Data cannot infer an enum to
+/// String mapping. See the stage below.
+enum AppSchemaV1_2: VersionedSchema {
+    static let versionIdentifier = Schema.Version(1, 2, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -26,14 +33,15 @@ enum AppSchemaV1_1: VersionedSchema {
             FigurePracticeLog.self,
             LocalProfile.self,
             AppSettings.self,
-            ManagedListItem.self
+            ManagedListItem.self,
+            DrillPracticeSession.self
         ]
     }
 }
 
 struct AppMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchemaV1_0.self, AppSchemaV1_1.self]
+        [AppSchemaV1_0.self, AppSchemaV1_1.self, AppSchemaV1_2.self]
     }
 
     // Custom migration from 1.0.0 to 1.1.0. The enum to String
@@ -71,6 +79,13 @@ struct AppMigrationPlan: SchemaMigrationPlan {
                 }
                 try context.save()
             }
+        ),
+        // Lightweight migration from 1.1.0 to 1.2.0. One new entity
+        // and one new relationship, both additive, so Core Data
+        // infers the mapping with no custom stage.
+        MigrationStage.lightweight(
+            fromVersion: AppSchemaV1_1.self,
+            toVersion: AppSchemaV1_2.self
         )]
     }
 
@@ -124,7 +139,7 @@ final class PersistenceController {
     let videoFileService: VideoFileService
 
     private init() {
-        let schema = Schema(versionedSchema: AppSchemaV1_1.self)
+        let schema = Schema(versionedSchema: AppSchemaV1_2.self)
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
@@ -167,7 +182,7 @@ final class PersistenceController {
     }
 
     private init(inMemory: Bool) throws {
-        let schema = Schema(versionedSchema: AppSchemaV1_1.self)
+        let schema = Schema(versionedSchema: AppSchemaV1_2.self)
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         container = try ModelContainer(
             for: schema,
@@ -235,6 +250,7 @@ final class PersistenceController {
         try deleteAll(ChecklistItem.self)
         try deleteAll(Figure.self)
         try deleteAll(FigurePracticeLog.self)
+        try deleteAll(DrillPracticeSession.self)
         try deleteAll(ManagedListItem.self)
         try videoFileService.deleteAllVideos()
         try mainContext.save()

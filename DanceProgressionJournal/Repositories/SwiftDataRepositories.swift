@@ -123,6 +123,9 @@ final class SwiftDataDrillRepository: DrillRepositoryProtocol {
 
     func delete(_ drill: Drill) throws {
         SyncTombstones.record(collection: .drills, id: drill.id)
+        for session in drill.sessions {
+            SyncTombstones.record(collection: .drillSessions, id: session.id)
+        }
         store.delete(drill)
         try store.save()
     }
@@ -130,6 +133,23 @@ final class SwiftDataDrillRepository: DrillRepositoryProtocol {
     func markPracticed(_ drill: Drill, on date: Date) throws {
         drill.lastPracticedDate = date
         drill.updatedDate = date
+        let session = DrillPracticeSession(
+            drill: drill,
+            practicedDate: date,
+            repetitions: drill.targetRepetitions,
+            durationMinutes: drill.targetDurationMinutes
+        )
+        store.insert(session)
+        try store.save()
+    }
+
+    func fetchAllSessions() throws -> [DrillPracticeSession] {
+        let descriptor = FetchDescriptor<DrillPracticeSession>(sortBy: [SortDescriptor(\.practicedDate, order: .reverse)])
+        return try store.fetch(descriptor)
+    }
+
+    func insertSession(_ session: DrillPracticeSession) throws {
+        store.insert(session)
         try store.save()
     }
 

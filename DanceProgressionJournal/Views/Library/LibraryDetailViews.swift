@@ -422,6 +422,17 @@ struct DrillDetailView: View {
         String(format: "%d:%02d", timerSeconds / 60, timerSeconds % 60)
     }
 
+    private func sessionSummary(_ session: DrillPracticeSession) -> String {
+        var parts: [String] = []
+        if session.repetitions > 0 {
+            parts.append("\(session.repetitions) repetitions")
+        }
+        if session.durationMinutes > 0 {
+            parts.append("\(session.durationMinutes) minutes")
+        }
+        return parts.joined(separator: " · ")
+    }
+
     private func detailContent(_ drill: Drill) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
@@ -509,14 +520,23 @@ struct DrillDetailView: View {
                     Text("Practice history")
                         .font(DesignTokens.Font.title3)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    if let lastPracticed = drill.lastPracticedDate {
-                        Text("Last practiced \(RelativeDateFormatter.shared.string(for: lastPracticed))")
-                            .font(DesignTokens.Font.body)
-                            .foregroundStyle(DesignTokens.Color.textPrimary)
-                    } else {
+                    let sessions = drill.sessions.sorted { $0.practicedDate > $1.practicedDate }
+                    if sessions.isEmpty {
                         Text("No practice logged yet. Tap Mark Practiced after your first set.")
                             .font(DesignTokens.Font.body)
                             .foregroundStyle(DesignTokens.Color.textSecondary)
+                    } else {
+                        ForEach(sessions) { session in
+                            HStack(spacing: DesignTokens.Space.space2) {
+                                Text(RelativeDateFormatter.shared.string(for: session.practicedDate))
+                                    .font(DesignTokens.Font.body)
+                                    .foregroundStyle(DesignTokens.Color.textPrimary)
+                                Spacer()
+                                Text(sessionSummary(session))
+                                    .font(DesignTokens.Font.body)
+                                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                            }
+                        }
                     }
                 }
 

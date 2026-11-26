@@ -23,6 +23,7 @@ enum DataExportService {
         var competitions: [CompetitionExport]
         var figures: [FigureExport]
         var practiceLogs: [PracticeLogExport]
+        var drillSessions: [DrillSessionExport]
         var managedLists: [ManagedListExport]
     }
 
@@ -125,6 +126,13 @@ enum DataExportService {
         var notes: String
     }
 
+    struct DrillSessionExport: Codable {
+        var drill: String?
+        var practicedDate: Date
+        var repetitions: Int
+        var durationMinutes: Int
+    }
+
     struct ManagedListExport: Codable {
         var kind: String
         var name: String
@@ -158,6 +166,7 @@ enum DataExportService {
         let competitions = try context.fetch(FetchDescriptor<Competition>(sortBy: [SortDescriptor(\.startDate)]))
         let figures = try context.fetch(FetchDescriptor<Figure>(sortBy: [SortDescriptor(\.name)]))
         let logs = try context.fetch(FetchDescriptor<FigurePracticeLog>(sortBy: [SortDescriptor(\.practiceDate, order: .reverse)]))
+        let sessions = try context.fetch(FetchDescriptor<DrillPracticeSession>(sortBy: [SortDescriptor(\.practicedDate, order: .reverse)]))
         let managed = try context.fetch(FetchDescriptor<ManagedListItem>(sortBy: [SortDescriptor(\.sortOrder)]))
 
         let profile = profiles.first.map { item in
@@ -180,7 +189,7 @@ enum DataExportService {
         return ExportDocument(
             exportedAt: Date(),
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0",
-            schemaVersion: "1.1.0",
+            schemaVersion: "1.2.0",
             profile: profile,
             settings: settings,
             dances: dances.map { DanceExport(name: $0.name, displayOrder: $0.displayOrder, isActive: $0.isActive) },
@@ -266,6 +275,14 @@ enum DataExportService {
                     durationMinutes: log.durationMinutes,
                     confidenceRating: log.confidenceRating,
                     notes: log.notes
+                )
+            },
+            drillSessions: sessions.map { session in
+                DrillSessionExport(
+                    drill: session.drill?.name,
+                    practicedDate: session.practicedDate,
+                    repetitions: session.repetitions,
+                    durationMinutes: session.durationMinutes
                 )
             },
             managedLists: managed.map { item in

@@ -274,6 +274,28 @@ struct RepositoryTests {
         try repository.markPracticed(drill, on: Date())
         #expect(drill.lastPracticedDate != before)
     }
+
+    @Test("Mark Practiced writes one session carrying the drill targets")
+    func markPracticedWritesSession() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        SeedData.seed(into: persistence.mainContext)
+        try persistence.mainContext.save()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let repository = SwiftDataDrillRepository(store: store)
+        let drill = try #require(try repository.fetchAll().first { $0.name == "Samba Bounce Basics" })
+        #expect(try repository.fetchAllSessions().isEmpty)
+        try repository.markPracticed(drill, on: Date(timeIntervalSince1970: 1_700_000_000))
+        let sessions = try repository.fetchAllSessions()
+        #expect(sessions.count == 1)
+        #expect(sessions.first?.drill?.id == drill.id)
+        #expect(sessions.first?.repetitions == drill.targetRepetitions)
+        #expect(sessions.first?.durationMinutes == drill.targetDurationMinutes)
+        #expect(drill.sessions.count == 1)
+        try repository.markPracticed(drill, on: Date(timeIntervalSince1970: 1_700_086_400))
+        #expect(try repository.fetchAllSessions().count == 2)
+        #expect(drill.sessions.count == 2)
+    }
 }
 
 // MARK: - Drill form tests
@@ -671,6 +693,7 @@ struct ManagedListTests {
 // MARK: - Schema migration tests
 
 @MainActor
+@Suite(.serialized)
 struct SchemaMigrationTests {
     @Test("Migration from 1.0.0 to 1.1.0 keeps drills, checklist items and settings")
     func migrationKeepsData() throws {
@@ -726,6 +749,52 @@ struct SchemaMigrationTests {
         #expect(settings.count == 1)
         #expect(settings.first?.videoBackupEnabled == false)
         #expect(settings.first?.perVideoSizeLimitMB == 500)
+    }
+
+    @Test("Migration from 1.1.0 to 1.2.0 keeps drills and adds sessions")
+    func migrationAddsDrillSessions() throws {
+        let storeURL = ModelConfiguration().url
+        try? FileManager.default.createDirectory(at: storeURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let removeStoreFiles = {
+            for suffix in ["", "-wal", "-shm"] {
+                try? FileManager.default.removeItem(atPath: storeURL.path + suffix)
+            }
+        }
+        removeStoreFiles()
+        defer { removeStoreFiles() }
+
+        // Build a 1.1.0 store with one drill, using the frozen 1.1.0
+        // shapes. focusArea is already a plain string here.
+        let v1Schema = Schema(versionedSchema: AppSchemaV1_1.self)
+        let v1Configuration = ModelConfiguration(schema: v1Schema)
+        let v1Container = try ModelContainer(for: v1Schema, configurations: [v1Configuration])
+        let v1Context = v1Container.mainContext
+        let oldDrill = AppSchemaV1_1.Drill(name: "Rumba Walks", focusArea: "footwork", targetRepetitions: 20)
+        v1Context.insert(oldDrill)
+        try v1Context.save()
+
+        // Open the same file with the 1.2.0 schema and migration plan.
+        let v2Schema = Schema(versionedSchema: AppSchemaV1_2.self)
+        let v2Configuration = ModelConfiguration(schema: v2Schema)
+        let v2Container = try ModelContainer(for: v2Schema, migrationPlan: AppMigrationPlan.self, configurations: [v2Configuration])
+        let v2Context = v2Container.mainContext
+
+        let drills = try v2Context.fetch(FetchDescriptor<Drill>())
+        #expect(drills.count == 1)
+        #expect(drills.first?.focusArea == "footwork")
+        #expect(drills.first?.targetRepetitions == 20)
+        #expect(try v2Context.fetchCount(FetchDescriptor<DrillPracticeSession>()) == 0)
+
+        // A session can be written against the migrated drill, and
+        // deleting the drill takes its sessions with it.
+        let drill = try #require(drills.first)
+        let session = DrillPracticeSession(drill: drill, practicedDate: Date(), repetitions: 20, durationMinutes: 15)
+        v2Context.insert(session)
+        try v2Context.save()
+        #expect(try v2Context.fetchCount(FetchDescriptor<DrillPracticeSession>()) == 1)
+        v2Context.delete(drill)
+        try v2Context.save()
+        #expect(try v2Context.fetchCount(FetchDescriptor<DrillPracticeSession>()) == 0)
     }
 }
 
@@ -940,6 +1009,34 @@ struct FirestoreMappingTests {
         #expect(decodedDance.style == .internationalLatin)
         #expect(decodedDance.displayOrder == 5)
     }
+
+    @Test("Drill practice session survives a mapping round trip")
+    func drillSessionRoundTrip() throws {
+        let dance = Dance(name: "Rumba", displayOrder: 3)
+        let drill = Drill(
+            name: "Rumba Walks",
+            dance: dance,
+            focusArea: "footwork",
+            targetRepetitions: 20,
+            targetDurationMinutes: 15
+        )
+        let session = DrillPracticeSession(
+            drill: drill,
+            practicedDate: Date(timeIntervalSince1970: 1_700_000_000),
+            repetitions: 20,
+            durationMinutes: 15
+        )
+        let decoded = try #require(
+            FirestoreMapping.decodeDrillSession(
+                FirestoreMapping.encodeDrillSession(session), id: session.id, drills: [drill]
+            )
+        )
+        #expect(decoded.practicedDate == session.practicedDate)
+        #expect(decoded.repetitions == 20)
+        #expect(decoded.durationMinutes == 15)
+        #expect(decoded.drill?.id == drill.id)
+        #expect(FirestoreMapping.decodeDrillSession(["repetitions": 1], id: UUID(), drills: []) == nil)
+    }
 }
 
 // MARK: - Sync tombstone tests
@@ -1034,7 +1131,7 @@ struct SyncNoConfigTests {
         #expect((document["competitions"] as? [[String: Any]])?.count == 1)
         #expect((document["figures"] as? [[String: Any]])?.count == 6)
         #expect((document["dances"] as? [[String: Any]])?.count == 5)
-        #expect(document["schemaVersion"] as? String == "1.1.0")
+        #expect(document["schemaVersion"] as? String == "1.2.0")
         try FileManager.default.removeItem(at: directory)
     }
 }
