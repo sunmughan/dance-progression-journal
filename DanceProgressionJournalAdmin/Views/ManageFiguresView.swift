@@ -150,7 +150,3 @@ struct ManageFiguresView: View {
         return figure.dance?.id == selectedDance.id
     }
 }
-
-extension UUID: Identifiable {
-    public var id: UUID { self }
-}

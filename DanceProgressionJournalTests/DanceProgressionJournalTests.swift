@@ -763,7 +763,7 @@ struct AuthServiceTests {
 @MainActor
 struct FirestoreMappingTests {
     @Test("Journal entry survives an encode decode round trip")
-    func journalEntryRoundTrip() {
+    func journalEntryRoundTrip() throws {
         let dance = Dance(name: "Cha cha", displayOrder: 1)
         let entry = JournalEntry(
             title: "Lock step clicked",
@@ -803,7 +803,7 @@ struct FirestoreMappingTests {
     }
 
     @Test("Drill survives an encode decode round trip")
-    func drillRoundTrip() {
+    func drillRoundTrip() throws {
         let dance = Dance(name: "Rumba", displayOrder: 3)
         let drill = Drill(
             name: "Rumba Walks",
@@ -828,7 +828,7 @@ struct FirestoreMappingTests {
     }
 
     @Test("Competition and checklist item survive round trips")
-    func competitionAndChecklistRoundTrip() {
+    func competitionAndChecklistRoundTrip() throws {
         let competition = Competition(
             name: "NDCA Nationals",
             source: .ndca,
@@ -869,7 +869,7 @@ struct FirestoreMappingTests {
     }
 
     @Test("Figure, practice log, video and dance survive round trips")
-    func figureLogVideoDanceRoundTrip() {
+    func figureLogVideoDanceRoundTrip() throws {
         let dance = Dance(name: "Jive", displayOrder: 5)
         let figure = Figure(
             name: "American Spin",
