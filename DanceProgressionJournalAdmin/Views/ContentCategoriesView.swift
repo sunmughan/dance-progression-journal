@@ -22,7 +22,6 @@ struct ContentCategoriesView: View {
     @Query(sort: \ManagedListItem.sortOrder) private var managedItems: [ManagedListItem]
     @Query private var drills: [Drill]
     @Query private var checklistItems: [ChecklistItem]
-    @Query private var entries: [JournalEntry]
 
     @State private var errorMessage: String?
     @State private var blockedItem: ManagedListItem?
@@ -43,8 +42,14 @@ struct ContentCategoriesView: View {
     }
 
     var body: some View {
-        List {
-            Section("Journal categories and dances") {
+        VStack(spacing: 0) {
+            if let errorMessage {
+                ErrorBanner(message: errorMessage)
+                    .padding(.horizontal, DesignTokens.Space.screenMargin)
+                    .padding(.top, DesignTokens.Space.space2)
+            }
+            List {
+                Section("Journal categories and dances") {
                 ForEach(journalCategories) { item in
                     Toggle(item.displayName, isOn: Binding(
                         get: { item.isActive },
@@ -80,12 +85,21 @@ struct ContentCategoriesView: View {
             }
 
             Section("Drill focus areas") {
+                if focusAreas.isEmpty {
+                    Text("No items. Add one below.")
+                        .font(DesignTokens.Font.body)
+                        .foregroundStyle(DesignTokens.Color.textSecondary)
+                }
                 ForEach(focusAreas) { item in
                     managedRow(item: item, useCount: drills.filter { $0.focusArea == item.name }.count, useLabel: "drills")
                 }
                 HStack(spacing: DesignTokens.Space.space2) {
                     TextField("Add a focus area", text: $newFocusAreaName)
                         .font(DesignTokens.Font.body)
+                        .padding(DesignTokens.Space.space3)
+                        .frame(height: 52)
+                        .background(DesignTokens.Color.backgroundSecondary)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                         .autocorrectionDisabled()
                     Button("Add") { addItem(kind: .focusArea, name: newFocusAreaName) }
                         .font(DesignTokens.Font.subheadline)
@@ -95,12 +109,21 @@ struct ContentCategoriesView: View {
             }
 
             Section("Checklist categories") {
+                if checklistCategories.isEmpty {
+                    Text("No items. Add one below.")
+                        .font(DesignTokens.Font.body)
+                        .foregroundStyle(DesignTokens.Color.textSecondary)
+                }
                 ForEach(checklistCategories) { item in
                     managedRow(item: item, useCount: checklistItems.filter { $0.category == item.name }.count, useLabel: "items")
                 }
                 HStack(spacing: DesignTokens.Space.space2) {
                     TextField("Add a category", text: $newChecklistCategoryName)
                         .font(DesignTokens.Font.body)
+                        .padding(DesignTokens.Space.space3)
+                        .frame(height: 52)
+                        .background(DesignTokens.Color.backgroundSecondary)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                         .autocorrectionDisabled()
                     Button("Add") { addItem(kind: .checklistCategory, name: newChecklistCategoryName) }
                         .font(DesignTokens.Font.subheadline)
@@ -108,13 +131,9 @@ struct ContentCategoriesView: View {
                         .disabled(newChecklistCategoryName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
-
-            if let errorMessage {
-                ErrorBanner(message: errorMessage)
-            }
         }
         .navigationTitle("Content and Categories")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .sheet(item: $editingItem) { item in
             NavigationStack {
                 EditManagedItemView(item: item)
@@ -130,6 +149,7 @@ struct ContentCategoriesView: View {
             Button("OK", role: .cancel) { blockedItem = nil }
         }
     }
+}
 
     private func managedRow(item: ManagedListItem, useCount: Int, useLabel: String) -> some View {
         HStack {
@@ -145,22 +165,22 @@ struct ContentCategoriesView: View {
             Button("Edit") { editingItem = item }
                 .font(DesignTokens.Font.subheadline)
                 .foregroundStyle(DesignTokens.Color.accent)
-            Button("Remove") { removeItem(item) }
-                .font(DesignTokens.Font.subheadline)
-                .foregroundStyle(.red)
+            DestructiveButton(title: "Remove") { removeItem(item) }
         }
         .frame(minHeight: 52)
     }
 
+    /// Only focus areas and checklist categories have a Remove
+    /// action. Journal categories are toggled, never removed, so
+    /// there is no journal category branch here.
     private func isInUse(_ item: ManagedListItem) -> Bool {
-        switch item.kind {
-        case .journalCategory:
-            return entries.contains { $0.category.rawValue == item.name }
-        case .focusArea:
+        if item.kind == .focusArea {
             return drills.contains { $0.focusArea == item.name }
-        case .checklistCategory:
+        }
+        if item.kind == .checklistCategory {
             return checklistItems.contains { $0.category == item.name }
         }
+        return false
     }
 
     private func removeItem(_ item: ManagedListItem) {

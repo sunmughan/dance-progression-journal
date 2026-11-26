@@ -33,6 +33,7 @@ struct AppSettingsManagementView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var savedMessage: String?
+    @FocusState private var sizeFieldFocused: Bool
 
     private var settings: AppSettings? { settingsList.first }
 
@@ -45,6 +46,14 @@ struct AppSettingsManagementView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+                    if let errorMessage {
+                        ErrorBanner(message: errorMessage)
+                    }
+                    if let savedMessage {
+                        Text(savedMessage)
+                            .font(DesignTokens.Font.subheadline)
+                            .foregroundStyle(DesignTokens.Color.accent)
+                    }
                     VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                         Text("Defaults for the user app")
                             .font(DesignTokens.Font.title3)
@@ -96,10 +105,14 @@ struct AppSettingsManagementView: View {
                             .background(DesignTokens.Color.backgroundSecondary)
                             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                             .keyboardType(.numberPad)
-                        if !sizeLimitValid {
+                            .focused($sizeFieldFocused)
+                        // The helper shows only after the field loses
+                        // focus, so a half typed value like "5" on the
+                        // way to "500" never flashes an error.
+                        if !sizeLimitValid && !sizeFieldFocused {
                             Text("Enter a size between 50 MB and 2000 MB.")
                                 .font(DesignTokens.Font.footnote)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(DesignTokens.Color.danger)
                         }
                     }
 
@@ -137,69 +150,81 @@ struct AppSettingsManagementView: View {
                             .font(DesignTokens.Font.body)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                     }
-
-                    if let errorMessage {
-                        ErrorBanner(message: errorMessage)
-                    }
-                    if let savedMessage {
-                        Text(savedMessage)
-                            .font(DesignTokens.Font.subheadline)
-                            .foregroundStyle(DesignTokens.Color.accent)
-                    }
                 }
                 .padding(DesignTokens.Space.screenMargin)
             }
             .background(DesignTokens.Color.backgroundPrimary)
         }
         .navigationTitle("App Settings")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .task {
             loadCurrentValues()
         }
         .safeAreaInset(edge: .bottom) {
-            Button("Save settings") { saveSettings() }
-                .font(DesignTokens.Font.headline)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(DesignTokens.Color.accent)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
-                .padding(.horizontal, DesignTokens.Space.screenMargin)
-                .padding(.vertical, DesignTokens.Space.space2)
-                .background(DesignTokens.Color.backgroundPrimary)
-                .disabled(!sizeLimitValid || isSaving)
-                .accessibilityLabel("Save settings")
+            PrimaryButton(title: "Save settings", isLoading: isSaving, isDisabled: !sizeLimitValid) {
+                Task { await saveSettings() }
+            }
+            .padding(.horizontal, DesignTokens.Space.screenMargin)
+            .padding(.vertical, DesignTokens.Space.space2)
+            .background(DesignTokens.Color.backgroundPrimary)
         }
     }
 
     private func loadCurrentValues() {
-        guard let settings else { return }
-        defaultDanceId = settings.defaultDanceId
-        defaultVideoType = settings.defaultVideoType
-        remindersEnabled = settings.remindersEnabled
-        preferredDateFormat = settings.preferredDateFormat
-        sizeLimitText = "\(settings.perVideoSizeLimitMB)"
-        videoQuality = settings.videoQuality
+        if let settings {
+            defaultDanceId = settings.defaultDanceId
+            defaultVideoType = settings.defaultVideoType
+            remindersEnabled = settings.remindersEnabled
+            preferredDateFormat = settings.preferredDateFormat
+            sizeLimitText = "\(settings.perVideoSizeLimitMB)"
+            videoQuality = settings.videoQuality
+        } else {
+            // No settings row yet: start from the spec sample default
+            // dance, read from the taxonomy, and the model defaults,
+            // not literals. The other fields already start at the
+            // model defaults.
+            defaultDanceId = dances.first { $0.name == "Rumba" }?.id
+            sizeLimitText = "\(AppSettings().perVideoSizeLimitMB)"
+        }
     }
 
-    private func saveSettings() {
-        guard let settings, sizeLimitValid, let limit = Int(sizeLimitText.trimmingCharacters(in: .whitespaces)) else { return }
+    private func saveSettings() async {
+        guard sizeLimitValid, let limit = Int(sizeLimitText.trimmingCharacters(in: .whitespaces)) else { return }
         isSaving = true
         defer { isSaving = false }
-        settings.defaultDanceId = defaultDanceId
-        settings.defaultVideoType = defaultVideoType
-        settings.remindersEnabled = remindersEnabled
-        settings.preferredDateFormat = preferredDateFormat
-        settings.perVideoSizeLimitMB = limit
-        settings.videoQuality = videoQuality
+        await Task.yield()
         do {
-            try dependencies.profile.save()
+            if let settings {
+                applyFormValues(to: settings, limit: limit)
+                try dependencies.profile.save()
+            } else {
+                // No settings row yet: create one instead of silently
+                // doing nothing.
+                let settings = AppSettings(
+                    defaultDanceId: defaultDanceId,
+                    defaultVideoType: defaultVideoType,
+                    remindersEnabled: remindersEnabled,
+                    preferredDateFormat: preferredDateFormat,
+                    videoQuality: videoQuality,
+                    perVideoSizeLimitMB: limit
+                )
+                try dependencies.profile.insertSettings(settings)
+            }
             savedMessage = "Settings saved."
             errorMessage = nil
         } catch {
             errorMessage = "Settings could not be saved. Check storage and try again."
             savedMessage = nil
         }
+    }
+
+    private func applyFormValues(to settings: AppSettings, limit: Int) {
+        settings.defaultDanceId = defaultDanceId
+        settings.defaultVideoType = defaultVideoType
+        settings.remindersEnabled = remindersEnabled
+        settings.preferredDateFormat = preferredDateFormat
+        settings.perVideoSizeLimitMB = limit
+        settings.videoQuality = videoQuality
     }
 
     private func detailRow(label: String, value: String) -> some View {

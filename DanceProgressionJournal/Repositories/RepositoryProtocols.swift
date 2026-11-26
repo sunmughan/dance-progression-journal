@@ -61,6 +61,7 @@ protocol CompetitionRepositoryProtocol: AnyObject {
     func toggleChecklistItem(_ item: ChecklistItem) throws
     func insertChecklistItem(_ item: ChecklistItem) throws
     func addChecklistItem(title: String, category: String, to competition: Competition) throws
+    func deleteChecklistItem(_ item: ChecklistItem) throws
     func save() throws
 }
 
@@ -97,6 +98,7 @@ protocol ProfileRepositoryProtocol: AnyObject {
     func fetchProfile() throws -> LocalProfile?
     func insert(_ profile: LocalProfile) throws
     func fetchSettings() throws -> AppSettings?
+    func insertSettings(_ settings: AppSettings) throws
     func save() throws
 }
 

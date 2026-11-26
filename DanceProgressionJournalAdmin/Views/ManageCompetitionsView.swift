@@ -69,7 +69,7 @@ struct ManageCompetitionsView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingAddForm) {
             NavigationStack {
-                CompetitionFormView(competitionId: nil)
+                CompetitionFormView(competitionId: nil, onSaved: { _ in showingAddForm = false })
             }
         }
         .alert(

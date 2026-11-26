@@ -101,6 +101,7 @@ struct FigureFormView: View {
                         .font(DesignTokens.Font.body)
                         .padding(DesignTokens.Space.space2)
                         .frame(minHeight: 90)
+                        .scrollContentBackground(.hidden)
                         .background(DesignTokens.Color.backgroundSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                 }
@@ -113,6 +114,7 @@ struct FigureFormView: View {
                         .font(DesignTokens.Font.body)
                         .padding(DesignTokens.Space.space2)
                         .frame(minHeight: 90)
+                        .scrollContentBackground(.hidden)
                         .background(DesignTokens.Color.backgroundSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                 }
@@ -141,7 +143,7 @@ struct FigureFormView: View {
                         .background(DesignTokens.Color.backgroundSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                         .autocorrectionDisabled()
-                    Text("Empty until the client NDCA list arrives, due 9 Dec 2026.")
+                    Text("Empty until the client NDCA list arrives.")
                         .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 }
@@ -164,14 +166,20 @@ struct FigureFormView: View {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    if let savedId = viewModel.save() {
-                        FirebaseService.shared.logEvent("figure_saved")
-                        dismiss()
-                        onSaved(savedId)
+                if viewModel.isSaving {
+                    ProgressView()
+                } else {
+                    Button("Save") {
+                        Task {
+                            if let savedId = await viewModel.save() {
+                                FirebaseService.shared.logEvent("figure_saved")
+                                dismiss()
+                                onSaved(savedId)
+                            }
+                        }
                     }
+                    .disabled(!viewModel.canSave)
                 }
-                .disabled(!viewModel.canSave || viewModel.isSaving)
             }
         }
     }

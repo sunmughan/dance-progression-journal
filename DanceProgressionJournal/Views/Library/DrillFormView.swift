@@ -104,6 +104,7 @@ struct DrillFormView: View {
                         .font(DesignTokens.Font.body)
                         .padding(DesignTokens.Space.space2)
                         .frame(minHeight: 120)
+                        .scrollContentBackground(.hidden)
                         .background(DesignTokens.Color.backgroundSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                 }
@@ -166,14 +167,20 @@ struct DrillFormView: View {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    if let savedId = viewModel.save() {
-                        FirebaseService.shared.logEvent("drill_saved")
-                        dismiss()
-                        onSaved(savedId)
+                if viewModel.isSaving {
+                    ProgressView()
+                } else {
+                    Button("Save") {
+                        Task {
+                            if let savedId = await viewModel.save() {
+                                FirebaseService.shared.logEvent("drill_saved")
+                                dismiss()
+                                onSaved(savedId)
+                            }
+                        }
                     }
+                    .disabled(!viewModel.canSave)
                 }
-                .disabled(!viewModel.canSave || viewModel.isSaving)
             }
         }
     }

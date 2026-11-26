@@ -296,6 +296,20 @@ struct RepositoryTests {
         #expect(try repository.fetchAllSessions().count == 2)
         #expect(drill.sessions.count == 2)
     }
+
+    @Test("Settings can be created when no settings row exists")
+    func settingsInsertWhenMissing() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let repository = SwiftDataProfileRepository(store: store)
+        #expect(try repository.fetchSettings() == nil)
+        let settings = AppSettings(defaultDanceId: nil, perVideoSizeLimitMB: 750)
+        try repository.insertSettings(settings)
+        let fetched = try #require(try repository.fetchSettings())
+        #expect(fetched.perVideoSizeLimitMB == 750)
+        #expect(fetched.videoBackupEnabled == false)
+    }
 }
 
 // MARK: - Drill form tests
@@ -313,17 +327,17 @@ struct DrillFormTests {
     }
 
     @Test("Drill form cannot save without a name")
-    func drillFormRequiresName() throws {
+    func drillFormRequiresName() async throws {
         let (repository, dances) = try danceStore()
         let model = DrillFormViewModel(repository: repository)
         model.load(drill: nil, dances: dances, focusAreas: FocusArea.allCases.map { $0.rawValue })
         #expect(model.canSave == false)
-        #expect(model.save() == nil)
+        #expect(await model.save() == nil)
         #expect(try repository.fetchAll().isEmpty)
     }
 
     @Test("Drill form saves a new drill with targets")
-    func drillFormCreatesDrill() throws {
+    func drillFormCreatesDrill() async throws {
         let (repository, dances) = try danceStore()
         let model = DrillFormViewModel(repository: repository)
         model.load(drill: nil, dances: dances, focusAreas: FocusArea.allCases.map { $0.rawValue })
@@ -334,7 +348,7 @@ struct DrillFormTests {
         model.targetDurationMinutes = 10
         model.difficulty = .intermediate
         model.isFavourite = true
-        let savedId = try #require(model.save())
+        let savedId = try #require(await model.save())
         let saved = try #require(try repository.fetchAll().first { $0.id == savedId })
         #expect(saved.name == "Cha Cha Lock Steps")
         #expect(saved.targetRepetitions == 24)
@@ -344,7 +358,7 @@ struct DrillFormTests {
     }
 
     @Test("Drill form edit updates the drill in place")
-    func drillFormEditsDrill() throws {
+    func drillFormEditsDrill() async throws {
         let (repository, dances) = try danceStore()
         let drill = Drill(
             name: "Rumba Walks",
@@ -359,7 +373,7 @@ struct DrillFormTests {
         #expect(model.isEditing == true)
         #expect(model.name == "Rumba Walks")
         model.targetRepetitions = 30
-        let savedId = try #require(model.save())
+        let savedId = try #require(await model.save())
         #expect(savedId == drill.id)
         #expect(try repository.fetchAll().count == 1)
         #expect(try repository.fetchAll().first?.targetRepetitions == 30)
@@ -541,19 +555,19 @@ struct CompetitionFormTests {
     }
 
     @Test("Competition form cannot save without a name")
-    func competitionFormRequiresName() throws {
+    func competitionFormRequiresName() async throws {
         let repository = try competitionStore()
         let model = CompetitionFormViewModel(repository: repository)
         model.load(competition: nil)
         #expect(model.canSave == false)
-        #expect(model.save() == nil)
+        #expect(await model.save() == nil)
         #expect(try repository.fetchAllSortedByStartDate().isEmpty)
         model.name = "NDCA Nationals"
         #expect(model.canSave == true)
     }
 
     @Test("Competition form saves a competition with a countdown")
-    func competitionFormCreatesCompetition() throws {
+    func competitionFormCreatesCompetition() async throws {
         let repository = try competitionStore()
         let model = CompetitionFormViewModel(repository: repository)
         model.load(competition: nil)
@@ -563,7 +577,7 @@ struct CompetitionFormTests {
         model.startDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
         model.endDate = Calendar.current.date(byAdding: .day, value: 32, to: Date()) ?? Date()
         model.entryStatus = .entered
-        let savedId = try #require(model.save())
+        let savedId = try #require(await model.save())
         let saved = try #require(try repository.fetchAllSortedByStartDate().first { $0.id == savedId })
         #expect(saved.name == "NDCA Nationals")
         #expect(saved.source == .ndca)
@@ -572,7 +586,7 @@ struct CompetitionFormTests {
     }
 
     @Test("Competition form edit updates the competition in place")
-    func competitionFormEditsCompetition() throws {
+    func competitionFormEditsCompetition() async throws {
         let repository = try competitionStore()
         let competition = Competition(
             name: "NDCC Regional",
@@ -589,10 +603,40 @@ struct CompetitionFormTests {
         #expect(model.isEditing == true)
         #expect(model.name == "NDCC Regional")
         model.entryStatus = .entered
-        let savedId = try #require(model.save())
+        model.websiteLink = "https://example.com/event"
+        let savedId = try #require(await model.save())
         #expect(savedId == competition.id)
         #expect(try repository.fetchAllSortedByStartDate().count == 1)
         #expect(try repository.fetchAllSortedByStartDate().first?.entryStatus == .entered)
+        #expect(try repository.fetchAllSortedByStartDate().first?.websiteLink == "https://example.com/event")
+    }
+
+    @Test("Competition form manages the checklist and the website link")
+    func competitionFormManagesChecklist() throws {
+        let repository = try competitionStore()
+        let competition = Competition(
+            name: "NDCA Nationals",
+            source: .ndca,
+            location: "Orlando",
+            venue: "Hall",
+            startDate: Date(),
+            endDate: Date()
+        )
+        try repository.insert(competition)
+        let model = CompetitionFormViewModel(repository: repository)
+        model.load(competition: competition)
+        #expect(model.checklistItems.isEmpty)
+        model.addChecklistItem(title: "Book travel", category: "travel")
+        model.addChecklistItem(title: "Pack shoes", category: "costume")
+        #expect(model.checklistItems.count == 2)
+        let first = try #require(model.checklistItems.first)
+        model.updateChecklistItem(first, title: "Book flights", category: "travel")
+        #expect(model.checklistItems.first?.title == "Book flights")
+        model.toggleChecklistItem(first)
+        #expect(model.checklistItems.first?.isDone == true)
+        model.removeChecklistItem(first)
+        #expect(model.checklistItems.count == 1)
+        #expect(model.checklistItems.first?.title == "Pack shoes")
     }
 
     @Test("Checklist add and toggle work through the repository")
@@ -659,7 +703,7 @@ struct ManagedListTests {
     }
 
     @Test("A custom focus area can be added and a drill can use it")
-    func customFocusAreaCanBeAddedAndUsed() throws {
+    func customFocusAreaCanBeAddedAndUsed() async throws {
         let (repository, context, dances) = try listStore()
         let custom = ManagedListItem(kind: .focusArea, name: "turns", sortOrder: 5)
         try repository.insert(custom)
@@ -673,7 +717,7 @@ struct ManagedListTests {
         model.load(drill: nil, dances: dances, focusAreas: active.map { $0.name })
         model.name = "Spot turn practice"
         model.focusArea = "turns"
-        let savedId = try #require(model.save())
+        let savedId = try #require(await model.save())
         let saved = try #require(try drills.fetchAll().first { $0.id == savedId })
         #expect(saved.focusArea == "turns")
         #expect(saved.focusAreaDisplayName == "turns")

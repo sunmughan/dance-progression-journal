@@ -338,6 +338,110 @@ Not done yet, manual or client blocked:
 4. Video backup stays off by default; the Blaze plan cost needs
    her approval before any video uploads.
 
+## UI audit, 26 Nov 2026, user order 23:47 IST, hard
+
+Seven rules for the whole build, user app plus admin app,
+including screens already built: complete exactly as May
+specified; zero AI slop, not even one icon; no button label wraps
+to two lines; buttons that fit in one row sit in one row; nothing
+overflows or leaves the viewport; small details checked, content
+gets full space, top elements take less than half the screen;
+every screen verified at 390px width.
+
+User app audit, 44 findings, all fixed:
+
+1. Batch 1, commit 6e3c5d3: one line button labels, shared button
+   labels for NavigationLink buttons, no hardcoded sample
+   comparison, single large title on Home, empty state buttons,
+   metadata lines that drop empty parts, sort menu out of the
+   chip row, Instagram links only for real https URLs, title and
+   timing sizes, Mark Practiced plus Start Timer in one row,
+   competition detail card with editable entry status and a 160pt
+   label column, competition list filters above the list with
+   entry status and Ended rows, figure library dance tabs with
+   the three spec empty states, video and drill empty state
+   actions, video preview thumbnail with duration, menu pickers
+   where labels truncate, save reason and size label fixes,
+   Uncategorised drill section, 48pt above Welcome Continue.
+2. Batch 2, commit 87e902c: Insights opens on the current month
+   with a one time fallback to the newest month with entries, six
+   month trend chart, Practice History with Totals first, filter
+   chips, date grouped tappable session rows, spec empty states
+   with Browse figures.
+3. Batch 3, commit 9114cc2: Settings rebuilt as the grouped list
+   from spec section 20, Export data to one JSON file with a share
+   sheet and the spec failure banner, Content Management rows
+   that deep link into the admin app through the danceadmin URL
+   scheme, SyncSettingsView renders without its card inside the
+   list.
+4. Finding 7 needed a new model, not a view fix, commit 77f7cfb:
+   DrillPracticeSession, schema 1.2.0, Mark Practiced writes one
+   session per tap carrying the drill targets, Drill Detail lists
+   sessions newest first, sessions sync through Firestore and are
+   included in the data export.
+
+Admin audit, 34 findings, all fixed except the spec decisions
+below:
+
+1. Batch A, commit 32d712b: dashboard cards smaller with a
+   chevron on live cards only and a Count only line on the three
+   count only cards, area rows added for Journal entries, Videos
+   and Practice sessions, real counts on the Content and
+   Categories and App Settings rows, first open spinner, practice
+   sessions count figure logs plus drill sessions, Add buttons
+   inside every empty state, Clear search inside the no results
+   state, rows hide the misleading chevron, metadata joins only
+   non empty parts, Remove uses DestructiveButton with the danger
+   token and a 44pt tap target, pinned Add buttons use the shared
+   PrimaryButton label, competition countdown as its own trailing
+   label, past competitions read Ended.
+2. Batch B: checklist add, edit and remove in the competition
+   form with a website field, form saves are async so the toolbar
+   spinner can paint, TextEditors hide their scroll background so
+   the grey field renders, Content and Categories shows "No items.
+   Add one below." on emptied lists with styled Add fields and the
+   error banner above the list, App Settings uses the large title,
+   seeds the default dance from the Rumba record and the size
+   limit from the model default, creates the settings row on save
+   instead of silently doing nothing, uses PrimaryButton with the
+   confirmation at the top, and shows the size error only after
+   the field loses focus so half typed values never flash it.
+
+Spec amendments decided during the audit, not code changes:
+
+1. Admin App Settings keeps its Sync section. Spec 06 was
+   written when Phase 1 had no server; Phase 4 connected both
+   apps to Firebase on the owner's explicit order, so the Sync
+   section is the visible part of that connection.
+2. The privacy text stays as written: "Your data stays on this
+   device unless you sign in to sync it." Spec F says "No
+   account. No sign in.", which stopped being true when Phase 4
+   added sign in.
+3. Spec F names the bundle ID com.codeair.danceprogressionjournal,
+   which is the user app. The admin bundle ID really is
+   com.codeair.danceprogressionjournal.admin, verified in the
+   project file; the code fallback is correct and the spec is
+   wrong.
+4. The dashboard count only cards stay count only. Spec A says
+   every card goes to a management screen, but no management
+   screen exists for journal entries, videos or practice
+   sessions. Building three management screens needs a spec
+   decision first; until then the cards are visibly non tappable
+   and the area list shows their counts.
+
+CI budget block, 26 Nov 2026: every run since commit 13b12f0
+fails with all three jobs at zero steps and the annotation "The
+job was not started because an Actions budget is preventing
+further use." No code runs, so no code error is possible from
+these runs. The code at HEAD is the code that went green at
+88ce1d3 plus the audit fixes above, which cannot be verified
+green until the account Actions budget is resolved. Pushing is
+harmless: failed jobs never start and consume no minutes. This
+needs the account owner to check billing or wait for the monthly
+reset. Runs affected: 45874299625, 45876911402, 45877051382,
+45877486785, 45878534794. Test count at HEAD is 58, up from 52
+at 88ce1d3.
+
 Next: Phase 5 final fixes and delivery.
 
 Blocked on the client:

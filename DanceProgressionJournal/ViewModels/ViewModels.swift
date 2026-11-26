@@ -363,10 +363,14 @@ final class DrillFormViewModel {
     }
 
     /// Saves and returns the saved drill id, or nil when the save failed.
-    func save() -> UUID? {
+    /// Async so the toolbar spinner can paint while the save runs: a
+    /// synchronous save sets isSaving true then false in the same
+    /// runloop turn and the spinner never displays.
+    func save() async -> UUID? {
         guard canSave, let dance = selectedDance else { return nil }
         isSaving = true
         defer { isSaving = false }
+        await Task.yield()
         do {
             if let drill = editingDrill {
                 drill.name = name.trimmingCharacters(in: .whitespaces)
@@ -640,6 +644,7 @@ final class CompetitionFormViewModel {
     var hasRegistrationDeadline = false
     var registrationDeadline = Date()
     var entryStatus: EntryStatus = .interested
+    var websiteLink = ""
     var notes = ""
     var isSaving = false
     var errorMessage: String?
@@ -653,6 +658,47 @@ final class CompetitionFormViewModel {
     }
 
     var isEditing: Bool { editingCompetition != nil }
+
+    /// The competition's checklist, in display order. Empty for a
+    /// new competition: checklist items belong to a saved record.
+    var checklistItems: [ChecklistItem] {
+        editingCompetition?.checklistItems.sorted { $0.sortOrder < $1.sortOrder } ?? []
+    }
+
+    func addChecklistItem(title: String, category: String) {
+        guard let competition = editingCompetition else { return }
+        do {
+            try repository.addChecklistItem(title: title, category: category, to: competition)
+        } catch {
+            errorMessage = "This item could not be added. Check storage and try again."
+        }
+    }
+
+    func toggleChecklistItem(_ item: ChecklistItem) {
+        do {
+            try repository.toggleChecklistItem(item)
+        } catch {
+            errorMessage = "This item could not be updated. Check storage and try again."
+        }
+    }
+
+    func removeChecklistItem(_ item: ChecklistItem) {
+        do {
+            try repository.deleteChecklistItem(item)
+        } catch {
+            errorMessage = "This item could not be removed. Check storage and try again."
+        }
+    }
+
+    func updateChecklistItem(_ item: ChecklistItem, title: String, category: String) {
+        item.title = title
+        item.category = category
+        do {
+            try repository.save()
+        } catch {
+            errorMessage = "This item could not be saved. Check storage and try again."
+        }
+    }
 
     var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty
@@ -677,15 +723,19 @@ final class CompetitionFormViewModel {
         hasRegistrationDeadline = competition.registrationDeadline != nil
         registrationDeadline = competition.registrationDeadline ?? competition.startDate
         entryStatus = competition.entryStatus
+        websiteLink = competition.websiteLink ?? ""
         notes = competition.notes
     }
 
     /// Saves and returns the saved competition id, or nil when the save
-    /// failed.
-    func save() -> UUID? {
+    /// failed. Async so the toolbar spinner can paint while the save
+    /// runs: a synchronous save sets isSaving true then false in the
+    /// same runloop turn and the spinner never displays.
+    func save() async -> UUID? {
         guard canSave else { return nil }
         isSaving = true
         defer { isSaving = false }
+        await Task.yield()
         do {
             if let competition = editingCompetition {
                 competition.name = name.trimmingCharacters(in: .whitespaces)
@@ -696,6 +746,7 @@ final class CompetitionFormViewModel {
                 competition.endDate = endDate
                 competition.registrationDeadline = hasRegistrationDeadline ? registrationDeadline : nil
                 competition.entryStatus = entryStatus
+                competition.websiteLink = websiteLink.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteLink.trimmingCharacters(in: .whitespaces)
                 competition.notes = notes
                 competition.updatedDate = Date()
                 try repository.save()
@@ -710,6 +761,7 @@ final class CompetitionFormViewModel {
                     endDate: endDate,
                     registrationDeadline: hasRegistrationDeadline ? registrationDeadline : nil,
                     entryStatus: entryStatus,
+                    websiteLink: websiteLink.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteLink.trimmingCharacters(in: .whitespaces),
                     notes: notes
                 )
                 try repository.insert(competition)
@@ -772,11 +824,14 @@ final class FigureFormViewModel {
     }
 
     /// Saves and returns the saved figure id, or nil when the save
-    /// failed.
-    func save() -> UUID? {
+    /// failed. Async so the toolbar spinner can paint while the save
+    /// runs: a synchronous save sets isSaving true then false in the
+    /// same runloop turn and the spinner never displays.
+    func save() async -> UUID? {
         guard canSave, let dance = selectedDance else { return nil }
         isSaving = true
         defer { isSaving = false }
+        await Task.yield()
         do {
             if let figure = editingFigure {
                 figure.name = name.trimmingCharacters(in: .whitespaces)

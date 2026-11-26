@@ -16,8 +16,17 @@ struct CompetitionFormView: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query private var competitions: [Competition]
+    @Query private var managedItems: [ManagedListItem]
 
     @State private var viewModel: CompetitionFormViewModel?
+    @State private var newItemTitle = ""
+    @State private var newItemCategory = ChecklistCategory.registration.rawValue
+    @State private var editingChecklistItem: ChecklistItem?
+
+    private var checklistCategories: [String] {
+        let managed = managedItems.filter { $0.kind == .checklistCategory && $0.isActive }.map { $0.name }
+        return managed.isEmpty ? ChecklistCategory.allCases.map { $0.rawValue } : managed
+    }
 
     init(competitionId: UUID?, onSaved: @escaping (UUID) -> Void = { _ in }) {
         self.competitionId = competitionId
@@ -105,6 +114,20 @@ struct CompetitionFormView: View {
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                    Text("Website")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    TextField("Competition website", text: $viewModel.websiteLink)
+                        .font(DesignTokens.Font.body)
+                        .padding(DesignTokens.Space.space3)
+                        .frame(height: 52)
+                        .background(DesignTokens.Color.backgroundSecondary)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                }
+
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                     Text("Start date")
                         .font(DesignTokens.Font.headline)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
@@ -154,8 +177,66 @@ struct CompetitionFormView: View {
                         .font(DesignTokens.Font.body)
                         .padding(DesignTokens.Space.space2)
                         .frame(minHeight: 120)
+                        .scrollContentBackground(.hidden)
                         .background(DesignTokens.Color.backgroundSecondary)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                }
+
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                    Text("Checklist")
+                        .font(DesignTokens.Font.title3)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    if viewModel.isEditing {
+                        let items = viewModel.checklistItems
+                        if items.isEmpty {
+                            Text("No checklist items yet. Add the first item below.")
+                                .font(DesignTokens.Font.body)
+                                .foregroundStyle(DesignTokens.Color.textSecondary)
+                        } else {
+                            ForEach(items) { item in
+                                HStack(spacing: DesignTokens.Space.space2) {
+                                    ChecklistRow(item: item) {
+                                        viewModel.toggleChecklistItem(item)
+                                    }
+                                    Button("Edit") { editingChecklistItem = item }
+                                        .font(DesignTokens.Font.subheadline)
+                                        .foregroundStyle(DesignTokens.Color.accent)
+                                    DestructiveButton(title: "Remove") {
+                                        viewModel.removeChecklistItem(item)
+                                    }
+                                }
+                                Divider()
+                            }
+                        }
+                        HStack(spacing: DesignTokens.Space.space2) {
+                            TextField("Add a checklist item", text: $newItemTitle)
+                                .font(DesignTokens.Font.body)
+                                .padding(DesignTokens.Space.space3)
+                                .frame(height: 52)
+                                .background(DesignTokens.Color.backgroundSecondary)
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                            Picker("Category", selection: $newItemCategory) {
+                                ForEach(checklistCategories, id: \.self) { category in
+                                    Text(ChecklistCategory.displayName(for: category)).tag(category)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            Button("Add") {
+                                viewModel.addChecklistItem(
+                                    title: newItemTitle.trimmingCharacters(in: .whitespaces),
+                                    category: newItemCategory
+                                )
+                                newItemTitle = ""
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(DesignTokens.Color.accent)
+                            .disabled(newItemTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    } else {
+                        Text("Save the competition first, then add checklist items.")
+                            .font(DesignTokens.Font.body)
+                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                    }
                 }
 
                 if let errorMessage = viewModel.errorMessage {
@@ -176,13 +257,104 @@ struct CompetitionFormView: View {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    if let savedId = viewModel.save() {
-                        FirebaseService.shared.logEvent("competition_saved")
-                        onSaved(savedId)
+                if viewModel.isSaving {
+                    ProgressView()
+                } else {
+                    Button("Save") {
+                        Task {
+                            if let savedId = await viewModel.save() {
+                                FirebaseService.shared.logEvent("competition_saved")
+                                onSaved(savedId)
+                            }
+                        }
                     }
+                    .disabled(!viewModel.canSave)
                 }
-                .disabled(!viewModel.canSave || viewModel.isSaving)
+            }
+        }
+        .sheet(item: $editingChecklistItem) { item in
+            NavigationStack {
+                EditChecklistItemView(
+                    item: item,
+                    categories: checklistCategories,
+                    onSave: { title, category in
+                        viewModel.updateChecklistItem(item, title: title, category: category)
+                    }
+                )
+            }
+        }
+    }
+}
+
+/// Rename a checklist item and move it to another category.
+private struct EditChecklistItemView: View {
+    let item: ChecklistItem
+    let categories: [String]
+    let onSave: (String, String) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var title: String
+    @State private var category: String
+    @State private var errorMessage: String?
+
+    init(item: ChecklistItem, categories: [String], onSave: @escaping (String, String) -> Void) {
+        self.item = item
+        self.categories = categories
+        self.onSave = onSave
+        _title = State(initialValue: item.title)
+        _category = State(initialValue: item.category)
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                    Text("Title")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    TextField("Checklist item", text: $title)
+                        .font(DesignTokens.Font.body)
+                        .padding(DesignTokens.Space.space3)
+                        .frame(height: 52)
+                        .background(DesignTokens.Color.backgroundSecondary)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                        .autocorrectionDisabled()
+                }
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                    Text("Category")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    Picker("Category", selection: $category) {
+                        ForEach(categories, id: \.self) { category in
+                            Text(ChecklistCategory.displayName(for: category)).tag(category)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                if let errorMessage {
+                    ErrorBanner(message: errorMessage)
+                }
+            }
+            .padding(DesignTokens.Space.screenMargin)
+        }
+        .background(DesignTokens.Color.backgroundPrimary)
+        .navigationTitle("Edit checklist item")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    let trimmed = title.trimmingCharacters(in: .whitespaces)
+                    guard !trimmed.isEmpty else {
+                        errorMessage = "Enter a title to save."
+                        return
+                    }
+                    onSave(trimmed, category)
+                    dismiss()
+                }
             }
         }
     }

@@ -244,6 +244,12 @@ final class SwiftDataCompetitionRepository: CompetitionRepositoryProtocol {
         try store.save()
     }
 
+    func deleteChecklistItem(_ item: ChecklistItem) throws {
+        SyncTombstones.record(collection: .checklistItems, id: item.id)
+        store.delete(item)
+        try store.save()
+    }
+
     func insertChecklistItem(_ item: ChecklistItem) throws {
         // Setting the competition on the item wires the inverse
         // relationship, so the item appears in checklistItems.
@@ -371,6 +377,11 @@ final class SwiftDataProfileRepository: ProfileRepositoryProtocol {
 
     func fetchSettings() throws -> AppSettings? {
         try store.fetch(FetchDescriptor<AppSettings>()).first
+    }
+
+    func insertSettings(_ settings: AppSettings) throws {
+        store.insert(settings)
+        try store.save()
     }
 
     func save() throws {
