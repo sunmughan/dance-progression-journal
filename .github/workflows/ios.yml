@@ -32,11 +32,16 @@ jobs:
 
       - name: Build and test
         run: |
+          # Tests share one in memory container (PersistenceController
+          # .inMemory) and each test resets it with deleteAllData, so
+          # parallel execution wipes one test's records while another
+          # test is mid save. Serial execution keeps the suite green.
           xcodebuild test \
             -project DanceProgressionJournal.xcodeproj \
             -scheme DanceProgressionJournal \
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -derivedDataPath DerivedData \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Show crash reports on failure
