@@ -443,8 +443,8 @@ struct LibraryRootView: View {
                             AppRow(
                                 title: figure.name,
                                 metadata: "\(figure.dance?.name ?? "") · \(figure.level.displayName) · \(figure.practiceLogs.count) sessions",
-                                leadingIcon: "figure.dance",
-                                trailing: figure.isFavourite ? AnyView(Image(systemName: "star.fill").foregroundStyle(DesignTokens.Color.accent)) : nil
+                                isFavourite: figure.isFavourite,
+                                leadingIcon: "figure.dance"
                             )
                         }
                     }
