@@ -701,8 +701,11 @@ final class AppSettings {
     var perVideoSizeLimitMB: Int
     // Firebase Storage video backup, off by default. Only ever on
     // when the dancer turns it on, and only once the Firebase
-    // project exists and the Blaze plan cost is approved.
-    var videoBackupEnabled: Bool
+    // project exists and the Blaze plan cost is approved. The
+    // property default is what the 1.0.0 to 1.1.0 migration gives
+    // existing settings rows: without it the migration fails on
+    // the mandatory destination attribute.
+    var videoBackupEnabled: Bool = false
 
     // Inverse of LocalProfile.appSettings, declared there with the
     // inverse key path. This side carries no inverse argument.
