@@ -761,8 +761,8 @@ final class CompetitionFormViewModel {
                     endDate: endDate,
                     registrationDeadline: hasRegistrationDeadline ? registrationDeadline : nil,
                     entryStatus: entryStatus,
-                    websiteLink: websiteLink.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteLink.trimmingCharacters(in: .whitespaces),
-                    notes: notes
+                    notes: notes,
+                    websiteLink: websiteLink.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteLink.trimmingCharacters(in: .whitespaces)
                 )
                 try repository.insert(competition)
                 return competition.id

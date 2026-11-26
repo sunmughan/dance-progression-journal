@@ -28,70 +28,78 @@ struct AdminRootView: View {
 
     var body: some View {
         NavigationStack(path: $adminPath) {
-            if !didLoad {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(DesignTokens.Color.backgroundPrimary)
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: DesignTokens.Space.space3) {
-                        LazyVGrid(
-                            columns: [
-                                GridItem(.flexible(), spacing: DesignTokens.Space.space2),
-                                GridItem(.flexible(), spacing: DesignTokens.Space.space2)
-                            ],
-                            spacing: DesignTokens.Space.space2
-                        ) {
-                            // Only Figures, Competitions and Drills have a
-                            // management screen. Journal entries, videos and
-                            // practice sessions are counts only: the admin
-                            // spec defines no management screen for them.
-                            // Their cards carry no chevron and a "Count
-                            // only" line, so they never look tappable.
-                            countCard(title: "Journal entries", count: entries.count, route: nil)
-                            countCard(title: "Drills", count: drills.count, route: .manageDrills)
-                            countCard(title: "Videos", count: videos.count, route: nil)
-                            countCard(title: "Figures", count: figures.count, route: .manageFigures)
-                            countCard(title: "Competitions", count: competitions.count, route: .manageCompetitions)
-                            countCard(title: "Practice sessions", count: practiceSessionCount, route: nil)
-                        }
-
-                        Text("Content by area")
-                            .font(DesignTokens.Font.title3)
-                            .foregroundStyle(DesignTokens.Color.textPrimary)
-                        VStack(spacing: 0) {
-                            areaRow(title: "Figures", count: figures.count, route: .manageFigures)
-                            Divider()
-                            areaRow(title: "Competitions", count: competitions.count, route: .manageCompetitions)
-                            Divider()
-                            areaRow(title: "Drills", count: drills.count, route: .manageDrills)
-                            Divider()
-                            areaRow(title: "Journal entries", count: entries.count, route: nil)
-                            Divider()
-                            areaRow(title: "Videos", count: videos.count, route: nil)
-                            Divider()
-                            areaRow(title: "Practice sessions", count: practiceSessionCount, route: nil)
-                            Divider()
-                            areaRow(title: "Content and Categories", count: managedLists.count, route: .contentCategories)
-                            Divider()
-                            areaRow(title: "App Settings", count: AppSettingsManagementView.sectionCount, route: .appSettings)
-                        }
-                    }
-                    .padding(DesignTokens.Space.screenMargin)
+            dashboardContent
+                .navigationTitle("Content Management")
+                .navigationBarTitleDisplayMode(.large)
+                .navigationDestination(for: AdminRoute.self) { route in
+                    adminDestination(route)
                 }
+                .onOpenURL { url in
+                    openDeepLink(url)
+                }
+                .onAppear {
+                    didLoad = true
+                }
+        }
+    }
+
+    /// Dashboard content as its own view, so the navigation
+    /// modifiers above chain onto a concrete view. Modifiers
+    /// cannot chain onto an if/else statement in a builder.
+    @ViewBuilder
+    private var dashboardContent: some View {
+        if !didLoad {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(DesignTokens.Color.backgroundPrimary)
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space3) {
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: DesignTokens.Space.space2),
+                            GridItem(.flexible(), spacing: DesignTokens.Space.space2)
+                        ],
+                        spacing: DesignTokens.Space.space2
+                    ) {
+                        // Only Figures, Competitions and Drills have a
+                        // management screen. Journal entries, videos and
+                        // practice sessions are counts only: the admin
+                        // spec defines no management screen for them.
+                        // Their cards carry no chevron and a "Count
+                        // only" line, so they never look tappable.
+                        countCard(title: "Journal entries", count: entries.count, route: nil)
+                        countCard(title: "Drills", count: drills.count, route: .manageDrills)
+                        countCard(title: "Videos", count: videos.count, route: nil)
+                        countCard(title: "Figures", count: figures.count, route: .manageFigures)
+                        countCard(title: "Competitions", count: competitions.count, route: .manageCompetitions)
+                        countCard(title: "Practice sessions", count: practiceSessionCount, route: nil)
+                    }
+
+                    Text("Content by area")
+                        .font(DesignTokens.Font.title3)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    VStack(spacing: 0) {
+                        areaRow(title: "Figures", count: figures.count, route: .manageFigures)
+                        Divider()
+                        areaRow(title: "Competitions", count: competitions.count, route: .manageCompetitions)
+                        Divider()
+                        areaRow(title: "Drills", count: drills.count, route: .manageDrills)
+                        Divider()
+                        areaRow(title: "Journal entries", count: entries.count, route: nil)
+                        Divider()
+                        areaRow(title: "Videos", count: videos.count, route: nil)
+                        Divider()
+                        areaRow(title: "Practice sessions", count: practiceSessionCount, route: nil)
+                        Divider()
+                        areaRow(title: "Content and Categories", count: managedLists.count, route: .contentCategories)
+                        Divider()
+                        areaRow(title: "App Settings", count: AppSettingsManagementView.sectionCount, route: .appSettings)
+                    }
+                }
+                .padding(DesignTokens.Space.screenMargin)
             }
-            .navigationTitle("Content Management")
-            .navigationBarTitleDisplayMode(.large)
-            .navigationDestination(for: AdminRoute.self) { route in
-                adminDestination(route)
-            }
-            .onOpenURL { url in
-                openDeepLink(url)
-            }
-            .onAppear {
-                didLoad = true
-            }
+            .background(DesignTokens.Color.backgroundPrimary)
         }
     }
 
