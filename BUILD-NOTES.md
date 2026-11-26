@@ -126,6 +126,12 @@ The root file is the design team's work and was not touched. Reconcile
 the two at the Week 1 review: either the root file becomes the target
 member, or the app file replaces it. Do not let them drift.
 
+Reconciled 26 Nov 2026: the app target file replaced the root copy, so
+both files are byte identical. The app file is canonical. No view or
+component uses the root file's `ColorToken`, `FontToken`, `Layout` or
+`cardPadding` members, so nothing was lost. If a token changes, change
+it in the app file and copy it to the root file in the same commit.
+
 ## Needed next
 
 - A Mac with Xcode 26.1 to compile, run and fix.
