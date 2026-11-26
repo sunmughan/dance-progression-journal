@@ -5,9 +5,9 @@ import SwiftData
 //
 // Root is Video Library, with a top segment that switches the list to
 // Figure Library Browse or Drill List. Video upload and recording arrive
-// in Week 3, drill create and edit arrive in Week 2. This Week 1 build
-// shows the seeded lists read only, with the figure rows labelled
-// pending the client NDCA list.
+// in Phase 3. Drill create and edit are wired in Phase 2: the Add Drill
+// button opens the drill form, and each drill row opens its detail with
+// Edit and Delete.
 
 enum LibrarySegment: String, CaseIterable {
     case videos
@@ -33,6 +33,9 @@ struct LibraryRootView: View {
     @State private var searchText = ""
     @State private var selectedDance: Dance?
     @State private var showingDanceFilter = false
+    @State private var selectedFocusArea: FocusArea?
+    @State private var showingFocusAreaFilter = false
+    @State private var favouritesOnly = false
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
 
     var body: some View {
@@ -68,6 +71,26 @@ struct LibraryRootView: View {
         .sheet(isPresented: $showingDanceFilter) {
             danceFilterSheet
         }
+        .sheet(isPresented: $showingFocusAreaFilter) {
+            focusAreaFilterSheet
+        }
+        .safeAreaInset(edge: .bottom) {
+            if segment == .drills {
+                NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
+                    Text("Add Drill")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                }
+                .background(DesignTokens.Color.accent)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                .padding(.horizontal, DesignTokens.Space.screenMargin)
+                .padding(.vertical, DesignTokens.Space.space2)
+                .background(DesignTokens.Color.backgroundPrimary)
+                .accessibilityLabel("Add Drill")
+            }
+        }
     }
 
     private var searchPlaceholder: String {
@@ -85,6 +108,59 @@ struct LibraryRootView: View {
         ) {
             showingDanceFilter = true
         }
+    }
+
+    private var focusAreaFilterChip: some View {
+        FilterChip(
+            title: selectedFocusArea?.displayName ?? "All focus areas",
+            isSelected: selectedFocusArea != nil
+        ) {
+            showingFocusAreaFilter = true
+        }
+    }
+
+    private var favouritesFilterChip: some View {
+        FilterChip(
+            title: "Favourites",
+            isSelected: favouritesOnly
+        ) {
+            favouritesOnly.toggle()
+        }
+    }
+
+    private var focusAreaFilterSheet: some View {
+        NavigationStack {
+            List {
+                Button("All focus areas") {
+                    selectedFocusArea = nil
+                    showingFocusAreaFilter = false
+                }
+                ForEach(FocusArea.allCases, id: \.self) { area in
+                    Button {
+                        selectedFocusArea = area
+                        showingFocusAreaFilter = false
+                    } label: {
+                        HStack {
+                            Text(area.displayName)
+                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                            Spacer()
+                            if selectedFocusArea == area {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(DesignTokens.Color.accent)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Focus area")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showingFocusAreaFilter = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     private var danceFilterSheet: some View {
@@ -205,7 +281,11 @@ struct LibraryRootView: View {
     }
 
     private var drillList: some View {
-        let filtered = drills.filter { matchesSearch($0.name) && matchesDance($0.dance) }
+        let filtered = drills.filter {
+            matchesSearch($0.name) && matchesDance($0.dance)
+                && matchesFocusArea($0.focusArea)
+                && (!favouritesOnly || $0.isFavourite)
+        }
         let favourites = filtered.filter { $0.isFavourite }
         let others = filtered.filter { !$0.isFavourite }
         return Group {
@@ -225,6 +305,8 @@ struct LibraryRootView: View {
                 List {
                     HStack {
                         danceFilterChip
+                        focusAreaFilterChip
+                        favouritesFilterChip
                         Spacer()
                     }
                     .listRowSeparator(.hidden)
@@ -235,15 +317,33 @@ struct LibraryRootView: View {
                             }
                         }
                     }
-                    Section("By dance") {
-                        ForEach(others) { drill in
-                            drillRow(drill)
+                    ForEach(dances) { dance in
+                        let group = others.filter { $0.dance?.id == dance.id }
+                        if !group.isEmpty {
+                            Section(dance.name) {
+                                ForEach(group) { drill in
+                                    drillRow(drill)
+                                }
+                            }
+                        }
+                    }
+                    let ungrouped = others.filter { $0.dance == nil }
+                    if !ungrouped.isEmpty {
+                        Section("No dance") {
+                            ForEach(ungrouped) { drill in
+                                drillRow(drill)
+                            }
                         }
                     }
                 }
                 .listStyle(.plain)
             }
         }
+    }
+
+    private func matchesFocusArea(_ focusArea: FocusArea) -> Bool {
+        guard let selectedFocusArea else { return true }
+        return focusArea == selectedFocusArea
     }
 
     private func drillRow(_ drill: Drill) -> some View {

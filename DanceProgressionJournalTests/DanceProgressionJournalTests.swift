@@ -185,6 +185,31 @@ struct CategorisationTests {
         let result = service.categorise(title: "Practice notes", body: "Session at the studio.")
         #expect(result.category == .uncategorised)
     }
+
+    @Test("Bare still does not force a challenge")
+    func bareStillIsNeutral() {
+        let result = service.categorise(title: "Lock steps", body: "Felt sharp today. Still to work on the knees.")
+        #expect(result.category == .accomplishment)
+    }
+
+    /// Phase 2 verification: the categoriser must agree with the stored
+    /// category of every real journal entry in the sample set. The
+    /// "Cha cha lock step footwork" entry failed this check before the
+    /// bare "still" rule fix: it tied 1 to 1 and landed uncategorised.
+    @Test("Categoriser matches the stored category of every seeded entry")
+    @MainActor
+    func categoriserMatchesSeededEntries() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        SeedData.seed(into: persistence.mainContext)
+        try persistence.mainContext.save()
+        let entries = try persistence.mainContext.fetch(FetchDescriptor<JournalEntry>())
+        #expect(entries.count == 3)
+        for entry in entries {
+            let result = service.categorise(title: entry.title, body: entry.bodyText)
+            #expect(result.category == entry.category)
+        }
+    }
 }
 
 // MARK: - Video file service tests
@@ -248,5 +273,73 @@ struct RepositoryTests {
         let before = drill.lastPracticedDate
         try repository.markPracticed(drill, on: Date())
         #expect(drill.lastPracticedDate != before)
+    }
+}
+
+// MARK: - Drill form tests
+
+@MainActor
+struct DrillFormTests {
+    private func danceStore() throws -> (SwiftDataDrillRepository, [Dance]) {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let repository = SwiftDataDrillRepository(store: store)
+        let dances = try SwiftDataDanceRepository(store: store).fetchActiveOrdered()
+        return (repository, dances)
+    }
+
+    @Test("Drill form cannot save without a name")
+    func drillFormRequiresName() throws {
+        let (repository, dances) = try danceStore()
+        let model = DrillFormViewModel(repository: repository)
+        model.load(drill: nil, dances: dances)
+        #expect(model.canSave == false)
+        #expect(model.save() == nil)
+        #expect(try repository.fetchAll().isEmpty)
+    }
+
+    @Test("Drill form saves a new drill with targets")
+    func drillFormCreatesDrill() throws {
+        let (repository, dances) = try danceStore()
+        let model = DrillFormViewModel(repository: repository)
+        model.load(drill: nil, dances: dances)
+        model.name = "Cha Cha Lock Steps"
+        model.selectedDance = dances.first { $0.name == "Cha cha" }
+        model.focusArea = .footwork
+        model.targetRepetitions = 24
+        model.targetDurationMinutes = 10
+        model.difficulty = .intermediate
+        model.isFavourite = true
+        let savedId = try #require(model.save())
+        let saved = try #require(try repository.fetchAll().first { $0.id == savedId }))
+        #expect(saved.name == "Cha Cha Lock Steps")
+        #expect(saved.targetRepetitions == 24)
+        #expect(saved.targetDurationMinutes == 10)
+        #expect(saved.isFavourite == true)
+        #expect(try repository.fetchAll().count == 1)
+    }
+
+    @Test("Drill form edit updates the drill in place")
+    func drillFormEditsDrill() throws {
+        let (repository, dances) = try danceStore()
+        let drill = Drill(
+            name: "Rumba Walks",
+            dance: dances.first { $0.name == "Rumba" },
+            focusArea: .footwork,
+            targetRepetitions: 20,
+            targetDurationMinutes: 15
+        )
+        try repository.insert(drill)
+        let model = DrillFormViewModel(repository: repository)
+        model.load(drill: drill, dances: dances)
+        #expect(model.isEditing == true)
+        #expect(model.name == "Rumba Walks")
+        model.targetRepetitions = 30
+        let savedId = try #require(model.save())
+        #expect(savedId == drill.id)
+        #expect(try repository.fetchAll().count == 1)
+        #expect(try repository.fetchAll().first?.targetRepetitions == 30)
     }
 }

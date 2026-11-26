@@ -24,6 +24,7 @@
 		CD520E3D0DE2829911742508 /* JournalEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C551C3247A1118AB964ACA /* JournalEntryDetailView.swift */; };
 		14BEFA3F85184A330B560DBF /* JournalEntryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */; };
 		B2B40BA7603C7A58C14D54A4 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0FF24C63782D93379B070F /* JournalListView.swift */; };
+		01894637F7001BE6677F7F7E /* DrillFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433968C648CABACB794F9D1F /* DrillFormView.swift */; };
 		69EE039C645C15E740D002EF /* LibraryDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */; };
 		52F2DF97B26A8653DBABB60E /* LibraryRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7365C7B3B560756D7473C519 /* LibraryRootView.swift */; };
 		B57AFA7A8D3E85DEFA3A808A /* ProgressRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */; };
@@ -56,6 +57,7 @@
 		42C551C3247A1118AB964ACA /* JournalEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalEntryDetailView.swift"; path = "JournalEntryDetailView.swift"; sourceTree = "<group>"; };
 		D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalEntryFormView.swift"; path = "JournalEntryFormView.swift"; sourceTree = "<group>"; };
 		9E0FF24C63782D93379B070F /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalListView.swift"; path = "JournalListView.swift"; sourceTree = "<group>"; };
+		433968C648CABACB794F9D1F /* DrillFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DrillFormView.swift"; path = "DrillFormView.swift"; sourceTree = "<group>"; };
 		BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryDetailViews.swift"; path = "LibraryDetailViews.swift"; sourceTree = "<group>"; };
 		7365C7B3B560756D7473C519 /* LibraryRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryRootView.swift"; path = "LibraryRootView.swift"; sourceTree = "<group>"; };
 		EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProgressRootView.swift"; path = "ProgressRootView.swift"; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				9E0FF24C63782D93379B070F /* JournalListView.swift */,
 			); name = "Journal"; path = "Views/Journal"; sourceTree = "<group>"; };
 		1768CA858311E1E15A4B503D /* Library */ = {isa = PBXGroup; children = (
+				433968C648CABACB794F9D1F /* DrillFormView.swift */,
 				BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */,
 				7365C7B3B560756D7473C519 /* LibraryRootView.swift */,
 			); name = "Library"; path = "Views/Library"; sourceTree = "<group>"; };
@@ -201,6 +204,7 @@
 				CD520E3D0DE2829911742508 /* Sources */,
 				14BEFA3F85184A330B560DBF /* Sources */,
 				B2B40BA7603C7A58C14D54A4 /* Sources */,
+				01894637F7001BE6677F7F7E /* Sources */,
 				69EE039C645C15E740D002EF /* Sources */,
 				52F2DF97B26A8653DBABB60E /* Sources */,
 				B57AFA7A8D3E85DEFA3A808A /* Sources */,

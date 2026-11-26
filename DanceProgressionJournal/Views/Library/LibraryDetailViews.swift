@@ -265,12 +265,14 @@ struct FigureDetailView: View {
 //
 // One drill with description, focus area, targets and practice history.
 // Mark Practiced logs a session with today date and the drill targets.
-// Create and edit arrive in Week 2.
+// Start Timer is a simple count up timer on this screen, not a
+// separate screen. Edit and Delete are in the top bar.
 
 struct DrillDetailView: View {
     let drillId: UUID
 
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
 
     @Query private var drills: [Drill]
     @Query(sort: \Video.recordedDate, order: .reverse) private var videos: [Video]
@@ -278,6 +280,11 @@ struct DrillDetailView: View {
 
     @State private var errorMessage: String?
     @State private var justPracticed = false
+    @State private var showingDeleteConfirmation = false
+    @State private var timerSeconds = 0
+    @State private var timerActive = false
+
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     init(drillId: UUID) {
         self.drillId = drillId
@@ -298,6 +305,15 @@ struct DrillDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onReceive(timer) { _ in
+            if timerActive {
+                timerSeconds += 1
+            }
+        }
+    }
+
+    private var timerLabel: String {
+        String(format: "%d:%02d", timerSeconds / 60, timerSeconds % 60)
     }
 
     private func detailContent(_ drill: Drill) -> some View {
@@ -360,6 +376,28 @@ struct DrillDetailView: View {
                     Text("Logged for today.")
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.accentText)
+                }
+
+                AppCard {
+                    VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                        Text("Timer")
+                            .font(DesignTokens.Font.title3)
+                            .foregroundStyle(DesignTokens.Color.textPrimary)
+                        Text(timerLabel)
+                            .font(DesignTokens.Font.practiceTotals)
+                            .foregroundStyle(DesignTokens.Color.textPrimary)
+                            .monospacedDigit()
+                        HStack(spacing: DesignTokens.Space.space2) {
+                            SecondaryButton(title: timerActive ? "Stop Timer" : "Start Timer") {
+                                timerActive.toggle()
+                            }
+                            SecondaryButton(title: "Reset") {
+                                timerActive = false
+                                timerSeconds = 0
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if let errorMessage {
                     ErrorBanner(message: errorMessage)
@@ -425,5 +463,31 @@ struct DrillDetailView: View {
             .padding(DesignTokens.Space.screenMargin)
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(value: LibraryRoute.drillForm(drillId: drill.id)) {
+                    Text("Edit")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Delete", role: .destructive) {
+                    showingDeleteConfirmation = true
+                }
+            }
+        }
+        .alert(
+            "Delete this drill? This cannot be undone.",
+            isPresented: $showingDeleteConfirmation
+        ) {
+            Button("Delete", role: .destructive) {
+                do {
+                    try dependencies.drills.delete(drill)
+                    dismiss()
+                } catch {
+                    errorMessage = "This drill could not be deleted. Check storage and try again."
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 }

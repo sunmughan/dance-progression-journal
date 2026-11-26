@@ -21,6 +21,10 @@ protocol CategorisationServiceProtocol: Sendable {
 /// Local rules categoriser. Challenge language points one way,
 /// accomplishment language points the other. Ties and empty text stay
 /// uncategorised. Tags come from the matched words only.
+/// Bare "still" is deliberately not a challenge word: it appears in
+/// forward looking notes ("still to work on the knees") after positive
+/// text, and genuine challenge phrasing is covered by "needs work".
+/// Verified against the three seeded journal entries in the tests.
 struct LocalRulesCategorisationService: CategorisationServiceProtocol {
     private let challengeWords: [String: String] = [
         "struggle": "struggle",
@@ -31,7 +35,6 @@ struct LocalRulesCategorisationService: CategorisationServiceProtocol {
         "stuck": "stuck",
         "missed": "missed",
         "needs work": "needs work",
-        "still": "still working",
         "weight transfer": "weight transfer",
         "close": "close",
         "turn": "turn"

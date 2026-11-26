@@ -283,3 +283,98 @@ final class SettingsViewModel {
         }
     }
 }
+
+@Observable
+@MainActor
+final class DrillFormViewModel {
+    var name = ""
+    var selectedDance: Dance?
+    var focusArea: FocusArea = .footwork
+    var descriptionText = ""
+    var targetRepetitions = 20
+    var targetDurationMinutes = 15
+    var difficulty: Difficulty = .intermediate
+    var isFavourite = false
+    var isSaving = false
+    var errorMessage: String?
+
+    private(set) var dances: [Dance] = []
+    private var editingDrill: Drill?
+
+    private let repository: DrillRepositoryProtocol
+
+    init(repository: DrillRepositoryProtocol) {
+        self.repository = repository
+    }
+
+    var isEditing: Bool { editingDrill != nil }
+
+    var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && selectedDance != nil
+    }
+
+    var saveDisabledReason: String? {
+        if name.trimmingCharacters(in: .whitespaces).isEmpty {
+            return "Enter a name and pick a dance to save."
+        }
+        if selectedDance == nil {
+            return "Pick a dance to save."
+        }
+        return nil
+    }
+
+    func load(drill: Drill?, dances: [Dance]) {
+        self.dances = dances
+        guard let drill else {
+            selectedDance = dances.first
+            return
+        }
+        editingDrill = drill
+        name = drill.name
+        selectedDance = drill.dance
+        focusArea = drill.focusArea
+        descriptionText = drill.descriptionText
+        targetRepetitions = drill.targetRepetitions
+        targetDurationMinutes = drill.targetDurationMinutes
+        difficulty = drill.difficulty
+        isFavourite = drill.isFavourite
+    }
+
+    /// Saves and returns the saved drill id, or nil when the save failed.
+    func save() -> UUID? {
+        guard canSave, let dance = selectedDance else { return nil }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            if let drill = editingDrill {
+                drill.name = name.trimmingCharacters(in: .whitespaces)
+                drill.dance = dance
+                drill.focusArea = focusArea
+                drill.descriptionText = descriptionText
+                drill.targetRepetitions = max(targetRepetitions, 0)
+                drill.targetDurationMinutes = max(targetDurationMinutes, 0)
+                drill.difficulty = difficulty
+                drill.isFavourite = isFavourite
+                drill.updatedDate = Date()
+                try repository.save()
+                return drill.id
+            } else {
+                let drill = Drill(
+                    name: name.trimmingCharacters(in: .whitespaces),
+                    dance: dance,
+                    focusArea: focusArea,
+                    descriptionText: descriptionText,
+                    targetRepetitions: max(targetRepetitions, 0),
+                    targetDurationMinutes: max(targetDurationMinutes, 0),
+                    difficulty: difficulty,
+                    isFavourite: isFavourite
+                )
+                try repository.insert(drill)
+                return drill.id
+            }
+        } catch {
+            errorMessage = "This drill could not be saved. Check storage and try again."
+            return nil
+        }
+    }
+}

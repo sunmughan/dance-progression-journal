@@ -5,8 +5,8 @@ import SwiftData
 //
 // Today at a glance. This is the first screen inside the Journal tab.
 // Countdown card, quick actions, recent entries, next drill, recent
-// videos. Quick actions for drills and videos go to their lists; the
-// create forms for drills and videos arrive in Week 2 and Week 3.
+// videos. The drill create form is wired. The video create form
+// arrives in Phase 3.
 
 struct HomeDashboardView: View {
     var onShowJournalList: () -> Void
@@ -47,7 +47,20 @@ struct HomeDashboardView: View {
 
                 HStack(spacing: DesignTokens.Space.space2) {
                     SecondaryButton(title: "New Entry", action: onShowEntryForm)
-                    SecondaryButton(title: "Add Drill", action: onShowDrills)
+                    NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
+                        Text("Add Drill")
+                            .font(DesignTokens.Font.headline)
+                            .foregroundStyle(DesignTokens.Color.accentText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                    }
+                    .background(.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignTokens.Radius.medium)
+                            .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
+                    )
+                    .accessibilityLabel("Add Drill")
                     SecondaryButton(title: "Add Video", action: onShowVideos)
                 }
 

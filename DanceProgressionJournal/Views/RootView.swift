@@ -35,7 +35,7 @@ struct RootView: View {
                     journalDestination(route)
                 }
                 .navigationDestination(for: LibraryRoute.self) { route in
-                    libraryDestination(route)
+                    libraryDestination(route, isLibraryStack: false)
                 }
             }
             .tabItem {
@@ -46,7 +46,7 @@ struct RootView: View {
             NavigationStack(path: $libraryPath) {
                 LibraryRootView(segment: $librarySegment)
                     .navigationDestination(for: LibraryRoute.self) { route in
-                        libraryDestination(route)
+                        libraryDestination(route, isLibraryStack: true)
                     }
                     .navigationDestination(for: JournalRoute.self) { route in
                         // Library screens link to journal entries. Only
@@ -74,7 +74,7 @@ struct RootView: View {
                         }
                     }
                     .navigationDestination(for: LibraryRoute.self) { route in
-                        libraryDestination(route)
+                        libraryDestination(route, isLibraryStack: false)
                     }
             }
             .tabItem {
@@ -115,7 +115,7 @@ struct RootView: View {
     }
 
     @ViewBuilder
-    private func libraryDestination(_ route: LibraryRoute) -> some View {
+    private func libraryDestination(_ route: LibraryRoute, isLibraryStack: Bool) -> some View {
         switch route {
         case .videoDetail(let videoId):
             VideoDetailView(videoId: videoId)
@@ -123,6 +123,15 @@ struct RootView: View {
             FigureDetailView(figureId: figureId)
         case .drillDetail(let drillId):
             DrillDetailView(drillId: drillId)
+        case .drillForm(let drillId):
+            DrillFormView(drillId: drillId, onSaved: { savedId in
+                // The form dismisses itself on save. From the Library
+                // tab, saving lands on the drill detail. From other
+                // tabs the form simply closes back to where it opened.
+                if isLibraryStack {
+                    libraryPath.append(.drillDetail(drillId: savedId))
+                }
+            })
         }
     }
 }
