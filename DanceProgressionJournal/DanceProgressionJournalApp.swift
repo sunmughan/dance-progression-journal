@@ -54,7 +54,7 @@ private struct LaunchView: View {
             // so launch stays on the spinner while tests run.
             guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
             let controller = await MainActor.run { PersistenceController.shared }
-            await MainActor.run { controller.seedIfNeeded() }
+            await MainActor.run { controller.ensureDanceTaxonomy() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }
             await MainActor.run {
                 persistence = controller

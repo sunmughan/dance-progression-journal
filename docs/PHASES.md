@@ -12,6 +12,59 @@ GitHub Actions CI on the macOS runner is green for that commit, and
 the phase milestone in the roadmap is met on a simulator build. No
 phase is called done on a local claim alone. CI is the proof.
 
+## Scope change, user order 26 Nov 2026 21:27 IST, hard
+
+The client is an IIT team. Deadline pressure is IIT team level.
+TestFlight delivery 7 Jan 2027 stands. This order changes the scope
+of the complete build:
+
+1. ALL features promised in the roadmap and in this plan must be
+   there. Every feature. No feature dropped, no placeholder.
+2. NO hardcoded anything in the shipped app. No hardcoded data, no
+   hardcoded content, no fake sample data standing in for real data.
+   The app launches empty and the dancer creates real content. The
+   five International Latin dances are the fixed real taxonomy, not
+   sample data. Figures come only from the real NDCA list (client,
+   due 9 Dec 2026) or from admin entry. Nothing is invented. The
+   SeedData set in the repo is test fixtures only from this order on:
+   it seeds the unit test store, never the shipped app. The
+   seedIfNeeded path in the app is removed.
+3. Firebase is IN the complete build, not Phase 6 after sign off.
+   Firebase for BOTH the user app and the admin app, both fully
+   connected. User app: Crashlytics, Analytics, Sign in with Apple,
+   Firestore text sync, optional Firebase Storage video backup off
+   by default. Admin app: the six Content Management screens from
+   docs/design/06_screen_specs_admin.md as a second app target in
+   this repo, bundle ID
+   com.codeair.danceprogressionjournal.admin, sharing the same
+   Firebase project, reading and writing the same Firestore
+   collections the user app reads. Local SwiftData stays the source
+   of truth offline in the user app. Repository protocols are the
+   seam.
+4. BLOCKED on the client for the Firebase connection itself, and
+   nothing else in the build stops for it: no Firebase project
+   exists yet, no GoogleService-Info.plist exists for either app,
+   no console access exists. The build wires everything so that
+   dropping in the two plist files connects both apps. The app
+   configures Firebase only when its plist is present, and runs
+   local only without it, so CI stays green with no credentials.
+   Exact unblock steps, in order: (a) May Nguyen creates one
+   Firebase project named Dance Progression Journal and stays
+   project owner; (b) she registers the user iOS app with bundle
+   ID com.codeair.danceprogressionjournal and downloads its plist;
+   (c) she registers the admin iOS app with bundle ID
+   com.codeair.danceprogressionjournal.admin and downloads its
+   plist; (d) she grants Codeair editor access to the project;
+   (e) Codeair drops both plist files into the repo targets,
+   enables Apple under Authentication, creates the Firestore
+   database in production mode, creates the default Storage bucket,
+   applies the owner only security rules, and verifies Crashlytics,
+   Analytics, sign in and phone to iPad sync in a TestFlight
+   build. Video backup stays off by default and the Blaze plan is
+   enabled only after she approves the cost.
+5. No nonsense, no shortcuts, no excuses. Every phase below is
+   still delivered with CI green at each step.
+
 ## Phase 1, foundation, DONE, Week 1, 26 Nov to 2 Dec 2026
 
 Scope: Xcode project, SwiftData model, tab navigation shell, design
@@ -225,13 +278,16 @@ Blocked on the client:
 1. First test pass with feedback, due 4 Jan 2027.
 2. Written sign off, due 7 Jan 2027.
 
-## Phase 6, Firebase sync and backup, after sign off
+## Phase 6, Firebase sync and backup, IN the complete build
 
-Scope: Sign in with Apple, Firestore text backup and sync across
-phone and iPad, optional Firebase Storage video backup off by default,
-practice reminders, streaks, weekly totals, PDF export, coach sharing
-by link, advanced AI insights, full text search. American Rhythm
-expansion: swing, bolero, mambo, American style cha cha and rumba.
+Scope per the 26 Nov 2026 21:27 IST order: Firebase is no longer
+after sign off. Sign in with Apple, Firestore text backup and sync
+across phone and iPad, optional Firebase Storage video backup off by
+default, practice reminders, streaks, weekly totals, PDF export,
+coach sharing by link, advanced AI insights, full text search.
+American Rhythm expansion: swing, bolero, mambo, American style cha
+cha and rumba. Plus the admin app target with its six Content
+Management screens, fully connected to the same Firebase project.
 
 Deliverables: per roadmap section 9. Local SwiftData stays the source
 of truth offline. Repository protocols are the seam, UI and ViewModels
@@ -239,7 +295,8 @@ do not change when sync is added.
 
 Blocked on the client: Firebase project ownership by May, editor
 access for Codeair, approval of video backup cost before the Blaze
-plan is enabled. Video backup stays off by default.
+plan is enabled. Video backup stays off by default. Exact unblock
+steps are in the scope change section at the top of this file.
 
 ## Phase 7, accounts and growth, later
 
@@ -270,11 +327,14 @@ timeline.
 
 ## Honesty rules for every phase
 
-1. Sample data is dancer May only, International Latin only.
+1. No fake sample data in the shipped app. The app launches empty.
+   SeedData is test fixtures only. The five International Latin
+   dances are the fixed real taxonomy.
 2. Alemana and Fan figures are labelled pending the client NDCA list.
-3. Sample competition is a relative countdown only, no real
-   competition name, date, venue or price invented.
+3. No competition name, date, venue or price is invented.
 4. No Apple ID, no prices, no competition dates invented.
 5. Astryx is the design language reference only. The native build
    stays SwiftUI.
 6. No phase is called done until CI is green for its commits.
+7. Firebase is configured only when the real plist file is present.
+   No placeholder plist, no hardcoded key, no fake Firebase config.

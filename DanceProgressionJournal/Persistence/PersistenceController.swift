@@ -110,15 +110,25 @@ final class PersistenceController {
         container.mainContext
     }
 
-    /// Seeds the sample data set on a fresh install only. Runs once, when
-    /// the store holds no dances yet and the seed flag is not set. The
-    /// flag also stops a reseed after Delete all data in Settings.
-    func seedIfNeeded() {
-        guard !UserDefaults.standard.bool(forKey: SeedData.seedFlagKey) else { return }
+    /// Ensures the five International Latin dances exist as empty
+    /// categories on a fresh install. This is the fixed taxonomy of
+    /// the sport, not sample data: no profile, no entries, no drills,
+    /// no videos, no competitions, no figures and no practice logs
+    /// are created. The dancer creates all real content herself.
+    /// Runs whenever the store holds no dances yet, including after
+    /// Delete all data in Settings.
+    func ensureDanceTaxonomy() {
         let descriptor = FetchDescriptor<Dance>()
         let count = (try? mainContext.fetchCount(descriptor)) ?? 0
         guard count == 0 else { return }
-        SeedData.seed(into: mainContext)
+        let dances = [
+            Dance(name: "Cha cha", displayOrder: 1),
+            Dance(name: "Samba", displayOrder: 2),
+            Dance(name: "Rumba", displayOrder: 3),
+            Dance(name: "Paso doble", displayOrder: 4),
+            Dance(name: "Jive", displayOrder: 5),
+        ]
+        dances.forEach { mainContext.insert($0) }
         try? mainContext.save()
     }
 
@@ -141,9 +151,6 @@ final class PersistenceController {
         try deleteAll(FigurePracticeLog.self)
         try videoFileService.deleteAllVideos()
         try mainContext.save()
-        // Keep the seed flag set so a fresh empty store does not reseed
-        // sample data after the user asked to delete everything.
-        UserDefaults.standard.set(true, forKey: SeedData.seedFlagKey)
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type) throws {
