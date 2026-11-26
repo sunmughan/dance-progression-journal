@@ -15,6 +15,8 @@ import SwiftData
 // backup toggle and the backup state.
 
 struct SyncSettingsView: View {
+    var wrappedInCard: Bool = true
+
     @Environment(AppDependencies.self) private var dependencies
 
     @Query private var settingsList: [AppSettings]
@@ -24,7 +26,17 @@ struct SyncSettingsView: View {
     private var settings: AppSettings? { settingsList.first }
 
     var body: some View {
-        AppCard {
+        if wrappedInCard {
+            AppCard {
+                syncContent
+            }
+        } else {
+            syncContent
+        }
+    }
+
+    private var syncContent: some View {
+        Group {
             VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                 Text("Sync and backup")
                     .font(DesignTokens.Font.title3)

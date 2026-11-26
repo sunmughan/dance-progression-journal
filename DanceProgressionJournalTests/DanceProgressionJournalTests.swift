@@ -1014,4 +1014,27 @@ struct SyncNoConfigTests {
         #expect(try videos.fetch(byId: video.id)?.id == video.id)
         #expect(try videos.fetch(byId: UUID()) == nil)
     }
+
+    @Test("Export writes one JSON file with every seeded record")
+    func exportWritesSeededRecords() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        SeedData.seed(into: persistence.mainContext)
+        try persistence.mainContext.save()
+        let context = persistence.mainContext
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = try DataExportService.export(from: context, to: directory)
+        let data = try Data(contentsOf: url)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let document = try #require(json)
+        #expect((document["entries"] as? [[String: Any]])?.count == 3)
+        #expect((document["drills"] as? [[String: Any]])?.count == 3)
+        #expect((document["videos"] as? [[String: Any]])?.count == 2)
+        #expect((document["competitions"] as? [[String: Any]])?.count == 1)
+        #expect((document["figures"] as? [[String: Any]])?.count == 6)
+        #expect((document["dances"] as? [[String: Any]])?.count == 5)
+        #expect(document["schemaVersion"] as? String == "1.1.0")
+        try FileManager.default.removeItem(at: directory)
+    }
 }

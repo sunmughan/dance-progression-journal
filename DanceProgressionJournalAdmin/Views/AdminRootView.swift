@@ -67,6 +67,32 @@ struct AdminRootView: View {
             .navigationDestination(for: AdminRoute.self) { route in
                 adminDestination(route)
             }
+            .onOpenURL { url in
+                openDeepLink(url)
+            }
+        }
+    }
+
+    /// Deep links from the user app Settings screen, danceadmin://
+    /// plus one of dashboard, figures, competitions, drills,
+    /// content, settings. Dashboard pops back to this screen.
+    private func openDeepLink(_ url: URL) {
+        guard url.scheme == "danceadmin" else { return }
+        switch url.host {
+        case "dashboard", nil:
+            adminPath = []
+        case "figures":
+            adminPath = [.manageFigures]
+        case "competitions":
+            adminPath = [.manageCompetitions]
+        case "drills":
+            adminPath = [.manageDrills]
+        case "content":
+            adminPath = [.contentCategories]
+        case "settings":
+            adminPath = [.appSettings]
+        default:
+            break
         }
     }
 

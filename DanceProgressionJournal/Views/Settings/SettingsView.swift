@@ -1,15 +1,23 @@
 import SwiftUI
 import SwiftData
+import UIKit
 
 // MARK: - Settings and Local Profile
 //
-// Manage local profile, preferred dances, data storage, app information.
-// Sign in is optional and only for sync; without it everything stays
-// on this device. Delete all data removes every local record and every
-// video file, with confirmation first. There is no undo.
+// Manage local profile, preferred dances, data storage, app
+// information. Grouped list with the sections in spec order: Local
+// profile, Storage on this device, Video settings, Sync and backup,
+// Data, About, Content Management. Sign in is optional and only for
+// sync; without it everything stays on this device. Delete all data
+// removes every local record and every video file, with
+// confirmation first. There is no undo. Export data writes every
+// local record to one JSON file for the share sheet. The Content
+// Management rows open the Dance Admin app through its URL scheme;
+// when that app is not installed the section says so plainly.
 
 struct SettingsView: View {
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.openURL) private var openURL
 
     @Query private var profiles: [LocalProfile]
     @Query private var settingsList: [AppSettings]
@@ -20,6 +28,7 @@ struct SettingsView: View {
     @State private var experienceLevel: ExperienceLevel = .beginner
     @State private var selectedDanceIds: Set<UUID> = []
     @State private var showingDeleteConfirmation = false
+    @State private var adminAppInstalled = false
 
     var body: some View {
         Group {
@@ -37,6 +46,9 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
+        .onAppear {
+            adminAppInstalled = UIApplication.shared.canOpenURL(URL(string: "danceadmin://dashboard")!)
+        }
         .alert(
             "Delete all data? This cannot be undone.",
             isPresented: $showingDeleteConfirmation
@@ -61,120 +73,96 @@ struct SettingsView: View {
         selectedDanceIds = Set(profile?.preferredDances.map { $0.id } ?? [])
     }
 
+    private var adminLinks: [(title: String, url: URL)] {
+        [
+            ("Figures", URL(string: "danceadmin://figures")!),
+            ("Competitions", URL(string: "danceadmin://competitions")!),
+            ("Drills", URL(string: "danceadmin://drills")!),
+            ("Content and Categories", URL(string: "danceadmin://content")!),
+            ("App Settings", URL(string: "danceadmin://settings")!),
+        ]
+    }
+
     private func settingsContent(_ viewModel: SettingsViewModel) -> some View {
         @Bindable var viewModel = viewModel
         let settings = self.settings
-        return ScrollView {
-            VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    Text("Your name")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    TextField("May", text: $dancerName)
-                        .font(DesignTokens.Font.body)
-                        .padding(DesignTokens.Space.space3)
-                        .frame(height: 52)
-                        .background(DesignTokens.Color.backgroundSecondary)
-                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.words)
-                        .onChange(of: dancerName) { saveProfile() }
+        return List {
+            if let errorMessage = viewModel.errorMessage {
+                Section {
+                    ErrorBanner(message: errorMessage)
                 }
+            }
 
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    Text("Experience level")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Picker("Experience level", selection: $experienceLevel) {
-                        ForEach(ExperienceLevel.allCases, id: \.self) { level in
-                            Text(level.displayName).tag(level)
-                        }
+            Section("Local profile") {
+                TextField("May", text: $dancerName)
+                    .font(DesignTokens.Font.body)
+                    .foregroundStyle(DesignTokens.Color.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.words)
+                    .onChange(of: dancerName) { saveProfile() }
+                Picker("Experience level", selection: $experienceLevel) {
+                    ForEach(ExperienceLevel.allCases, id: \.self) { level in
+                        Text(level.displayName).tag(level)
                     }
-                    .pickerStyle(.menu)
-                    .onChange(of: experienceLevel) { saveProfile() }
                 }
-
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    Text("Preferred dances")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    ForEach(dances) { dance in
-                        Button {
+                .pickerStyle(.menu)
+                .onChange(of: experienceLevel) { saveProfile() }
+                ForEach(dances) { dance in
+                    Button {
+                        if selectedDanceIds.contains(dance.id) {
+                            selectedDanceIds.remove(dance.id)
+                        } else {
+                            selectedDanceIds.insert(dance.id)
+                        }
+                        saveProfile()
+                    } label: {
+                        HStack {
+                            Text(dance.name)
+                                .font(DesignTokens.Font.body)
+                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                            Spacer()
                             if selectedDanceIds.contains(dance.id) {
-                                selectedDanceIds.remove(dance.id)
-                            } else {
-                                selectedDanceIds.insert(dance.id)
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(DesignTokens.Color.accent)
+                                    .accessibilityLabel("\(dance.name) selected")
                             }
-                            saveProfile()
-                        } label: {
-                            HStack {
-                                Text(dance.name)
-                                    .font(DesignTokens.Font.body)
-                                    .foregroundStyle(DesignTokens.Color.textPrimary)
-                                Spacer()
-                                if selectedDanceIds.contains(dance.id) {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(DesignTokens.Color.accent)
-                                        .accessibilityLabel("\(dance.name) selected")
-                                }
-                            }
-                            .padding(.horizontal, DesignTokens.Space.space3)
-                            .frame(height: 52)
-                            .background(DesignTokens.Color.backgroundSecondary)
-                            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                         }
                     }
                 }
+            }
 
-                AppCard {
-                    VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                        Text("Storage on this device")
-                            .font(DesignTokens.Font.title3)
-                            .foregroundStyle(DesignTokens.Color.textPrimary)
-                        Text(viewModel.storageLabel)
-                            .font(DesignTokens.Font.body)
-                            .foregroundStyle(DesignTokens.Color.textSecondary)
+            Section("Storage on this device") {
+                Text(viewModel.storageLabel)
+                    .font(DesignTokens.Font.body)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
+            }
+
+            Section("Video settings") {
+                Picker("Video quality", selection: Binding(
+                    get: { settings?.videoQuality ?? .p1080 },
+                    set: { newValue in
+                        settings?.videoQuality = newValue
+                        saveSettings()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                )) {
+                    ForEach(VideoQuality.allCases, id: \.self) { quality in
+                        Text(quality.displayName).tag(quality)
+                    }
                 }
-
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    Text("Video quality")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Picker("Video quality", selection: Binding(
-                        get: { settings?.videoQuality ?? .p1080 },
+                .pickerStyle(.segmented)
+                Stepper(
+                    "\(settings?.perVideoSizeLimitMB ?? 500) MB per video",
+                    value: Binding(
+                        get: { settings?.perVideoSizeLimitMB ?? 500 },
                         set: { newValue in
-                            settings?.videoQuality = newValue
+                            settings?.perVideoSizeLimitMB = newValue
                             saveSettings()
                         }
-                    )) {
-                        ForEach(VideoQuality.allCases, id: \.self) { quality in
-                            Text(quality.displayName).tag(quality)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    Text("Per video size limit")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Stepper(
-                        "\(settings?.perVideoSizeLimitMB ?? 500) MB per video",
-                        value: Binding(
-                            get: { settings?.perVideoSizeLimitMB ?? 500 },
-                            set: { newValue in
-                                settings?.perVideoSizeLimitMB = newValue
-                                saveSettings()
-                            }
-                        ),
-                        in: 50...2000,
-                        step: 50
-                    )
-                    .font(DesignTokens.Font.body)
-                }
-
+                    ),
+                    in: 50...2000,
+                    step: 50
+                )
+                .font(DesignTokens.Font.body)
                 Toggle("Reminders", isOn: Binding(
                     get: { settings?.remindersEnabled ?? false },
                     set: { newValue in
@@ -184,35 +172,75 @@ struct SettingsView: View {
                 ))
                 .font(DesignTokens.Font.headline)
                 .tint(DesignTokens.Color.accent)
+            }
 
-                SyncSettingsView()
+            Section("Sync and backup") {
+                SyncSettingsView(wrappedInCard: false)
+            }
 
-                if let errorMessage = viewModel.errorMessage {
-                    ErrorBanner(message: errorMessage)
+            Section("Data") {
+                Button("Export data") {
+                    viewModel.exportData()
                 }
-
+                .font(DesignTokens.Font.body)
+                .foregroundStyle(DesignTokens.Color.accentText)
+                .disabled(viewModel.isExporting)
+                if viewModel.isExporting {
+                    ProgressView("Creating export...")
+                        .tint(DesignTokens.Color.accent)
+                }
+                if let exportURL = viewModel.exportURL {
+                    ShareLink(item: exportURL) {
+                        Label("Share export", systemImage: "square.and.arrow.up")
+                            .font(DesignTokens.Font.body)
+                            .foregroundStyle(DesignTokens.Color.accentText)
+                    }
+                }
                 DestructiveButton(title: "Delete all data") {
                     showingDeleteConfirmation = true
                 }
+            }
 
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space1) {
-                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") Build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")")
-                        .font(DesignTokens.Font.footnote)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                    Text("Bundle ID \(Bundle.main.bundleIdentifier ?? "com.codeair.danceprogressionjournal")")
-                        .font(DesignTokens.Font.footnote)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                    Text("Your data stays on this device unless you sign in to sync it. Journal text, videos and notes live on this iPhone only.")
+            Section("About") {
+                Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") Build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")")
+                    .font(DesignTokens.Font.footnote)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                Text("Bundle ID \(Bundle.main.bundleIdentifier ?? "com.codeair.danceprogressionjournal")")
+                    .font(DesignTokens.Font.footnote)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                Text("Your data stays on this device unless you sign in to sync it. Journal text, videos and notes live on this iPhone only.")
+                    .font(DesignTokens.Font.footnote)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
+            }
+
+            Section("Content Management") {
+                ForEach(adminLinks, id: \.title) { link in
+                    Button {
+                        openURL(link.url)
+                    } label: {
+                        HStack {
+                            Text(link.title)
+                                .font(DesignTokens.Font.body)
+                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(DesignTokens.Color.textSecondary)
+                        }
+                    }
+                }
+                if !adminAppInstalled {
+                    Text("Install the Dance Admin app to manage content.")
                         .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 }
             }
-            .padding(DesignTokens.Space.screenMargin)
-            .onAppear {
-                loadCurrentValues()
-            }
         }
+        .listStyle(.grouped)
         .background(DesignTokens.Color.backgroundPrimary)
+        .onAppear {
+            loadCurrentValues()
+        }
     }
 
     private func saveProfile() {

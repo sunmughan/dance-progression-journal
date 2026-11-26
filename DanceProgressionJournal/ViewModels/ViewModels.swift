@@ -256,6 +256,8 @@ final class SettingsViewModel {
     var videoCount: Int = 0
     var errorMessage: String?
     var showDeleteConfirmation = false
+    var isExporting = false
+    var exportURL: URL?
 
     private let persistence: PersistenceController
 
@@ -272,9 +274,22 @@ final class SettingsViewModel {
     var storageLabel: String {
         let megabytes = Double(storageUsedBytes) / 1_000_000
         if megabytes < 1 {
-            return "\(videoCount) videos, \(storageUsedBytes) KB on this device"
+            return "\(videoCount) videos, \(storageUsedBytes / 1_000) KB on this device"
         }
         return "\(videoCount) videos, \(String(format: "%.0f", megabytes)) MB on this device"
+    }
+
+    /// Builds the JSON export file for the Export data button. On
+    /// success the view offers the file through the share sheet.
+    /// On failure the spec banner copy goes to errorMessage.
+    func exportData() {
+        isExporting = true
+        defer { isExporting = false }
+        do {
+            exportURL = try DataExportService.export(from: persistence.mainContext)
+        } catch {
+            errorMessage = "Export could not be created. Check storage and try again."
+        }
     }
 
     func deleteAllData() {
