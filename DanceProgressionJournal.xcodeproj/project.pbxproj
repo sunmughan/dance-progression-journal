@@ -27,6 +27,8 @@
 		01894637F7001BE6677F7F7E /* DrillFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433968C648CABACB794F9D1F /* DrillFormView.swift */; };
 		69EE039C645C15E740D002EF /* LibraryDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */; };
 		52F2DF97B26A8653DBABB60E /* LibraryRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7365C7B3B560756D7473C519 /* LibraryRootView.swift */; };
+		A9CE86511616595DFB8AFDA0 /* VideoCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */; };
+		AE322CA06552A400DB6955CD /* VideoFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0934DC78E2FE5174AABBD1DD /* VideoFormView.swift */; };
 		B57AFA7A8D3E85DEFA3A808A /* ProgressRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */; };
 		3ABA8D03100240F634CD3A7F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CE54B852E1B97C70759A62 /* RootView.swift */; };
 		7A32411A89352E75D5F80066 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3A9563D75FF86428A563D6 /* SettingsView.swift */; };
@@ -60,6 +62,8 @@
 		433968C648CABACB794F9D1F /* DrillFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DrillFormView.swift"; path = "DrillFormView.swift"; sourceTree = "<group>"; };
 		BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryDetailViews.swift"; path = "LibraryDetailViews.swift"; sourceTree = "<group>"; };
 		7365C7B3B560756D7473C519 /* LibraryRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryRootView.swift"; path = "LibraryRootView.swift"; sourceTree = "<group>"; };
+		7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VideoCapture.swift"; path = "VideoCapture.swift"; sourceTree = "<group>"; };
+		0934DC78E2FE5174AABBD1DD /* VideoFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VideoFormView.swift"; path = "VideoFormView.swift"; sourceTree = "<group>"; };
 		EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProgressRootView.swift"; path = "ProgressRootView.swift"; sourceTree = "<group>"; };
 		D4CE54B852E1B97C70759A62 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RootView.swift"; path = "RootView.swift"; sourceTree = "<group>"; };
 		DB3A9563D75FF86428A563D6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsView.swift"; path = "SettingsView.swift"; sourceTree = "<group>"; };
@@ -119,6 +123,8 @@
 				433968C648CABACB794F9D1F /* DrillFormView.swift */,
 				BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */,
 				7365C7B3B560756D7473C519 /* LibraryRootView.swift */,
+				7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */,
+				0934DC78E2FE5174AABBD1DD /* VideoFormView.swift */,
 			); name = "Library"; path = "Views/Library"; sourceTree = "<group>"; };
 		EB2172F65E45C51F58ED169F /* Progress */ = {isa = PBXGroup; children = (
 				EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */,
@@ -207,6 +213,8 @@
 				01894637F7001BE6677F7F7E /* Sources */,
 				69EE039C645C15E740D002EF /* Sources */,
 				52F2DF97B26A8653DBABB60E /* Sources */,
+				A9CE86511616595DFB8AFDA0 /* Sources */,
+				AE322CA06552A400DB6955CD /* Sources */,
 				B57AFA7A8D3E85DEFA3A808A /* Sources */,
 				3ABA8D03100240F634CD3A7F /* Sources */,
 				7A32411A89352E75D5F80066 /* Sources */,

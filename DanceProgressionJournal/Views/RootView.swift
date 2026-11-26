@@ -119,6 +119,15 @@ struct RootView: View {
         switch route {
         case .videoDetail(let videoId):
             VideoDetailView(videoId: videoId)
+        case .videoForm(let videoId):
+            VideoFormView(videoId: videoId, onSaved: { savedId in
+                // The form dismisses itself on save. From the Library
+                // tab, saving lands on the video detail. From other
+                // tabs the form simply closes back to where it opened.
+                if isLibraryStack {
+                    libraryPath.append(.videoDetail(videoId: savedId))
+                }
+            })
         case .figureDetail(let figureId):
             FigureDetailView(figureId: figureId)
         case .drillDetail(let drillId):

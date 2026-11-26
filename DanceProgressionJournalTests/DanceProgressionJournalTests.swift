@@ -343,3 +343,111 @@ struct DrillFormTests {
         #expect(try repository.fetchAll().first?.targetRepetitions == 30)
     }
 }
+
+// MARK: - Video form tests
+
+@MainActor
+struct VideoFormTests {
+    private func videoStore() throws -> (SwiftDataVideoRepository, VideoFileService, [Dance], URL) {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let repository = SwiftDataVideoRepository(store: store)
+        let dances = try SwiftDataDanceRepository(store: store).fetchActiveOrdered()
+        let temp = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: temp, withIntermediateDirectories: true)
+        let fileService = VideoFileService(baseDirectory: temp)
+        return (repository, fileService, dances, temp)
+    }
+
+    private func makeSourceFile(in temp: URL) throws -> URL {
+        let source = temp.appendingPathComponent("source.mov")
+        try Data(repeating: 0, count: 2048).write(to: source)
+        return source
+    }
+
+    @Test("Video form cannot save without a title, dance or video")
+    func videoFormRequiresTitleDanceAndVideo() throws {
+        let (repository, fileService, dances, temp) = try videoStore()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let model = VideoFormViewModel(repository: repository, fileService: fileService)
+        model.load(video: nil, dances: dances, drills: [], sizeLimitMB: 500)
+        #expect(model.canSave == false)
+        model.title = "Rumba routine"
+        model.selectedDance = dances.first { $0.name == "Rumba" }
+        #expect(model.canSave == false)
+        #expect(model.save() == nil)
+    }
+
+    @Test("Video form saves a new video from a picked file")
+    func videoFormCreatesVideo() throws {
+        let (repository, fileService, dances, temp) = try videoStore()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let source = try makeSourceFile(in: temp)
+        let model = VideoFormViewModel(repository: repository, fileService: fileService)
+        model.load(video: nil, dances: dances, drills: [], sizeLimitMB: 500)
+        model.title = "Rumba routine run through"
+        model.selectedDance = dances.first { $0.name == "Rumba" }
+        model.pickedVideoURL = source
+        model.pickedFileSizeBytes = fileService.fileSizeBytes(at: source)
+        model.pickedDurationSeconds = 130
+        let savedId = try #require(model.save())
+        let saved = try #require(try repository.fetchAllSortedNewestFirst().first { $0.id == savedId }))
+        #expect(saved.title == "Rumba routine run through")
+        #expect(saved.relativePath.hasPrefix("Videos/"))
+        #expect(saved.durationSeconds == 130)
+        #expect(saved.durationLabel == "2:10")
+        #expect(FileManager.default.fileExists(atPath: fileService.url(forRelativePath: saved.relativePath).path))
+    }
+
+    @Test("Video over the size limit cannot save")
+    func videoOverSizeLimitCannotSave() throws {
+        let (repository, fileService, dances, temp) = try videoStore()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let source = try makeSourceFile(in: temp)
+        let model = VideoFormViewModel(repository: repository, fileService: fileService)
+        model.load(video: nil, dances: dances, drills: [], sizeLimitMB: 500)
+        model.title = "Long routine"
+        model.selectedDance = dances.first { $0.name == "Rumba" }
+        model.pickedVideoURL = source
+        model.pickedFileSizeBytes = 600_000_000
+        #expect(model.sizeLimitExceeded == true)
+        #expect(model.canSave == false)
+        #expect(model.saveDisabledReason?.contains("size limit") == true)
+        #expect(model.save() == nil)
+    }
+
+    @Test("Size limit rule is exact at the boundary")
+    func sizeLimitBoundary() {
+        #expect(VideoFileService.isOverSizeLimit(bytes: 500_000_000, limitMB: 500) == false)
+        #expect(VideoFileService.isOverSizeLimit(bytes: 500_000_001, limitMB: 500) == true)
+        #expect(VideoFileService.isOverSizeLimit(bytes: 0, limitMB: 500) == false)
+    }
+
+    @Test("Video form edit updates metadata and keeps the file")
+    func videoFormEditsMetadataOnly() throws {
+        let (repository, fileService, dances, temp) = try videoStore()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        let video = Video(
+            title: "Rumba routine",
+            fileName: "clip.mov",
+            relativePath: "Videos/clip.mov",
+            durationSeconds: 130,
+            recordedDate: Date(),
+            dance: dances.first { $0.name == "Rumba" },
+            videoType: .choreography
+        )
+        try repository.insert(video)
+        let model = VideoFormViewModel(repository: repository, fileService: fileService)
+        model.load(video: video, dances: dances, drills: [], sizeLimitMB: 500)
+        #expect(model.isEditing == true)
+        model.title = "Rumba routine, revised"
+        let savedId = try #require(model.save())
+        #expect(savedId == video.id)
+        let saved = try #require(try repository.fetchAllSortedNewestFirst().first))
+        #expect(saved.title == "Rumba routine, revised")
+        #expect(saved.relativePath == "Videos/clip.mov")
+    }
+}

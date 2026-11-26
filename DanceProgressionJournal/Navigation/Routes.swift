@@ -17,6 +17,7 @@ enum JournalRoute: Hashable {
 
 enum LibraryRoute: Hashable {
     case videoDetail(videoId: UUID)
+    case videoForm(videoId: UUID?)
     case figureDetail(figureId: UUID)
     case drillDetail(drillId: UUID)
     case drillForm(drillId: UUID?)

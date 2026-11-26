@@ -23,6 +23,51 @@ enum LibrarySegment: String, CaseIterable {
     }
 }
 
+enum VideoLayout: String, CaseIterable {
+    case grid
+    case list
+
+    var title: String {
+        switch self {
+        case .grid: "Grid"
+        case .list: "List"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .grid: "square.grid.2x2"
+        case .list: "list.bullet"
+        }
+    }
+}
+
+/// Thumbnail tile for one video. Shows the stored thumbnail when the
+/// file exists, otherwise the placeholder tile, never an error.
+struct VideoThumbnailView: View {
+    let video: Video
+
+    @Environment(AppDependencies.self) private var dependencies
+
+    var body: some View {
+        Group {
+            if let thumbnailPath = video.thumbnailRelativePath,
+               let image = UIImage(contentsOfFile: dependencies.videoFiles.url(forRelativePath: thumbnailPath).path) {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(16 / 9, contentMode: .fill)
+            } else {
+                ZStack {
+                    Rectangle().fill(DesignTokens.Color.backgroundSecondary)
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(DesignTokens.Color.textSecondary)
+                }
+            }
+        }
+    }
+}
+
 struct LibraryRootView: View {
     @Binding var segment: LibrarySegment
 
@@ -36,6 +81,9 @@ struct LibraryRootView: View {
     @State private var selectedFocusArea: FocusArea?
     @State private var showingFocusAreaFilter = false
     @State private var favouritesOnly = false
+    @State private var selectedVideoType: VideoType?
+    @State private var showingVideoTypeFilter = false
+    @State private var videoLayout: VideoLayout = .grid
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
 
     var body: some View {
@@ -74,6 +122,9 @@ struct LibraryRootView: View {
         .sheet(isPresented: $showingFocusAreaFilter) {
             focusAreaFilterSheet
         }
+        .sheet(isPresented: $showingVideoTypeFilter) {
+            videoTypeFilterSheet
+        }
         .safeAreaInset(edge: .bottom) {
             if segment == .drills {
                 NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
@@ -89,6 +140,21 @@ struct LibraryRootView: View {
                 .padding(.vertical, DesignTokens.Space.space2)
                 .background(DesignTokens.Color.backgroundPrimary)
                 .accessibilityLabel("Add Drill")
+            }
+            if segment == .videos {
+                NavigationLink(value: LibraryRoute.videoForm(videoId: nil)) {
+                    Text("Add Video")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                }
+                .background(DesignTokens.Color.accent)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                .padding(.horizontal, DesignTokens.Space.screenMargin)
+                .padding(.vertical, DesignTokens.Space.space2)
+                .background(DesignTokens.Color.backgroundPrimary)
+                .accessibilityLabel("Add Video")
             }
         }
     }
@@ -126,6 +192,55 @@ struct LibraryRootView: View {
         ) {
             favouritesOnly.toggle()
         }
+    }
+
+    private var videoTypeFilterChip: some View {
+        FilterChip(
+            title: selectedVideoType?.displayName ?? "All types",
+            isSelected: selectedVideoType != nil
+        ) {
+            showingVideoTypeFilter = true
+        }
+    }
+
+    private var videoTypeFilterSheet: some View {
+        NavigationStack {
+            List {
+                Button("All types") {
+                    selectedVideoType = nil
+                    showingVideoTypeFilter = false
+                }
+                ForEach(VideoType.allCases, id: \.self) { type in
+                    Button {
+                        selectedVideoType = type
+                        showingVideoTypeFilter = false
+                    } label: {
+                        HStack {
+                            Text(type.displayName)
+                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                            Spacer()
+                            if selectedVideoType == type {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(DesignTokens.Color.accent)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Type")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showingVideoTypeFilter = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func matchesVideoType(_ type: VideoType) -> Bool {
+        guard let selectedVideoType else { return true }
+        return type == selectedVideoType
     }
 
     private var focusAreaFilterSheet: some View {
@@ -209,7 +324,9 @@ struct LibraryRootView: View {
     }
 
     private var videoList: some View {
-        let filtered = videos.filter { matchesSearch($0.title) && matchesDance($0.dance) }
+        let filtered = videos.filter {
+            matchesSearch($0.title) && matchesDance($0.dance) && matchesVideoType($0.videoType)
+        }
         return Group {
             if videos.isEmpty {
                 EmptyStateView(
@@ -224,23 +341,61 @@ struct LibraryRootView: View {
                     helper: "Try a different search or filter."
                 )
             } else {
-                List {
+                VStack(spacing: 0) {
                     HStack {
                         danceFilterChip
+                        videoTypeFilterChip
                         Spacer()
-                    }
-                    .listRowSeparator(.hidden)
-                    ForEach(filtered) { video in
-                        NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
-                            AppRow(
-                                title: video.title,
-                                metadata: "\(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)",
-                                leadingIcon: "play.circle"
-                            )
+                        Picker("Layout", selection: $videoLayout) {
+                            ForEach(VideoLayout.allCases, id: \.self) { layout in
+                                Image(systemName: layout.icon).tag(layout)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .frame(width: 110)
+                    }
+                    .padding(.horizontal, DesignTokens.Space.screenMargin)
+                    .padding(.bottom, DesignTokens.Space.space2)
+                    if videoLayout == .grid {
+                        ScrollView {
+                            LazyVGrid(
+                                columns: [GridItem(.flexible()), GridItem(.flexible())],
+                                spacing: DesignTokens.Space.space3
+                            ) {
+                                ForEach(filtered) { video in
+                                    NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
+                                        VStack(alignment: .leading, spacing: DesignTokens.Space.space1) {
+                                            VideoThumbnailView(video: video)
+                                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.small))
+                                            Text(video.title)
+                                                .font(DesignTokens.Font.subheadline)
+                                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                                                .lineLimit(2)
+                                            Text(video.durationLabel)
+                                                .font(DesignTokens.Font.footnote)
+                                                .foregroundStyle(DesignTokens.Color.textSecondary)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, DesignTokens.Space.screenMargin)
+                        }
+                    } else {
+                        List {
+                            ForEach(filtered) { video in
+                                NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
+                                    AppRow(
+                                        title: video.title,
+                                        metadata: "\(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)",
+                                        leadingIcon: "play.circle"
+                                    )
+                                }
+                            }
+                        }
+                        .listStyle(.plain)
                     }
                 }
-                .listStyle(.plain)
             }
         }
     }

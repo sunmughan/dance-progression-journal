@@ -1,19 +1,28 @@
+import AVKit
 import SwiftUI
 import SwiftData
 
 // MARK: - Video Detail and Player
 //
-// Week 1 shows the seeded video metadata and linked items. Local
-// playback with AVPlayer, the picker and recording arrive in Week 3.
-// The player area shows a placeholder tile until then, never an error.
+// One video with local playback through AVPlayer, date, dance,
+// choreography or drill type, notes and linked items. When the video
+// file is missing, the player area says so plainly instead of showing
+// a broken player. Edit and Delete are in the top bar.
 
 struct VideoDetailView: View {
     let videoId: UUID
+
+    @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
 
     @Query private var videos: [Video]
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \Drill.name) private var drills: [Drill]
     @Query(sort: \Figure.name) private var figures: [Figure]
+
+    @State private var player: AVPlayer?
+    @State private var showingDeleteConfirmation = false
+    @State private var errorMessage: String?
 
     init(videoId: UUID) {
         self.videoId = videoId
@@ -36,24 +45,49 @@ struct VideoDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func detailContent(_ video: Video) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+    private func playerArea(_ video: Video) -> some View {
+        let url = dependencies.videoFiles.url(forRelativePath: video.relativePath)
+        return Group {
+            if FileManager.default.fileExists(atPath: url.path) {
+                VideoPlayer(player: player)
+                    .frame(height: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.small))
+                    .onAppear {
+                        if player == nil {
+                            player = AVPlayer(url: url)
+                        }
+                        player?.play()
+                    }
+                    .onDisappear {
+                        player?.pause()
+                    }
+                    .accessibilityLabel("Video player, \(video.title), duration \(video.durationLabel)")
+            } else {
                 ZStack {
                     Rectangle()
                         .fill(DesignTokens.Color.backgroundSecondary)
                         .frame(height: 220)
                         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.small))
                     VStack(spacing: DesignTokens.Space.space2) {
-                        Image(systemName: "play.circle.fill")
+                        Image(systemName: "exclamationmark.triangle")
                             .font(.system(size: 44))
                             .foregroundStyle(DesignTokens.Color.textSecondary)
-                        Text("Video playback arrives in Week 3")
+                        Text("This video could not be played. The file may be missing.")
                             .font(DesignTokens.Font.subheadline)
                             .foregroundStyle(DesignTokens.Color.textSecondary)
+                            .multilineTextAlignment(.center)
                     }
+                    .padding(DesignTokens.Space.screenMargin)
                 }
-                .accessibilityLabel("Video player, \(video.title), duration \(video.durationLabel)")
+                .accessibilityLabel("Video unavailable, \(video.title)")
+            }
+        }
+    }
+
+    private func detailContent(_ video: Video) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+                playerArea(video)
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                     Text(video.title)
@@ -121,10 +155,40 @@ struct VideoDetailView: View {
                         }
                     }
                 }
+
+                if let errorMessage {
+                    ErrorBanner(message: errorMessage)
+                }
             }
             .padding(DesignTokens.Space.screenMargin)
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(value: LibraryRoute.videoForm(videoId: video.id)) {
+                    Text("Edit")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Delete", role: .destructive) {
+                    showingDeleteConfirmation = true
+                }
+            }
+        }
+        .alert(
+            "Delete this video? This cannot be undone.",
+            isPresented: $showingDeleteConfirmation
+        ) {
+            Button("Delete", role: .destructive) {
+                do {
+                    try dependencies.videos.delete(video, fileService: dependencies.videoFiles)
+                    dismiss()
+                } catch {
+                    errorMessage = "This video could not be deleted. Check storage and try again."
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 }
 

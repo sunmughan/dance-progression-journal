@@ -89,6 +89,26 @@ struct VideoFileService {
         }
     }
 
+    /// Byte size of one file, or 0 when it cannot be read.
+    func fileSizeBytes(at url: URL) -> Int64 {
+        Int64((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0)
+    }
+
+    /// True when the file is over the per video size limit in megabytes.
+    /// The limit comes from AppSettings, so the rule is testable without
+    /// a store. One megabyte is 1,000,000 bytes, matching the storage
+    /// label in Settings.
+    static func isOverSizeLimit(bytes: Int64, limitMB: Int) -> Bool {
+        bytes > Int64(limitMB) * 1_000_000
+    }
+
+    /// Duration of a video file in seconds, or 0 when it cannot be read.
+    func durationSeconds(for url: URL) async -> Double {
+        let asset = AVAsset(url: url)
+        let duration = try? await asset.load(.duration)
+        return duration?.seconds ?? 0
+    }
+
     /// Generates a small JPEG thumbnail for a stored video and returns its
     /// relative path. Returns nil when no frame can be read.
     func generateThumbnail(forRelativePath relativePath: String) throws -> String? {

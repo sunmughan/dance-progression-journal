@@ -378,3 +378,152 @@ final class DrillFormViewModel {
         }
     }
 }
+
+@Observable
+@MainActor
+final class VideoFormViewModel {
+    var title = ""
+    var recordedDate = Date()
+    var selectedDance: Dance?
+    var videoType: VideoType = .choreography
+    var choreographyName = ""
+    var selectedDrillId: UUID?
+    var notes = ""
+    var instagramLink = ""
+    var isSaving = false
+    var errorMessage: String?
+
+    /// The picked video file, in a temporary location the form owns. Nil
+    /// until a video is picked, and when editing an existing video.
+    var pickedVideoURL: URL?
+    var pickedDurationSeconds: Double = 0
+    var pickedFileSizeBytes: Int64 = 0
+
+    private(set) var dances: [Dance] = []
+    private(set) var drills: [Drill] = []
+    private(set) var sizeLimitMB = 500
+
+    private var editingVideo: Video?
+
+    private let repository: VideoRepositoryProtocol
+    private let fileService: VideoFileService
+
+    init(repository: VideoRepositoryProtocol, fileService: VideoFileService) {
+        self.repository = repository
+        self.fileService = fileService
+    }
+
+    var isEditing: Bool { editingVideo != nil }
+
+    var sizeLimitExceeded: Bool {
+        pickedVideoURL != nil
+            && VideoFileService.isOverSizeLimit(bytes: pickedFileSizeBytes, limitMB: sizeLimitMB)
+    }
+
+    var canSave: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty
+            && selectedDance != nil
+            && (editingVideo != nil || pickedVideoURL != nil)
+            && !sizeLimitExceeded
+    }
+
+    var saveDisabledReason: String? {
+        if title.trimmingCharacters(in: .whitespaces).isEmpty {
+            return "Enter a title to save."
+        }
+        if selectedDance == nil {
+            return "Pick a dance to save."
+        }
+        if editingVideo == nil && pickedVideoURL == nil {
+            return "Pick a video to save."
+        }
+        if sizeLimitExceeded {
+            return "This video is over the size limit. Pick a shorter video."
+        }
+        return nil
+    }
+
+    var pickedSizeLabel: String {
+        let megabytes = Double(pickedFileSizeBytes) / 1_000_000
+        if megabytes < 1 {
+            return "\(pickedFileSizeBytes) KB"
+        }
+        return String(format: "%.0f MB", megabytes)
+    }
+
+    func load(video: Video?, dances: [Dance], drills: [Drill], sizeLimitMB: Int) {
+        self.dances = dances
+        self.drills = drills
+        self.sizeLimitMB = sizeLimitMB
+        guard let video else {
+            selectedDance = dances.first
+            return
+        }
+        editingVideo = video
+        title = video.title
+        recordedDate = video.recordedDate
+        selectedDance = video.dance
+        videoType = video.videoType
+        choreographyName = video.choreographyName ?? ""
+        selectedDrillId = video.drillId
+        notes = video.notes
+        instagramLink = video.instagramLink ?? ""
+        pickedDurationSeconds = video.durationSeconds
+    }
+
+    /// Inspects a freshly picked video file: duration and byte size.
+    /// Runs off the main actor for the asset load, then updates state.
+    func inspectPickedVideo() async {
+        guard let url = pickedVideoURL else { return }
+        pickedFileSizeBytes = fileService.fileSizeBytes(at: url)
+        pickedDurationSeconds = await fileService.durationSeconds(for: url)
+    }
+
+    /// Saves and returns the saved video id, or nil when the save failed.
+    /// A new video is copied into the Videos folder first; an edit only
+    /// updates the metadata and keeps the existing file.
+    func save() -> UUID? {
+        guard canSave, let dance = selectedDance else { return nil }
+        isSaving = true
+        defer { isSaving = false }
+        let trimmedLink = instagramLink.trimmingCharacters(in: .whitespaces)
+        do {
+            if let video = editingVideo {
+                video.title = title.trimmingCharacters(in: .whitespaces)
+                video.recordedDate = recordedDate
+                video.dance = dance
+                video.videoType = videoType
+                video.choreographyName = videoType == .choreography ? choreographyName.trimmingCharacters(in: .whitespaces) : nil
+                video.drillId = videoType == .drill ? selectedDrillId : nil
+                video.notes = notes
+                video.instagramLink = trimmedLink.isEmpty ? nil : trimmedLink
+                try repository.save()
+                return video.id
+            } else {
+                guard let pickedURL = pickedVideoURL else { return nil }
+                let fileExtension = pickedURL.pathExtension.isEmpty ? "mov" : pickedURL.pathExtension
+                let relativePath = try fileService.saveVideo(from: pickedURL, fileExtension: fileExtension)
+                let thumbnail = try? fileService.generateThumbnail(forRelativePath: relativePath)
+                let video = Video(
+                    title: title.trimmingCharacters(in: .whitespaces),
+                    fileName: (relativePath as NSString).lastPathComponent,
+                    relativePath: relativePath,
+                    thumbnailRelativePath: thumbnail,
+                    durationSeconds: pickedDurationSeconds,
+                    recordedDate: recordedDate,
+                    dance: dance,
+                    videoType: videoType,
+                    choreographyName: videoType == .choreography ? choreographyName.trimmingCharacters(in: .whitespaces) : nil,
+                    drillId: videoType == .drill ? selectedDrillId : nil,
+                    notes: notes,
+                    instagramLink: trimmedLink.isEmpty ? nil : trimmedLink
+                )
+                try repository.insert(video)
+                return video.id
+            }
+        } catch {
+            errorMessage = "This video could not be saved. Check storage and try again."
+            return nil
+        }
+    }
+}

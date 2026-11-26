@@ -5,8 +5,8 @@ import SwiftData
 //
 // Today at a glance. This is the first screen inside the Journal tab.
 // Countdown card, quick actions, recent entries, next drill, recent
-// videos. The drill create form is wired. The video create form
-// arrives in Phase 3.
+// videos. The drill and video create forms are wired from the quick
+// actions.
 
 struct HomeDashboardView: View {
     var onShowJournalList: () -> Void
@@ -61,7 +61,20 @@ struct HomeDashboardView: View {
                             .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
                     )
                     .accessibilityLabel("Add Drill")
-                    SecondaryButton(title: "Add Video", action: onShowVideos)
+                    NavigationLink(value: LibraryRoute.videoForm(videoId: nil)) {
+                        Text("Add Video")
+                            .font(DesignTokens.Font.headline)
+                            .foregroundStyle(DesignTokens.Color.accentText)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                    }
+                    .background(.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: DesignTokens.Radius.medium)
+                            .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
+                    )
+                    .accessibilityLabel("Add Video")
                 }
 
                 section(

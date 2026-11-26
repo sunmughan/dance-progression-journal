@@ -152,10 +152,28 @@ Deliverables:
 5. CI green on every commit in this phase. Unit tests extended for
    drill create and edit and for categorisation rules.
 
-Done: nothing yet. This phase starts after Phase 1 CI is green.
+Done: drill forms plus categorisation, 26 Nov 2026, commits 526eafa
+and 88d4bdb, CI green run 45856561020, 23 tests pass.
 
-Next: fix the first compile, run the 16 unit tests in CI, then build
-the drill forms.
+1. DrillFormViewModel plus DrillFormView: name, dance, focus area,
+   description, repetitions and duration steppers, difficulty,
+   favourite. Save disabled until name and dance are set.
+2. Drill list: focus area filter, favourites only toggle, drills
+   grouped per dance under the favourites group, Add Drill button
+   pinned above the tab bar. Drill detail: Edit and Delete in the top
+   bar with confirmation, count up Start Timer on the screen.
+3. Home Dashboard Add Drill opens the drill form directly.
+4. Categorisation verified against the three real seeded journal
+   entries. Found and fixed a real mismatch: bare "still" made the Cha
+   cha lock step footwork entry tie 1 to 1 and land uncategorised
+   while the sample set stores it as an accomplishment. Bare "still"
+   is no longer a challenge word; "needs work" covers genuine
+   challenge phrasing.
+
+Still open in this phase: the competition list screen is the one
+screen not yet reachable from any tab. It arrives with the
+competition form in Phase 3. The Add Video quick action currently
+opens the video list; the add form arrives in Phase 3.
 
 Blocked on the client:
 
