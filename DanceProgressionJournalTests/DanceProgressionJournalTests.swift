@@ -313,7 +313,7 @@ struct DrillFormTests {
         model.difficulty = .intermediate
         model.isFavourite = true
         let savedId = try #require(model.save())
-        let saved = try #require(try repository.fetchAll().first { $0.id == savedId }))
+        let saved = try #require(try repository.fetchAll().first { $0.id == savedId })
         #expect(saved.name == "Cha Cha Lock Steps")
         #expect(saved.targetRepetitions == 24)
         #expect(saved.targetDurationMinutes == 10)
