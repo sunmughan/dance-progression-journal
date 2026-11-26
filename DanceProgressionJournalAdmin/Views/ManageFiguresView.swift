@@ -101,9 +101,14 @@ struct ManageFiguresView: View {
                 FigureFormView(figureId: nil)
             }
         }
-        .sheet(item: $editingFigureId) { figureId in
-            NavigationStack {
-                FigureFormView(figureId: figureId)
+        .sheet(isPresented: Binding(
+            get: { editingFigureId != nil },
+            set: { if !$0 { editingFigureId = nil } }
+        )) {
+            if let figureId = editingFigureId {
+                NavigationStack {
+                    FigureFormView(figureId: figureId)
+                }
             }
         }
         .alert(
