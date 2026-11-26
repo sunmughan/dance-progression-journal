@@ -685,7 +685,8 @@ struct SchemaMigrationTests {
         // Build a 1.0.0 store with one drill, one checklist item and
         // settings, using the frozen 1.0.0 shapes.
         let v1Schema = Schema(versionedSchema: AppSchemaV1_0.self)
-        let v1Configuration = ModelConfiguration(schema: v1Schema, url: base, isStoredInMemoryOnly: false)
+        var v1Configuration = ModelConfiguration(schema: v1Schema, isStoredInMemoryOnly: false)
+        v1Configuration.url = base
         let v1Container = try ModelContainer(for: v1Schema, configurations: [v1Configuration])
         let v1Context = v1Container.mainContext
         let oldDrill = AppSchemaV1_0.Drill(name: "Rumba Walks", focusArea: .footwork, targetRepetitions: 20)
@@ -700,7 +701,8 @@ struct SchemaMigrationTests {
 
         // Open the same file with the 1.1.0 schema and migration plan.
         let v2Schema = Schema(versionedSchema: AppSchemaV1_1.self)
-        let v2Configuration = ModelConfiguration(schema: v2Schema, url: base, isStoredInMemoryOnly: false)
+        var v2Configuration = ModelConfiguration(schema: v2Schema, isStoredInMemoryOnly: false)
+        v2Configuration.url = base
         let v2Container = try ModelContainer(for: v2Schema, migrationPlan: AppMigrationPlan.self, configurations: [v2Configuration])
         let v2Context = v2Container.mainContext
 
