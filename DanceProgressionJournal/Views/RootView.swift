@@ -66,7 +66,10 @@ struct RootView: View {
             .tag(AppTab.library)
 
             NavigationStack(path: $progressPath) {
-                ProgressRootView()
+                ProgressRootView(onBrowseFigures: {
+                    librarySegment = .figures
+                    selectedTab = .library
+                })
                     .navigationDestination(for: ProgressRoute.self) { route in
                         switch route {
                         case .entryDetail(let entryId):
