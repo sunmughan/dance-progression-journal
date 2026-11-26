@@ -27,6 +27,6 @@ jobs:
           xcodebuild test \
             -project DanceProgressionJournal.xcodeproj \
             -scheme DanceProgressionJournal \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -derivedDataPath DerivedData \
             CODE_SIGNING_ALLOWED=NO
