@@ -273,11 +273,72 @@ Deliverables:
    tested, crash free for 3 days of use.
 6. App launches in under 3 seconds on iPhone 13 and newer.
 
-Done: nothing yet.
+Done:
 
-Next: Phase 3 must be done first. Signing setup happens here: set the
-development team for signing in the app target, confirm bundle ID
-`com.codeair.danceprogressionjournal` is free in App Store Connect.
+1. Admin app target, second target in the same repo, bundle ID
+   com.codeair.danceprogressionjournal.admin, sharing the same
+   SwiftData store and the same Firebase project. Six Content
+   Management screens from docs/design/06_screen_specs_admin.md.
+   Commit 0a77e42, CI green run 45861397883.
+2. Firebase wiring, SDK 13.2.0 through Swift Package Manager,
+   both targets, both apps. FirebaseService configures only when
+   a real GoogleService-Info.plist is present; no plist means no
+   configuration, no crash, no network. Analytics events carry
+   counts and screen names only. Commit c46dc06, CI green run
+   45861977532.
+3. Schema 1.1.0 with ManagedListItem and a custom 1.0.0 to 1.1.0
+   migration, proven by a real on disk migration test. Drill
+   focus areas and checklist categories are stored as managed
+   list names now, and the pickers read the managed lists. Admin
+   E manages them for real. AppSettings gains videoBackupEnabled,
+   default false. Commits ac0daf1, 756d065, e771c90, 3b888e9,
+   a97ed8c, 7ceabcb, ea09de0, 04c3f4c, CI green run 45869526811.
+4. Sign in with Apple plus Firebase Auth, both apps. The Apple
+   name and email offered on first sign in are never read or
+   stored; only the Firebase user id is kept. Sign in with Apple
+   entitlements are in both targets through the generator. The
+   capability still has to be enabled on the App ID when signing
+   is set up.
+5. Firestore text sync, both apps, pull then push, on launch and
+   from Sync now. Last write wins by updatedDate for journal
+   entries, drills and competitions. Figures, practice logs,
+   checklist items, videos and dances sync by push plus pull
+   create. Deletes propagate through tombstones. Only documents
+   newer than the last sync are pulled. Local SwiftData stays the
+   source of truth offline.
+6. Firebase Storage video backup, off by default, only when
+   configured, signed in, and the toggle is on. Uploads run on
+   launch, on toggle, and right after a video is saved. Deleting
+   a video removes its remote file too.
+7. Sync and backup Settings UI in the user app and in admin App
+   Settings: sign in state, last sync with Sync now, video backup
+   toggle with backup state. The section says plainly that sync
+   appears when the Firebase project is connected.
+8. CI archive job proving both Release configurations archive,
+   with warnings as errors. Commit 59e25ac and fixes a5c8cfd,
+   3d74bfa, 9ff6bc1, 88ce1d3, CI green run 45873642190, 52 tests,
+   14 suites, all passing.
+
+Not done yet, manual or client blocked:
+
+1. Layout checks, Airplane Mode test, persistence verification
+   and the under 3 second launch check. These need a real device
+   or simulator run by hand; this VM has no Xcode and no iPhone.
+2. Internal TestFlight build 1. Blocked on the client Apple
+   Developer enrolment, due 30 Nov 2026. Without it no TestFlight
+   build can be uploaded.
+3. Firebase project and plists. Blocked on the client: May
+   creates one Firebase project, registers both bundle IDs,
+   downloads both plists, grants Codeair editor access. Then
+   Codeair drops in the plists, enables Apple under
+   Authentication, creates Firestore in production mode, creates
+   the default Storage bucket, and applies owner only security
+   rules for users/{uid}/ in Firestore and Storage. Until then
+   sync and backup stay no ops and the apps work fully offline.
+4. Video backup stays off by default; the Blaze plan cost needs
+   her approval before any video uploads.
+
+Next: Phase 5 final fixes and delivery.
 
 Blocked on the client:
 
