@@ -700,7 +700,7 @@ struct SchemaMigrationTests {
         let v1Context = v1Container.mainContext
         let oldDrill = AppSchemaV1_0.Drill(name: "Rumba Walks", focusArea: .footwork, targetRepetitions: 20)
         v1Context.insert(oldDrill)
-        let oldCompetition = Competition(name: "Sample NDCA event", source: .ndca, location: "Sample", venue: "Sample", startDate: Date(), endDate: Date())
+        let oldCompetition = AppSchemaV1_0.Competition(name: "Sample NDCA event", source: .ndca, location: "Sample", venue: "Sample", startDate: Date(), endDate: Date())
         v1Context.insert(oldCompetition)
         let oldItem = AppSchemaV1_0.ChecklistItem(competition: oldCompetition, title: "Book travel", category: .travel)
         v1Context.insert(oldItem)
