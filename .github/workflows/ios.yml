@@ -30,3 +30,24 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -derivedDataPath DerivedData \
             CODE_SIGNING_ALLOWED=NO
+
+      - name: Show crash reports on failure
+        if: failure()
+        run: |
+          echo "--- DiagnosticReports ---"
+          ls -lt ~/Library/Logs/DiagnosticReports/ 2>/dev/null | head -20
+          echo "--- Newest app crash report ---"
+          NEWEST=$(ls -t ~/Library/Logs/DiagnosticReports/DanceProgressionJournal*.ips 2>/dev/null | head -1)
+          if [ -n "$NEWEST" ]; then
+            python3 - "$NEWEST" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          print("exception:", d.get("exception", {}).get("type"), d.get("exception", {}).get("signal"))
+          print("termination:", d.get("termination", {}))
+          for t in d.get("threads", []):
+              if t.get("triggered"):
+                  print("crashed thread:", t.get("id"))
+                  for f in t.get("frames", [])[:25]:
+                      print(" ", f.get("symbol"), "|", f.get("image"), "+", f.get("offset"))
+          PY
+          fi
