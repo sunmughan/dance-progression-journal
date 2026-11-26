@@ -11,7 +11,7 @@ import Testing
 @MainActor
 struct ModelTests {
     private func seededContext() throws -> ModelContext {
-        let persistence = PersistenceController.inMemory()
+        let persistence = try PersistenceController.inMemory()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         return persistence.mainContext
@@ -221,7 +221,7 @@ struct VideoFileServiceTests {
 struct RepositoryTests {
     @Test("Journal repository fetches by dance and by category")
     func journalRepositoryFilters() throws {
-        let persistence = PersistenceController.inMemory()
+        let persistence = try PersistenceController.inMemory()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
@@ -236,7 +236,7 @@ struct RepositoryTests {
 
     @Test("Drill repository marks a drill practiced")
     func drillMarkPracticed() throws {
-        let persistence = PersistenceController.inMemory()
+        let persistence = try PersistenceController.inMemory()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)

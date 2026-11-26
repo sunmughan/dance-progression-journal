@@ -193,8 +193,10 @@ final class Dance {
     @Relationship(deleteRule: .cascade, inverse: \Figure.dance)
     var figures: [Figure] = []
 
-    // Inverse of LocalProfile.preferredDances, declared there. A second
-    // @Relationship here makes the macro expand in a circle.
+    // Inverse of LocalProfile.preferredDances, declared there with the
+    // inverse key path. This side carries no inverse argument: a second
+    // inverse key path back makes the macro expand in a circle.
+    @Relationship
     var preferredByProfiles: [LocalProfile] = []
 
     init(
@@ -664,7 +666,9 @@ final class AppSettings {
     var videoQuality: VideoQuality
     var perVideoSizeLimitMB: Int
 
-    // Inverse of LocalProfile.appSettings, declared there.
+    // Inverse of LocalProfile.appSettings, declared there with the
+    // inverse key path. This side carries no inverse argument.
+    @Relationship
     var profile: LocalProfile? = nil
 
     init(

@@ -78,15 +78,17 @@ final class PersistenceController {
         videoFileService = VideoFileService()
     }
 
-    /// Test and preview helper. Never used by the app itself.
-    static func inMemory() -> PersistenceController {
-        PersistenceController(inMemory: true)
+    /// Test and preview helper. Never used by the app itself. Throws
+    /// instead of trapping so a bad schema fails a test with its error
+    /// instead of killing the test host.
+    static func inMemory() throws -> PersistenceController {
+        try PersistenceController(inMemory: true)
     }
 
-    private init(inMemory: Bool) {
+    private init(inMemory: Bool) throws {
         let schema = Schema(versionedSchema: AppSchema.self)
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
-        container = try! ModelContainer(
+        container = try ModelContainer(
             for: schema,
             migrationPlan: AppMigrationPlan.self,
             configurations: [configuration]
