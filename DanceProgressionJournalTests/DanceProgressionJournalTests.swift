@@ -674,19 +674,24 @@ struct ManagedListTests {
 struct SchemaMigrationTests {
     @Test("Migration from 1.0.0 to 1.1.0 keeps drills, checklist items and settings")
     func migrationKeepsData() throws {
-        let base = FileManager.default.temporaryDirectory
-            .appending(path: "migration-test-\(UUID().uuidString).sqlite")
-        defer {
+        // The SDK in CI has no ModelConfiguration url label, so this
+        // test uses the default on disk store. No other test touches
+        // it: every other test uses the shared in memory container.
+        // The store files are removed before and after, so a stale
+        // migrated store can never make the 1.0.0 open fail.
+        let storeURL = ModelConfiguration().url
+        let removeStoreFiles = {
             for suffix in ["", "-wal", "-shm"] {
-                try? FileManager.default.removeItem(atPath: base.path + suffix)
+                try? FileManager.default.removeItem(atPath: storeURL.path + suffix)
             }
         }
+        removeStoreFiles()
+        defer { removeStoreFiles() }
 
         // Build a 1.0.0 store with one drill, one checklist item and
         // settings, using the frozen 1.0.0 shapes.
         let v1Schema = Schema(versionedSchema: AppSchemaV1_0.self)
-        var v1Configuration = ModelConfiguration(schema: v1Schema, isStoredInMemoryOnly: false)
-        v1Configuration.url = base
+        let v1Configuration = ModelConfiguration(schema: v1Schema)
         let v1Container = try ModelContainer(for: v1Schema, configurations: [v1Configuration])
         let v1Context = v1Container.mainContext
         let oldDrill = AppSchemaV1_0.Drill(name: "Rumba Walks", focusArea: .footwork, targetRepetitions: 20)
@@ -701,8 +706,7 @@ struct SchemaMigrationTests {
 
         // Open the same file with the 1.1.0 schema and migration plan.
         let v2Schema = Schema(versionedSchema: AppSchemaV1_1.self)
-        var v2Configuration = ModelConfiguration(schema: v2Schema, isStoredInMemoryOnly: false)
-        v2Configuration.url = base
+        let v2Configuration = ModelConfiguration(schema: v2Schema)
         let v2Container = try ModelContainer(for: v2Schema, migrationPlan: AppMigrationPlan.self, configurations: [v2Configuration])
         let v2Context = v2Container.mainContext
 
