@@ -124,21 +124,31 @@ final class PersistenceController {
 
     /// Deletes every local record and every video file. Used by the
     /// Delete all data action in Settings. There is no undo.
+    /// Objects are deleted one by one, not with the batch delete API:
+    /// batch delete fails on the many to many LocalProfile to Dance
+    /// link ("mandatory MTM nullify inverse"), per object delete
+    /// nullifies the inverse correctly.
     func deleteAllData() throws {
-        try mainContext.delete(model: Dance.self)
-        try mainContext.delete(model: JournalEntry.self)
-        try mainContext.delete(model: Drill.self)
-        try mainContext.delete(model: Video.self)
-        try mainContext.delete(model: Competition.self)
-        try mainContext.delete(model: ChecklistItem.self)
-        try mainContext.delete(model: Figure.self)
-        try mainContext.delete(model: FigurePracticeLog.self)
-        try mainContext.delete(model: LocalProfile.self)
-        try mainContext.delete(model: AppSettings.self)
+        try deleteAll(LocalProfile.self)
+        try deleteAll(AppSettings.self)
+        try deleteAll(Dance.self)
+        try deleteAll(JournalEntry.self)
+        try deleteAll(Drill.self)
+        try deleteAll(Video.self)
+        try deleteAll(Competition.self)
+        try deleteAll(ChecklistItem.self)
+        try deleteAll(Figure.self)
+        try deleteAll(FigurePracticeLog.self)
         try videoFileService.deleteAllVideos()
         try mainContext.save()
         // Keep the seed flag set so a fresh empty store does not reseed
         // sample data after the user asked to delete everything.
         UserDefaults.standard.set(true, forKey: SeedData.seedFlagKey)
+    }
+
+    private func deleteAll<T: PersistentModel>(_ type: T.Type) throws {
+        for object in try mainContext.fetch(FetchDescriptor<T>()) {
+            mainContext.delete(object)
+        }
     }
 }
