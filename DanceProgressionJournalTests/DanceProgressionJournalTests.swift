@@ -728,3 +728,291 @@ struct SchemaMigrationTests {
         #expect(settings.first?.perVideoSizeLimitMB == 500)
     }
 }
+
+// MARK: - Auth service tests
+
+@MainActor
+struct AuthServiceTests {
+    @Test("SHA-256 matches the known vector")
+    func sha256MatchesKnownVector() {
+        #expect(AuthService.sha256("test") == "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08")
+    }
+
+    @Test("Each sign in starts with a fresh nonce")
+    func beginSignInReturnsFreshNonces() {
+        let auth = AuthService()
+        let first = auth.beginSignIn()
+        let second = auth.beginSignIn()
+        #expect(!first.isEmpty)
+        #expect(first != second)
+        #expect(AuthService.sha256(first).count == 64)
+    }
+
+    @Test("Without Firebase configured the session stays signed out")
+    func noConfigStaysSignedOut() {
+        let auth = AuthService()
+        #expect(auth.isConfigured == false)
+        auth.restoreSession()
+        #expect(auth.isSignedIn == false)
+        auth.signOut()
+        #expect(auth.isSignedIn == false)
+    }
+}
+
+// MARK: - Firestore mapping tests
+
+@MainActor
+struct FirestoreMappingTests {
+    @Test("Journal entry survives an encode decode round trip")
+    func journalEntryRoundTrip() {
+        let dance = Dance(name: "Cha cha", displayOrder: 1)
+        let entry = JournalEntry(
+            title: "Lock step clicked",
+            bodyText: "Weight over the front foot.",
+            entryDate: Date(timeIntervalSince1970: 1_700_000_000),
+            dance: dance,
+            category: .accomplishment,
+            aiConfidence: 0.8,
+            aiTags: ["footwork"],
+            instagramLink: "https://example.com/reel",
+            linkedVideoIds: [UUID()],
+            isFavourite: true
+        )
+        let decoded = FirestoreMapping.decodeJournalEntry(
+            FirestoreMapping.encodeJournalEntry(entry), id: entry.id, dances: [dance]
+        )
+        let roundTripped = try #require(decoded)
+        #expect(roundTripped.title == "Lock step clicked")
+        #expect(roundTripped.bodyText == "Weight over the front foot.")
+        #expect(roundTripped.entryDate == Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(roundTripped.dance?.id == dance.id)
+        #expect(roundTripped.category == .accomplishment)
+        #expect(roundTripped.aiConfidence == 0.8)
+        #expect(roundTripped.aiTags == ["footwork"])
+        #expect(roundTripped.instagramLink == "https://example.com/reel")
+        #expect(roundTripped.linkedVideoIds == entry.linkedVideoIds)
+        #expect(roundTripped.isFavourite == true)
+    }
+
+    @Test("Journal entry decode fails without a title")
+    func journalEntryDecodeFailsWithoutTitle() {
+        var fields = FirestoreMapping.encodeJournalEntry(
+            JournalEntry(title: "T", bodyText: "B", entryDate: Date())
+        )
+        fields.removeValue(forKey: "title")
+        #expect(FirestoreMapping.decodeJournalEntry(fields, id: UUID(), dances: []) == nil)
+    }
+
+    @Test("Drill survives an encode decode round trip")
+    func drillRoundTrip() {
+        let dance = Dance(name: "Rumba", displayOrder: 3)
+        let drill = Drill(
+            name: "Rumba Walks",
+            dance: dance,
+            focusArea: "footwork",
+            descriptionText: "Slow walks.",
+            targetRepetitions: 20,
+            targetDurationMinutes: 10,
+            difficulty: .intermediate,
+            isFavourite: true
+        )
+        let decoded = FirestoreMapping.decodeDrill(
+            FirestoreMapping.encodeDrill(drill), id: drill.id, dances: [dance]
+        )
+        let roundTripped = try #require(decoded)
+        #expect(roundTripped.name == "Rumba Walks")
+        #expect(roundTripped.dance?.id == dance.id)
+        #expect(roundTripped.focusArea == "footwork")
+        #expect(roundTripped.targetRepetitions == 20)
+        #expect(roundTripped.difficulty == .intermediate)
+        #expect(roundTripped.isFavourite == true)
+    }
+
+    @Test("Competition and checklist item survive round trips")
+    func competitionAndChecklistRoundTrip() {
+        let competition = Competition(
+            name: "NDCA Nationals",
+            source: .ndca,
+            location: "Provo",
+            venue: "Marriott Center",
+            startDate: Date(timeIntervalSince1970: 1_800_000_000),
+            endDate: Date(timeIntervalSince1970: 1_800_100_000),
+            registrationDeadline: Date(timeIntervalSince1970: 1_790_000_000),
+            entryStatus: .entered,
+            notes: "Book early."
+        )
+        let decodedCompetition = try #require(
+            FirestoreMapping.decodeCompetition(
+                FirestoreMapping.encodeCompetition(competition), id: competition.id
+            )
+        )
+        #expect(decodedCompetition.name == "NDCA Nationals")
+        #expect(decodedCompetition.source == .ndca)
+        #expect(decodedCompetition.startDate == Date(timeIntervalSince1970: 1_800_000_000))
+        #expect(decodedCompetition.registrationDeadline == Date(timeIntervalSince1970: 1_790_000_000))
+        #expect(decodedCompetition.entryStatus == .entered)
+
+        let item = ChecklistItem(
+            competition: competition,
+            title: "Book travel",
+            category: "travel",
+            sortOrder: 2
+        )
+        let decodedItem = try #require(
+            FirestoreMapping.decodeChecklistItem(
+                FirestoreMapping.encodeChecklistItem(item), id: item.id, competitions: [competition]
+            )
+        )
+        #expect(decodedItem.title == "Book travel")
+        #expect(decodedItem.category == "travel")
+        #expect(decodedItem.competition?.id == competition.id)
+        #expect(decodedItem.sortOrder == 2)
+    }
+
+    @Test("Figure, practice log, video and dance survive round trips")
+    func figureLogVideoDanceRoundTrip() {
+        let dance = Dance(name: "Jive", displayOrder: 5)
+        let figure = Figure(
+            name: "American Spin",
+            dance: dance,
+            level: .silver,
+            category: "Spin",
+            descriptionText: "Spin.",
+            stepsText: "Step\nTurn",
+            timing: "1 2",
+            beatCount: 8,
+            isFavourite: true,
+            ndcaReferenceCode: "JV-12"
+        )
+        let decodedFigure = try #require(
+            FirestoreMapping.decodeFigure(
+                FirestoreMapping.encodeFigure(figure), id: figure.id, dances: [dance]
+            )
+        )
+        #expect(decodedFigure.name == "American Spin")
+        #expect(decodedFigure.level == .silver)
+        #expect(decodedFigure.stepsText == "Step\nTurn")
+        #expect(decodedFigure.ndcaReferenceCode == "JV-12")
+
+        let log = FigurePracticeLog(
+            figure: figure,
+            dance: dance,
+            practiceDate: Date(timeIntervalSince1970: 1_700_000_000),
+            repetitions: 12,
+            durationMinutes: 15,
+            confidenceRating: 4,
+            notes: "Better."
+        )
+        let decodedLog = try #require(
+            FirestoreMapping.decodePracticeLog(
+                FirestoreMapping.encodePracticeLog(log), id: log.id, figures: [figure], dances: [dance]
+            )
+        )
+        #expect(decodedLog.repetitions == 12)
+        #expect(decodedLog.confidenceRating == 4)
+        #expect(decodedLog.figure?.id == figure.id)
+
+        let video = Video(
+            title: "Spin practice",
+            fileName: "spin.mov",
+            relativePath: "Videos/spin.mov",
+            durationSeconds: 42,
+            recordedDate: Date(timeIntervalSince1970: 1_700_000_000),
+            dance: dance,
+            videoType: .drill,
+            notes: "Watch the feet."
+        )
+        let decodedVideo = try #require(
+            FirestoreMapping.decodeVideo(
+                FirestoreMapping.encodeVideo(video), id: video.id, dances: [dance]
+            )
+        )
+        #expect(decodedVideo.title == "Spin practice")
+        #expect(decodedVideo.fileName == "spin.mov")
+        #expect(decodedVideo.durationSeconds == 42)
+        #expect(decodedVideo.videoType == .drill)
+
+        let decodedDance = try #require(
+            FirestoreMapping.decodeDance(
+                FirestoreMapping.encodeDance(dance), id: dance.id
+            )
+        )
+        #expect(decodedDance.name == "Jive")
+        #expect(decodedDance.style == .internationalLatin)
+        #expect(decodedDance.displayOrder == 5)
+    }
+}
+
+// MARK: - Sync tombstone tests
+
+@MainActor
+struct SyncTombstoneTests {
+    @Test("A deleted record is recorded and cleared")
+    func tombstoneRecordAndClear() {
+        SyncTombstones.clear()
+        let id = UUID()
+        SyncTombstones.record(collection: .drills, id: id)
+        SyncTombstones.record(collection: .drills, id: id)
+        let all = SyncTombstones.all()
+        #expect(all[.drills] == [id])
+        SyncTombstones.clear()
+        #expect(SyncTombstones.all().isEmpty)
+    }
+
+    @Test("Deleting a drill records its tombstone")
+    func deletingDrillRecordsTombstone() throws {
+        SyncTombstones.clear()
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let drills = SwiftDataDrillRepository(store: store)
+        let drill = Drill(name: "Tombstone drill", focusArea: "timing")
+        try drills.insert(drill)
+        try drills.delete(drill)
+        #expect(SyncTombstones.all()[.drills] == [drill.id])
+        SyncTombstones.clear()
+    }
+}
+
+// MARK: - Sync and backup no config tests
+
+@MainActor
+struct SyncNoConfigTests {
+    @Test("Sync without Firebase configured reports that sign in is needed")
+    func syncWithoutConfigNeedsSignIn() async throws {
+        let persistence = try PersistenceController.inMemory()
+        let dependencies = AppDependencies(persistence: persistence)
+        #expect(dependencies.sync.canSync == false)
+        await dependencies.sync.syncNow()
+        #expect(dependencies.sync.lastError == "Sync needs sign in.")
+        #expect(dependencies.sync.lastSyncDate == nil)
+    }
+
+    @Test("Video backup without Firebase configured does nothing")
+    func backupWithoutConfigDoesNothing() async throws {
+        let persistence = try PersistenceController.inMemory()
+        let dependencies = AppDependencies(persistence: persistence)
+        #expect(dependencies.storageBackup.backupEnabled == false)
+        await dependencies.storageBackup.backupAllVideosIfEnabled()
+        #expect(dependencies.storageBackup.isBackingUp == false)
+        #expect(dependencies.storageBackup.lastBackupDate == nil)
+    }
+
+    @Test("A video can be fetched by id")
+    func videoFetchById() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let videos = SwiftDataVideoRepository(store: store)
+        let video = Video(
+            title: "Fetch me",
+            fileName: "fetch.mov",
+            relativePath: "Videos/fetch.mov",
+            recordedDate: Date(),
+            videoType: .choreography
+        )
+        try videos.insert(video)
+        #expect(try videos.fetch(byId: video.id)?.id == video.id)
+        #expect(try videos.fetch(byId: UUID()) == nil)
+    }
+}

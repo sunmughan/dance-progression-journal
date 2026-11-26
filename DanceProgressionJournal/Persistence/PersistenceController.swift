@@ -241,6 +241,9 @@ final class PersistenceController {
         // The managed lists are the fixed picker lists, not user
         // content, so they come straight back.
         ensureManagedLists()
+        // The cloud copy still holds every record, so the next sync
+        // pulls them back. Clearing the tombstones keeps that true.
+        SyncTombstones.clear()
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type) throws {

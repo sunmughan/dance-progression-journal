@@ -77,6 +77,7 @@ final class SwiftDataJournalEntryRepository: JournalEntryRepositoryProtocol {
     }
 
     func delete(_ entry: JournalEntry) throws {
+        SyncTombstones.record(collection: .journalEntries, id: entry.id)
         store.delete(entry)
         try store.save()
     }
@@ -121,6 +122,7 @@ final class SwiftDataDrillRepository: DrillRepositoryProtocol {
     }
 
     func delete(_ drill: Drill) throws {
+        SyncTombstones.record(collection: .drills, id: drill.id)
         store.delete(drill)
         try store.save()
     }
@@ -148,6 +150,13 @@ final class SwiftDataVideoRepository: VideoRepositoryProtocol {
         try store.fetch(FetchDescriptor<Video>(sortBy: [SortDescriptor(\.recordedDate, order: .reverse)]))
     }
 
+    func fetch(byId id: UUID) throws -> Video? {
+        let descriptor = FetchDescriptor<Video>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try store.fetch(descriptor).first
+    }
+
     func fetch(byDance dance: Dance) throws -> [Video] {
         let danceId = dance.id
         let descriptor = FetchDescriptor<Video>(
@@ -163,6 +172,7 @@ final class SwiftDataVideoRepository: VideoRepositoryProtocol {
     }
 
     func delete(_ video: Video, fileService: VideoFileService) throws {
+        SyncTombstones.record(collection: .videos, id: video.id)
         try fileService.deleteVideo(
             relativePath: video.relativePath,
             thumbnailRelativePath: video.thumbnailRelativePath
@@ -203,6 +213,7 @@ final class SwiftDataCompetitionRepository: CompetitionRepositoryProtocol {
     }
 
     func delete(_ competition: Competition) throws {
+        SyncTombstones.record(collection: .competitions, id: competition.id)
         store.delete(competition)
         try store.save()
     }
@@ -210,6 +221,13 @@ final class SwiftDataCompetitionRepository: CompetitionRepositoryProtocol {
     func toggleChecklistItem(_ item: ChecklistItem) throws {
         item.isDone.toggle()
         item.doneDate = item.isDone ? Date() : nil
+        try store.save()
+    }
+
+    func insertChecklistItem(_ item: ChecklistItem) throws {
+        // Setting the competition on the item wires the inverse
+        // relationship, so the item appears in checklistItems.
+        store.insert(item)
         try store.save()
     }
 
@@ -267,6 +285,7 @@ final class SwiftDataFigureRepository: FigureRepositoryProtocol {
     }
 
     func delete(_ figure: Figure) throws {
+        SyncTombstones.record(collection: .figures, id: figure.id)
         store.delete(figure)
         try store.save()
     }
@@ -303,6 +322,7 @@ final class SwiftDataPracticeLogRepository: PracticeLogRepositoryProtocol {
     }
 
     func delete(_ log: FigurePracticeLog) throws {
+        SyncTombstones.record(collection: .practiceLogs, id: log.id)
         store.delete(log)
         try store.save()
     }

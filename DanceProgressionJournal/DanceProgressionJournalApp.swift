@@ -62,6 +62,11 @@ private struct LaunchView: View {
                 persistence = controller
                 dependencies = built
             }
+            // Signed in already? Restore the session, then sync and
+            // back up in the background. Launch never waits on them.
+            await MainActor.run { built.auth.restoreSession() }
+            Task { await built.sync.syncNow() }
+            Task { await built.storageBackup.backupAllVideosIfEnabled() }
         }
     }
 }

@@ -113,6 +113,8 @@ struct AppSettingsManagementView: View {
                         .pickerStyle(.segmented)
                     }
 
+                    SyncSettingsView()
+
                     VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                         Text("Version and build")
                             .font(DesignTokens.Font.title3)
@@ -126,7 +128,7 @@ struct AppSettingsManagementView: View {
                         Text("Privacy position")
                             .font(DesignTokens.Font.title3)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
-                        Text("Your data stays on this device. No account. No sign in. Journal text, videos and notes live on this iPhone only.")
+                        Text("Your data stays on this device unless you sign in to sync it. Journal text, videos and notes live on this iPhone only.")
                             .font(DesignTokens.Font.body)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                     }

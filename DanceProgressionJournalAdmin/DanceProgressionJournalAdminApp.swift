@@ -52,6 +52,11 @@ private struct AdminLaunchView: View {
                 persistence = controller
                 dependencies = built
             }
+            // Same account as the user app: restore the session, then
+            // sync and back up in the background. Launch never waits.
+            await MainActor.run { built.auth.restoreSession() }
+            Task { await built.sync.syncNow() }
+            Task { await built.storageBackup.backupAllVideosIfEnabled() }
         }
     }
 }

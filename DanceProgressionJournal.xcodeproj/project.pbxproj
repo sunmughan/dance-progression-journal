@@ -17,8 +17,13 @@
 		F4C2D5C6EBA2319B2FD9FB24 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */; };
 		3779E0CDBAED21466D2EA413 /* SwiftDataRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 709E9F8DECB5BF62840FFEFD /* SwiftDataRepositories.swift */; };
 		ED5B2652EAD4B1E2E4310EEA /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B47DCF3CC373D3D8B92C669 /* SeedData.swift */; };
+		94780FBADAB73D7D54AEC0C5 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FBAF36B12E191DCAA88523 /* AuthService.swift */; };
 		BADB2C0D139290D00543A282 /* CategorisationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FCACE4B4496EA8C436A217A /* CategorisationService.swift */; };
 		30C97BF4933FE936EE0E3194 /* FirebaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35FB0D09CCC8BBA996348076 /* FirebaseService.swift */; };
+		BDF649625296AC61B14D9B39 /* FirestoreMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2D8FA524C7F1B7D899C2B2 /* FirestoreMapping.swift */; };
+		48461084AEC589E23CBBE4E6 /* FirestoreSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3FACE38D3D8E0D7479D594 /* FirestoreSyncService.swift */; };
+		42D4411C67515653C93B0EE5 /* StorageBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD9553BCBE1ECE9FAEFE66C1 /* StorageBackupService.swift */; };
+		3732A951A485390DD0ABB224 /* SyncTombstones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EE63F0A1AD24A5371D1632 /* SyncTombstones.swift */; };
 		519D161F31DD39F69AB88364 /* VideoFileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E42F69683B369F331498B4EE /* VideoFileService.swift */; };
 		CC4E2D0331BF85703AF35166 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E381B6657B11C871B03554D4 /* ViewModels.swift */; };
 		A0FFAF665D2500FFF4EA6275 /* CompetitionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD94BBA58B1BDE4857AF4523 /* CompetitionDetailView.swift */; };
@@ -38,6 +43,7 @@
 		B57AFA7A8D3E85DEFA3A808A /* ProgressRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */; };
 		3ABA8D03100240F634CD3A7F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CE54B852E1B97C70759A62 /* RootView.swift */; };
 		7A32411A89352E75D5F80066 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3A9563D75FF86428A563D6 /* SettingsView.swift */; };
+		DCD66E2CC8B996ED658ED73D /* SyncSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7B9EE09E34586D69BB894E /* SyncSettingsView.swift */; };
 		348C171A3F07EFF5C796CB3E /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D36A1DCA32914D11BA59FA /* WelcomeView.swift */; };
 		589AF8DF9194CE59C7ABD619 /* DanceProgressionJournalAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */; };
 		798C84A0AD3069FD2BC2B026 /* AdminRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DE5A1D253A66F5D5908012 /* AdminRootView.swift */; };
@@ -71,8 +77,13 @@
 		95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RepositoryProtocols.swift"; path = "RepositoryProtocols.swift"; sourceTree = "<group>"; };
 		709E9F8DECB5BF62840FFEFD /* SwiftDataRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SwiftDataRepositories.swift"; path = "SwiftDataRepositories.swift"; sourceTree = "<group>"; };
 		0B47DCF3CC373D3D8B92C669 /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SeedData.swift"; path = "SeedData.swift"; sourceTree = "<group>"; };
+		32FBAF36B12E191DCAA88523 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AuthService.swift"; path = "AuthService.swift"; sourceTree = "<group>"; };
 		8FCACE4B4496EA8C436A217A /* CategorisationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CategorisationService.swift"; path = "CategorisationService.swift"; sourceTree = "<group>"; };
 		35FB0D09CCC8BBA996348076 /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FirebaseService.swift"; path = "FirebaseService.swift"; sourceTree = "<group>"; };
+		5F2D8FA524C7F1B7D899C2B2 /* FirestoreMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FirestoreMapping.swift"; path = "FirestoreMapping.swift"; sourceTree = "<group>"; };
+		2B3FACE38D3D8E0D7479D594 /* FirestoreSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FirestoreSyncService.swift"; path = "FirestoreSyncService.swift"; sourceTree = "<group>"; };
+		AD9553BCBE1ECE9FAEFE66C1 /* StorageBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "StorageBackupService.swift"; path = "StorageBackupService.swift"; sourceTree = "<group>"; };
+		91EE63F0A1AD24A5371D1632 /* SyncTombstones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SyncTombstones.swift"; path = "SyncTombstones.swift"; sourceTree = "<group>"; };
 		E42F69683B369F331498B4EE /* VideoFileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VideoFileService.swift"; path = "VideoFileService.swift"; sourceTree = "<group>"; };
 		E381B6657B11C871B03554D4 /* ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ViewModels.swift"; path = "ViewModels.swift"; sourceTree = "<group>"; };
 		BD94BBA58B1BDE4857AF4523 /* CompetitionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CompetitionDetailView.swift"; path = "CompetitionDetailView.swift"; sourceTree = "<group>"; };
@@ -92,6 +103,7 @@
 		EB3E13CFFF173384CFBED5FE /* ProgressRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ProgressRootView.swift"; path = "ProgressRootView.swift"; sourceTree = "<group>"; };
 		D4CE54B852E1B97C70759A62 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RootView.swift"; path = "RootView.swift"; sourceTree = "<group>"; };
 		DB3A9563D75FF86428A563D6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsView.swift"; path = "SettingsView.swift"; sourceTree = "<group>"; };
+		2C7B9EE09E34586D69BB894E /* SyncSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SyncSettingsView.swift"; path = "SyncSettingsView.swift"; sourceTree = "<group>"; };
 		E1D36A1DCA32914D11BA59FA /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "WelcomeView.swift"; path = "WelcomeView.swift"; sourceTree = "<group>"; };
 		515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DanceProgressionJournalAdminApp.swift"; path = "DanceProgressionJournalAdminApp.swift"; sourceTree = "<group>"; };
 		91DE5A1D253A66F5D5908012 /* AdminRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AdminRootView.swift"; path = "AdminRootView.swift"; sourceTree = "<group>"; };
@@ -104,6 +116,8 @@
 		B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DanceProgressionJournalTests.swift"; path = "DanceProgressionJournalTests.swift"; sourceTree = "<group>"; };
 		BB43517A2E02E3B0259D25E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; };
 		2F3735CF8387FD493B809AF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; };
+		BFD2FC6B311F7AD526675EF1 /* DanceProgressionJournal.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "DanceProgressionJournal.entitlements"; path = "DanceProgressionJournal.entitlements"; sourceTree = "<group>"; };
+		6FD1CAEF6271912305E72131 /* DanceProgressionJournalAdmin.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = "DanceProgressionJournalAdmin.entitlements"; path = "DanceProgressionJournalAdmin.entitlements"; sourceTree = "<group>"; };
 		99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = "Assets.xcassets"; path = "Assets.xcassets"; sourceTree = "<group>"; };
 		133A80E69B9DAA15345972C0 /* DanceProgressionJournal.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournal.app"; path = DanceProgressionJournal.app; sourceTree = "<group>"; };
 		A20A95D8A59714E71E6A5018 /* DanceProgressionJournalAdmin.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournalAdmin.app"; path = DanceProgressionJournalAdmin.app; sourceTree = "<group>"; };
@@ -151,8 +165,13 @@
 				0B47DCF3CC373D3D8B92C669 /* SeedData.swift */,
 			); name = "Seed"; path = "Seed"; sourceTree = "<group>"; };
 		985CEF4416785ACB588F8DB4 /* Services */ = {isa = PBXGroup; children = (
+				32FBAF36B12E191DCAA88523 /* AuthService.swift */,
 				8FCACE4B4496EA8C436A217A /* CategorisationService.swift */,
 				35FB0D09CCC8BBA996348076 /* FirebaseService.swift */,
+				5F2D8FA524C7F1B7D899C2B2 /* FirestoreMapping.swift */,
+				2B3FACE38D3D8E0D7479D594 /* FirestoreSyncService.swift */,
+				AD9553BCBE1ECE9FAEFE66C1 /* StorageBackupService.swift */,
+				91EE63F0A1AD24A5371D1632 /* SyncTombstones.swift */,
 				E42F69683B369F331498B4EE /* VideoFileService.swift */,
 			); name = "Services"; path = "Services"; sourceTree = "<group>"; };
 		88A1FCEFDEAB7A65D51A627F /* ViewModels */ = {isa = PBXGroup; children = (
@@ -185,6 +204,7 @@
 			); name = "Progress"; path = "Views/Progress"; sourceTree = "<group>"; };
 		30F4DE5F62B92169E568B9DD /* Settings */ = {isa = PBXGroup; children = (
 				DB3A9563D75FF86428A563D6 /* SettingsView.swift */,
+				2C7B9EE09E34586D69BB894E /* SyncSettingsView.swift */,
 			); name = "Settings"; path = "Views/Settings"; sourceTree = "<group>"; };
 		4A9EC8DB43F09B3F060C28D9 /* DanceProgressionJournal */ = {isa = PBXGroup; children = (
 				39D3550D377CB920BD16D911 /* DanceProgressionJournalApp.swift */,
@@ -202,6 +222,7 @@
 				EB2172F65E45C51F58ED169F /* Progress */,
 				30F4DE5F62B92169E568B9DD /* Settings */,
 				BB43517A2E02E3B0259D25E2 /* Info.plist */,
+				BFD2FC6B311F7AD526675EF1 /* DanceProgressionJournal.entitlements */,
 				99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */,
 			); path = DanceProgressionJournal; sourceTree = "<group>"; };
 		82B3DD94CD19249EB4EC2ECE /* Views */ = {isa = PBXGroup; children = (
@@ -217,6 +238,7 @@
 				515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */,
 				82B3DD94CD19249EB4EC2ECE /* Views */,
 				2F3735CF8387FD493B809AF3 /* Info.plist */,
+				6FD1CAEF6271912305E72131 /* DanceProgressionJournalAdmin.entitlements */,
 			); path = DanceProgressionJournalAdmin; sourceTree = "<group>"; };
 		F5FA1223E19EE299280D706E /* DanceProgressionJournalTests */ = {isa = PBXGroup; children = (
 				B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */,
@@ -296,8 +318,13 @@
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
 				3779E0CDBAED21466D2EA413 /* Sources */,
 				ED5B2652EAD4B1E2E4310EEA /* Sources */,
+				94780FBADAB73D7D54AEC0C5 /* Sources */,
 				BADB2C0D139290D00543A282 /* Sources */,
 				30C97BF4933FE936EE0E3194 /* Sources */,
+				BDF649625296AC61B14D9B39 /* Sources */,
+				48461084AEC589E23CBBE4E6 /* Sources */,
+				42D4411C67515653C93B0EE5 /* Sources */,
+				3732A951A485390DD0ABB224 /* Sources */,
 				519D161F31DD39F69AB88364 /* Sources */,
 				CC4E2D0331BF85703AF35166 /* Sources */,
 				A0FFAF665D2500FFF4EA6275 /* Sources */,
@@ -317,6 +344,7 @@
 				B57AFA7A8D3E85DEFA3A808A /* Sources */,
 				3ABA8D03100240F634CD3A7F /* Sources */,
 				7A32411A89352E75D5F80066 /* Sources */,
+				DCD66E2CC8B996ED658ED73D /* Sources */,
 				348C171A3F07EFF5C796CB3E /* Sources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 		716FB3BDB1E92D05BEB5FF96 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
@@ -329,8 +357,13 @@
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
 				3779E0CDBAED21466D2EA413 /* Sources */,
 				ED5B2652EAD4B1E2E4310EEA /* Sources */,
+				94780FBADAB73D7D54AEC0C5 /* Sources */,
 				BADB2C0D139290D00543A282 /* Sources */,
 				30C97BF4933FE936EE0E3194 /* Sources */,
+				BDF649625296AC61B14D9B39 /* Sources */,
+				48461084AEC589E23CBBE4E6 /* Sources */,
+				42D4411C67515653C93B0EE5 /* Sources */,
+				3732A951A485390DD0ABB224 /* Sources */,
 				519D161F31DD39F69AB88364 /* Sources */,
 				CC4E2D0331BF85703AF35166 /* Sources */,
 				A0FFAF665D2500FFF4EA6275 /* Sources */,
@@ -350,6 +383,7 @@
 				B57AFA7A8D3E85DEFA3A808A /* Sources */,
 				3ABA8D03100240F634CD3A7F /* Sources */,
 				7A32411A89352E75D5F80066 /* Sources */,
+				DCD66E2CC8B996ED658ED73D /* Sources */,
 				348C171A3F07EFF5C796CB3E /* Sources */,
 				589AF8DF9194CE59C7ABD619 /* Sources */,
 				798C84A0AD3069FD2BC2B026 /* Sources */,
@@ -475,6 +509,7 @@
 		82000B87E0EC13AD7FD6DA43 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_ENTITLEMENTS = "DanceProgressionJournal/DanceProgressionJournal.entitlements";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf";
@@ -496,6 +531,7 @@
 		16ACE556BD5CA3C51FD3F043 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_ENTITLEMENTS = "DanceProgressionJournal/DanceProgressionJournal.entitlements";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -517,6 +553,7 @@
 		6289B0FD077CF9C1FFAED5BB /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_ENTITLEMENTS = "DanceProgressionJournalAdmin/DanceProgressionJournalAdmin.entitlements";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf";
@@ -538,6 +575,7 @@
 		1A2EAD8CF4162CB2D2998795 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_ENTITLEMENTS = "DanceProgressionJournalAdmin/DanceProgressionJournalAdmin.entitlements";
 				CODE_SIGN_STYLE = "Automatic";
 				CURRENT_PROJECT_VERSION = "1";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";

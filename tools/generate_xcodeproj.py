@@ -58,6 +58,8 @@ def file_ref(path: Path, kind: str) -> tuple[str, str]:
         last = "sourcecode.swift"
     elif kind == "plist":
         last = "text.plist.xml"
+    elif kind == "entitlements":
+        last = "text.plist.entitlements"
     elif kind == "xcassets":
         last = "folder.assetcatalog"
     elif kind == "app":
@@ -81,6 +83,8 @@ def main() -> int:
     test_swift = sorted(TEST_DIR.rglob("*.swift"))
     info_plist = APP_DIR / "Info.plist"
     admin_plist = ADMIN_DIR / "Info.plist"
+    entitlements = APP_DIR / "DanceProgressionJournal.entitlements"
+    admin_entitlements = ADMIN_DIR / "DanceProgressionJournalAdmin.entitlements"
     assets = APP_DIR / "Assets.xcassets"
 
     build_files = Section("PBXBuildFile")
@@ -159,6 +163,13 @@ def main() -> int:
     file_refs.add(plist_entry)
     admin_plist_id, admin_plist_entry = file_ref(admin_plist, "plist")
     file_refs.add(admin_plist_entry)
+    # Sign in with Apple entitlements. File refs only, like the
+    # plists: no build phase carries them, the CODE_SIGN_ENTITLEMENTS
+    # build setting points at them.
+    entitlements_id, entitlements_entry = file_ref(entitlements, "entitlements")
+    file_refs.add(entitlements_entry)
+    admin_entitlements_id, admin_entitlements_entry = file_ref(admin_entitlements, "entitlements")
+    file_refs.add(admin_entitlements_entry)
     assets_id, assets_entry = file_ref(assets, "xcassets")
     file_refs.add(assets_entry)
     assets_bf = pbx_id("buildfile:Assets.xcassets")
@@ -261,6 +272,7 @@ def main() -> int:
         f"\t\t{app_group_id} /* DanceProgressionJournal */ = {{isa = PBXGroup; children = (\n"
         f"{root_children}{subgroup_children_text}"
         f"\t\t\t\t{plist_id} /* Info.plist */,\n"
+        f"\t\t\t\t{entitlements_id} /* DanceProgressionJournal.entitlements */,\n"
         f"\t\t\t\t{assets_id} /* Assets.xcassets */,\n"
         f"\t\t\t); path = DanceProgressionJournal; sourceTree = \"<group>\"; }};"
     )
@@ -294,6 +306,7 @@ def main() -> int:
         f"\t\t{admin_group_id} /* DanceProgressionJournalAdmin */ = {{isa = PBXGroup; children = (\n"
         f"{admin_root_children}{admin_subgroup_children_text}"
         f"\t\t\t\t{admin_plist_id} /* Info.plist */,\n"
+        f"\t\t\t\t{admin_entitlements_id} /* DanceProgressionJournalAdmin.entitlements */,\n"
         f"\t\t\t); path = DanceProgressionJournalAdmin; sourceTree = \"<group>\"; }};"
     )
 
@@ -569,6 +582,7 @@ def main() -> int:
     app_common = {
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
+        "CODE_SIGN_ENTITLEMENTS": "DanceProgressionJournal/DanceProgressionJournal.entitlements",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "DEFINES_MODULE": "YES",
@@ -602,6 +616,7 @@ def main() -> int:
 
     admin_common = dict(app_common)
     admin_common.update({
+        "CODE_SIGN_ENTITLEMENTS": "DanceProgressionJournalAdmin/DanceProgressionJournalAdmin.entitlements",
         "INFOPLIST_FILE": "DanceProgressionJournalAdmin/Info.plist",
         "PRODUCT_BUNDLE_IDENTIFIER": "com.codeair.danceprogressionjournal.admin",
     })

@@ -4,8 +4,9 @@ import SwiftData
 // MARK: - Settings and Local Profile
 //
 // Manage local profile, preferred dances, data storage, app information.
-// No account. No sign in. Delete all data removes every local record
-// and every video file, with confirmation first. There is no undo.
+// Sign in is optional and only for sync; without it everything stays
+// on this device. Delete all data removes every local record and every
+// video file, with confirmation first. There is no undo.
 
 struct SettingsView: View {
     @Environment(AppDependencies.self) private var dependencies
@@ -184,6 +185,8 @@ struct SettingsView: View {
                 .font(DesignTokens.Font.headline)
                 .tint(DesignTokens.Color.accent)
 
+                SyncSettingsView()
+
                 if let errorMessage = viewModel.errorMessage {
                     ErrorBanner(message: errorMessage)
                 }
@@ -193,13 +196,13 @@ struct SettingsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space1) {
-                    Text("Version 1.0.0 Build 1")
+                    Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0") Build \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1")")
                         .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
-                    Text("Bundle ID com.codeair.danceprogressionjournal")
+                    Text("Bundle ID \(Bundle.main.bundleIdentifier ?? "com.codeair.danceprogressionjournal")")
                         .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
-                    Text("Your data stays on this device. No account. No sign in. Journal text, videos and notes live on this iPhone only.")
+                    Text("Your data stays on this device unless you sign in to sync it. Journal text, videos and notes live on this iPhone only.")
                         .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 }

@@ -43,6 +43,7 @@ protocol DrillRepositoryProtocol: AnyObject {
 @MainActor
 protocol VideoRepositoryProtocol: AnyObject {
     func fetchAllSortedNewestFirst() throws -> [Video]
+    func fetch(byId id: UUID) throws -> Video?
     func fetch(byDance dance: Dance) throws -> [Video]
     func insert(_ video: Video) throws
     func delete(_ video: Video, fileService: VideoFileService) throws
@@ -56,6 +57,7 @@ protocol CompetitionRepositoryProtocol: AnyObject {
     func insert(_ competition: Competition) throws
     func delete(_ competition: Competition) throws
     func toggleChecklistItem(_ item: ChecklistItem) throws
+    func insertChecklistItem(_ item: ChecklistItem) throws
     func addChecklistItem(title: String, category: String, to competition: Competition) throws
     func save() throws
 }

@@ -85,6 +85,9 @@ final class AppDependencies {
     let managedLists: ManagedListRepositoryProtocol
     let categorisation: CategorisationServiceProtocol
     let videoFiles: VideoFileService
+    let auth: AuthService
+    let sync: FirestoreSyncService
+    let storageBackup: StorageBackupService
 
     init(persistence: PersistenceController) {
         self.persistence = persistence
@@ -100,5 +103,22 @@ final class AppDependencies {
         self.managedLists = SwiftDataManagedListRepository(store: store)
         self.categorisation = LocalRulesCategorisationService()
         self.videoFiles = persistence.videoFileService
+        self.auth = AuthService()
+        self.sync = FirestoreSyncService(
+            journalEntries: journalEntries,
+            drills: drills,
+            videos: videos,
+            competitions: competitions,
+            figures: figures,
+            practiceLogs: practiceLogs,
+            dances: dances,
+            auth: auth
+        )
+        self.storageBackup = StorageBackupService(
+            videos: videos,
+            videoFiles: videoFiles,
+            auth: auth,
+            profile: profile
+        )
     }
 }

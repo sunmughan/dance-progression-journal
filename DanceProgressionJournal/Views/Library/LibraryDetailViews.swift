@@ -182,6 +182,7 @@ struct VideoDetailView: View {
             Button("Delete", role: .destructive) {
                 do {
                     try dependencies.videos.delete(video, fileService: dependencies.videoFiles)
+                    Task { await dependencies.storageBackup.deleteRemoteVideo(video) }
                     dismiss()
                 } catch {
                     errorMessage = "This video could not be deleted. Check storage and try again."

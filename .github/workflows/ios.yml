@@ -109,3 +109,49 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
             -derivedDataPath DerivedDataAdmin \
             CODE_SIGNING_ALLOWED=NO
+
+  archive:
+    name: Archive Release builds
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode at $LATEST"
+          sudo xcode-select -s "$LATEST/Contents/Developer"
+          xcodebuild -version
+
+      - name: Cache SwiftPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftpm-
+
+      # Proves the Release configuration archives: the configuration
+      # that ships to TestFlight, with warnings as errors. Signing
+      # stays off here; the signed archive is built on the release
+      # machine once the Apple Developer enrolment lands.
+      - name: Archive user app
+        run: |
+          xcodebuild archive \
+            -project DanceProgressionJournal.xcodeproj \
+            -scheme DanceProgressionJournal \
+            -destination 'generic/platform=iOS' \
+            -archivePath Archives/DanceProgressionJournal.xcarchive \
+            -derivedDataPath DerivedDataArchive \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Archive admin app
+        run: |
+          xcodebuild archive \
+            -project DanceProgressionJournal.xcodeproj \
+            -scheme DanceProgressionJournalAdmin \
+            -destination 'generic/platform=iOS' \
+            -archivePath Archives/DanceProgressionJournalAdmin.xcarchive \
+            -derivedDataPath DerivedDataArchiveAdmin \
+            CODE_SIGNING_ALLOWED=NO

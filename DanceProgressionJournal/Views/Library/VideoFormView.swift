@@ -286,6 +286,7 @@ struct VideoFormView: View {
                         FirebaseService.shared.logEvent("video_saved")
                         dismiss()
                         onSaved(savedId)
+                        Task { await dependencies.storageBackup.backupVideo(id: savedId) }
                     }
                 }
                 .disabled(!viewModel.canSave || viewModel.isSaving)
