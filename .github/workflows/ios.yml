@@ -64,7 +64,8 @@ jobs:
               for t in d.get("threads", []):
                   if t.get("triggered"):
                       print("crashed thread:", t.get("id"), t.get("name"))
-                      for f in t.get("frames", [])[:40]:
-                          print(" ", f.get("symbol") or f.get("name"), "|", f.get("image"), "+", f.get("offset"), "|", f.get("instruction_addr"))
+                      print("usedImages sample:", [im.get("name") for im in d.get("usedImages", [])[:12]])
+                      for f in t.get("frames", [])[:8]:
+                          print("RAWFRAME:", json.dumps(f))
           PY
           fi
