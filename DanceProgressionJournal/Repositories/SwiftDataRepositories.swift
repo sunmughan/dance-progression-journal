@@ -64,11 +64,11 @@ final class SwiftDataJournalEntryRepository: JournalEntryRepositoryProtocol {
     }
 
     func fetch(byCategory category: EntryCategory) throws -> [JournalEntry] {
-        let descriptor = FetchDescriptor<JournalEntry>(
-            predicate: #Predicate { $0.category == category },
+        // Enum values are not comparable inside #Predicate on current SDKs,
+        // so fetch sorted and filter in memory.
+        try store.fetch(FetchDescriptor<JournalEntry>(
             sortBy: [SortDescriptor(\.entryDate, order: .reverse)]
-        )
-        return try store.fetch(descriptor)
+        )).filter { $0.category == category }
     }
 
     func insert(_ entry: JournalEntry) throws {
@@ -240,11 +240,11 @@ final class SwiftDataFigureRepository: FigureRepositoryProtocol {
     }
 
     func fetch(byLevel level: FigureLevel) throws -> [Figure] {
-        let descriptor = FetchDescriptor<Figure>(
-            predicate: #Predicate { $0.level == level },
+        // Enum values are not comparable inside #Predicate on current SDKs,
+        // so fetch sorted and filter in memory.
+        try store.fetch(FetchDescriptor<Figure>(
             sortBy: [SortDescriptor(\.name)]
-        )
-        return try store.fetch(descriptor)
+        )).filter { $0.level == level }
     }
 
     func insert(_ figure: Figure) throws {

@@ -473,7 +473,7 @@ struct ConfidenceSelector: View {
 /// dates. Shows real calendar dates under the relative label in
 /// production use, per the design spec.
 enum RelativeDateFormatter {
-    static let shared = RelativeDateFormatter()
+    @MainActor static let shared = RelativeDateFormatter()
 
     private let relative: RelativeDateTimeFormatter
     private let calendar: DateFormatter

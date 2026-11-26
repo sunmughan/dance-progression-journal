@@ -10,7 +10,7 @@ import UIKit
 // the same folder. This service is the only place that touches video files
 // on disk. Week 3 adds the picker and recording flows that call it.
 
-struct VideoFileService: Sendable {
+struct VideoFileService {
     private let fileManager = FileManager.default
     let baseDirectory: URL
 
