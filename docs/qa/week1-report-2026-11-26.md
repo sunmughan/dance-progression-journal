@@ -131,3 +131,33 @@ What QA did verify on this VM: repo state by clone and by GitHub API, file prese
 2. `docs/qa/week1-report-2026-11-26.md`, this report.
 
 Both files are committed under `docs/qa/` and pushed to main as the first commit in the repo. QA touched no other team files, because no other team files exist yet.
+
+## 8. Addendum, 26 Nov 2026 14:50 IST: design README landed after the verification run
+
+While QA was committing the report above, the design team landed its first file in the same working copy, uncommitted: `docs/design/README.md`, file timestamp 09:20 UTC. QA read and verified it before closing this run. The verdict above stands. This addendum records the new evidence honestly, with chronology intact.
+
+### What the README contains
+
+1. A map of the design folder: 8 spec files, `01_design_tokens.md` through `08_decisions_and_open_questions.md`, plus `DesignSystem/DesignTokens.swift` at the repo root.
+2. Design language: Meta Astryx as reference only, not a code dependency. Semantic tokens named by purpose, frame first layout, cards only for widgets, galleries and settings groups, badges only for counts and enumerated states.
+3. Hard quality rules: no lorem ipsum, no random gradients, no invented features, every element from the roadmap or the admin screen list, sample data consistent from `04_sample_data.md`.
+4. Navigation map: four tabs Journal, Library, Progress, Settings. Journal tab root is Home Dashboard. Library tab root is Video Library with a top segment switching to Figure Library Browse or Drill List. Progress tab root is Journal Insights by Category with a top segment switching to Practice History. Settings tab root is Settings and Local Profile, with a Content Management section leading to Admin Dashboard, the hub for the six admin screens.
+5. Brand status: brand preference is pending from May, due 2 Dec 2026. A provisional palette is used until she answers: teal as the single accent, neutral greys, one secondary purple used sparingly for the figure library. The accent token is a single swap point.
+
+### Verification result for the README
+
+1. Honesty rules: clean. Dancer May, International Latin only, Alemana and Fan labelled pending the client NDCA list, sample NDCA competition shown only as a relative countdown labelled sample data, no real competition name, date, venue or price.
+2. Forbidden content: clean. Zero em dashes, zero en dashes, zero Devanagari characters. One occurrence of the words lorem ipsum, in the sentence that forbids it, which is a prohibition statement, not filler. The only hyphen in prose is the literal identifier INV-2026-1122-01. The remaining hyphens in the file are Markdown markup, a table separator line and list bullet markers, which do not render as visible text.
+3. The README references 8 spec files and a Swift token file. None of them exists on disk yet. QA checked by full file listing at 14:50 IST: the only design file present is this README.
+4. Effect on the defect list: D4 is partly addressed, the design system is now stated in the README, but the token file and the Swift token source are still absent, so D4 stays open. D5 stays open, the 20 screen spec file `05_screen_specs_user.md` is absent. D7 stays open, the admin spec file `06_screen_specs_admin.md` is absent. No defect is closed by this README alone.
+
+### Observations, not defects, for the Week 1 review
+
+1. O1: the README names Meta Astryx as the design language reference. The roadmap names no design language. This is a reference, not a feature and not a code dependency, so it is not an invented feature. It is recorded here so the Week 1 review can confirm it.
+2. O2: the Library tab root is Video Library and the Progress tab root is Journal Insights by Category, with top segments switching to the other lists. The roadmap fixes only the four tab names and Home Dashboard as the Journal root. These tab roots are design decisions to confirm at the Week 1 review.
+3. O3: the provisional palette is used until May answers the brand question, due 2 Dec 2026. The README itself flags this. Confirm at the Week 1 review.
+4. O4: the README states that docs win over code when they disagree, and that `DesignTokens.swift` must be updated to match. QA will enforce this by the token check in QA plan section 9 once both exist.
+
+### Next QA run
+
+The design team is actively landing files. The next QA run verifies the 8 spec files and `DesignTokens.swift` once they land, plus any engineering code that lands, against this same plan. The verdict changes only on a fresh run.
