@@ -65,6 +65,7 @@ jobs:
                   if t.get("triggered"):
                       print("crashed thread:", t.get("id"), t.get("name"))
                       print("usedImages sample:", [im.get("name") for im in d.get("usedImages", [])[:12]])
+                      print("usedImages all:", [(i, im.get("name")) for i, im in enumerate(d.get("usedImages", []))])
                       for f in t.get("frames", [])[:8]:
                           print("RAWFRAME:", json.dumps(f))
           PY

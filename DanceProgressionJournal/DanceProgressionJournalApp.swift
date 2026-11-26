@@ -47,6 +47,12 @@ private struct LaunchView: View {
             }
         }
         .task {
+            // Under XCTest the test host launches this app, and the tests
+            // build their own in memory containers. Creating the real on
+            // disk container here at the same time traps inside SwiftData
+            // (same versioned schema in two containers in one process),
+            // so launch stays on the spinner while tests run.
+            guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.seedIfNeeded() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }
