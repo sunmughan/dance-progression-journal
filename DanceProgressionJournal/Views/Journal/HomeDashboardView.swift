@@ -43,6 +43,19 @@ struct HomeDashboardView: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    NavigationLink(value: JournalRoute.competitionList) {
+                        HStack {
+                            Text("See all competitions")
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.accent)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(DesignTokens.Color.accent)
+                        }
+                        .frame(height: 44)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 HStack(spacing: DesignTokens.Space.space2) {

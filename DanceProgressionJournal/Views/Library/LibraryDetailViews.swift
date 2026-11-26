@@ -196,14 +196,18 @@ struct VideoDetailView: View {
 //
 // One NDCA figure with steps, timing, level and practice summary.
 // Figures are pending the client NDCA list, due 9 Dec 2026, and the
-// screen says so. Log Practice arrives in Week 4 with practice
-// tracking.
+// screen says so. The favourite star toggles the figure as a
+// favourite. Log Practice opens the practice form.
 
 struct FigureDetailView: View {
     let figureId: UUID
 
+    @Environment(AppDependencies.self) private var dependencies
+
     @Query private var figures: [Figure]
     @Query(sort: \Video.recordedDate, order: .reverse) private var videos: [Video]
+
+    @State private var errorMessage: String?
 
     init(figureId: UUID) {
         self.figureId = figureId
@@ -294,6 +298,21 @@ struct FigureDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                NavigationLink(value: LibraryRoute.figurePracticeForm(figureId: figure.id)) {
+                    Text("Log Practice")
+                        .font(DesignTokens.Font.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                }
+                .background(DesignTokens.Color.accent)
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                .accessibilityLabel("Log Practice")
+
+                if let errorMessage {
+                    ErrorBanner(message: errorMessage)
+                }
+
                 if !figure.practiceLogs.isEmpty {
                     VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                         Text("Linked videos")
@@ -322,6 +341,23 @@ struct FigureDetailView: View {
             .padding(DesignTokens.Space.screenMargin)
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    figure.isFavourite.toggle()
+                    do {
+                        try dependencies.figures.save()
+                    } catch {
+                        figure.isFavourite.toggle()
+                        errorMessage = "This figure could not be saved. Check storage and try again."
+                    }
+                } label: {
+                    Image(systemName: figure.isFavourite ? "star.fill" : "star")
+                        .foregroundStyle(DesignTokens.Color.accent)
+                }
+                .accessibilityLabel(figure.isFavourite ? "Remove from favourites" : "Add to favourites")
+            }
+        }
     }
 }
 

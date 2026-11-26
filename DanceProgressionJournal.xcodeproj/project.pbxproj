@@ -20,11 +20,14 @@
 		519D161F31DD39F69AB88364 /* VideoFileService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E42F69683B369F331498B4EE /* VideoFileService.swift */; };
 		CC4E2D0331BF85703AF35166 /* ViewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E381B6657B11C871B03554D4 /* ViewModels.swift */; };
 		A0FFAF665D2500FFF4EA6275 /* CompetitionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD94BBA58B1BDE4857AF4523 /* CompetitionDetailView.swift */; };
+		A5DC9035723BDEEBA956A138 /* CompetitionFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87299132E6C08FF2E8C4A40A /* CompetitionFormView.swift */; };
+		0E6885CE7D72D9985218FF1B /* CompetitionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E5956910083C0A93AA1368 /* CompetitionListView.swift */; };
 		065769A7AC0CC92EA5B1DC78 /* HomeDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92D6FA424EBCBEBD27E5DBB5 /* HomeDashboardView.swift */; };
 		CD520E3D0DE2829911742508 /* JournalEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42C551C3247A1118AB964ACA /* JournalEntryDetailView.swift */; };
 		14BEFA3F85184A330B560DBF /* JournalEntryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */; };
 		B2B40BA7603C7A58C14D54A4 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0FF24C63782D93379B070F /* JournalListView.swift */; };
 		01894637F7001BE6677F7F7E /* DrillFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433968C648CABACB794F9D1F /* DrillFormView.swift */; };
+		2D770A23E589FC5EC26F9AB2 /* FigurePracticeFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */; };
 		69EE039C645C15E740D002EF /* LibraryDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */; };
 		52F2DF97B26A8653DBABB60E /* LibraryRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7365C7B3B560756D7473C519 /* LibraryRootView.swift */; };
 		A9CE86511616595DFB8AFDA0 /* VideoCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */; };
@@ -55,11 +58,14 @@
 		E42F69683B369F331498B4EE /* VideoFileService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VideoFileService.swift"; path = "VideoFileService.swift"; sourceTree = "<group>"; };
 		E381B6657B11C871B03554D4 /* ViewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ViewModels.swift"; path = "ViewModels.swift"; sourceTree = "<group>"; };
 		BD94BBA58B1BDE4857AF4523 /* CompetitionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CompetitionDetailView.swift"; path = "CompetitionDetailView.swift"; sourceTree = "<group>"; };
+		87299132E6C08FF2E8C4A40A /* CompetitionFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CompetitionFormView.swift"; path = "CompetitionFormView.swift"; sourceTree = "<group>"; };
+		66E5956910083C0A93AA1368 /* CompetitionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CompetitionListView.swift"; path = "CompetitionListView.swift"; sourceTree = "<group>"; };
 		92D6FA424EBCBEBD27E5DBB5 /* HomeDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "HomeDashboardView.swift"; path = "HomeDashboardView.swift"; sourceTree = "<group>"; };
 		42C551C3247A1118AB964ACA /* JournalEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalEntryDetailView.swift"; path = "JournalEntryDetailView.swift"; sourceTree = "<group>"; };
 		D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalEntryFormView.swift"; path = "JournalEntryFormView.swift"; sourceTree = "<group>"; };
 		9E0FF24C63782D93379B070F /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalListView.swift"; path = "JournalListView.swift"; sourceTree = "<group>"; };
 		433968C648CABACB794F9D1F /* DrillFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DrillFormView.swift"; path = "DrillFormView.swift"; sourceTree = "<group>"; };
+		D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FigurePracticeFormView.swift"; path = "FigurePracticeFormView.swift"; sourceTree = "<group>"; };
 		BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryDetailViews.swift"; path = "LibraryDetailViews.swift"; sourceTree = "<group>"; };
 		7365C7B3B560756D7473C519 /* LibraryRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryRootView.swift"; path = "LibraryRootView.swift"; sourceTree = "<group>"; };
 		7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "VideoCapture.swift"; path = "VideoCapture.swift"; sourceTree = "<group>"; };
@@ -114,6 +120,8 @@
 			); name = "Views"; path = "Views"; sourceTree = "<group>"; };
 		DA01D7B8BE1868190DB94B77 /* Journal */ = {isa = PBXGroup; children = (
 				BD94BBA58B1BDE4857AF4523 /* CompetitionDetailView.swift */,
+				87299132E6C08FF2E8C4A40A /* CompetitionFormView.swift */,
+				66E5956910083C0A93AA1368 /* CompetitionListView.swift */,
 				92D6FA424EBCBEBD27E5DBB5 /* HomeDashboardView.swift */,
 				42C551C3247A1118AB964ACA /* JournalEntryDetailView.swift */,
 				D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */,
@@ -121,6 +129,7 @@
 			); name = "Journal"; path = "Views/Journal"; sourceTree = "<group>"; };
 		1768CA858311E1E15A4B503D /* Library */ = {isa = PBXGroup; children = (
 				433968C648CABACB794F9D1F /* DrillFormView.swift */,
+				D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */,
 				BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */,
 				7365C7B3B560756D7473C519 /* LibraryRootView.swift */,
 				7872B45B7A7B6829CBDDB5F0 /* VideoCapture.swift */,
@@ -206,11 +215,14 @@
 				519D161F31DD39F69AB88364 /* Sources */,
 				CC4E2D0331BF85703AF35166 /* Sources */,
 				A0FFAF665D2500FFF4EA6275 /* Sources */,
+				A5DC9035723BDEEBA956A138 /* Sources */,
+				0E6885CE7D72D9985218FF1B /* Sources */,
 				065769A7AC0CC92EA5B1DC78 /* Sources */,
 				CD520E3D0DE2829911742508 /* Sources */,
 				14BEFA3F85184A330B560DBF /* Sources */,
 				B2B40BA7603C7A58C14D54A4 /* Sources */,
 				01894637F7001BE6677F7F7E /* Sources */,
+				2D770A23E589FC5EC26F9AB2 /* Sources */,
 				69EE039C645C15E740D002EF /* Sources */,
 				52F2DF97B26A8653DBABB60E /* Sources */,
 				A9CE86511616595DFB8AFDA0 /* Sources */,

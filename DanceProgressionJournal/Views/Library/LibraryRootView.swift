@@ -83,6 +83,8 @@ struct LibraryRootView: View {
     @State private var favouritesOnly = false
     @State private var selectedVideoType: VideoType?
     @State private var showingVideoTypeFilter = false
+    @State private var selectedLevel: FigureLevel?
+    @State private var showingLevelFilter = false
     @State private var videoLayout: VideoLayout = .grid
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
 
@@ -401,7 +403,11 @@ struct LibraryRootView: View {
     }
 
     private var figureList: some View {
-        let filtered = figures.filter { matchesSearch($0.name) && matchesDance($0.dance) }
+        let filtered = figures.filter {
+            matchesSearch($0.name) && matchesDance($0.dance)
+                && matchesLevel($0.level)
+                && (!favouritesOnly || $0.isFavourite)
+        }
         return Group {
             if filtered.isEmpty {
                 EmptyStateView(
@@ -413,7 +419,19 @@ struct LibraryRootView: View {
                 List {
                     HStack {
                         danceFilterChip
+                        FilterChip(
+                            title: selectedLevel?.displayName ?? "All levels",
+                            isSelected: selectedLevel != nil
+                        ) {
+                            showingLevelFilter = true
+                        }
                         Spacer()
+                        FilterChip(
+                            title: "Favourites",
+                            isSelected: favouritesOnly
+                        ) {
+                            favouritesOnly.toggle()
+                        }
                     }
                     .listRowSeparator(.hidden)
                     Text("Pending the client NDCA list")
@@ -425,13 +443,48 @@ struct LibraryRootView: View {
                             AppRow(
                                 title: figure.name,
                                 metadata: "\(figure.dance?.name ?? "") · \(figure.level.displayName) · \(figure.practiceLogs.count) sessions",
-                                leadingIcon: "figure.dance"
+                                leadingIcon: "figure.dance",
+                                trailing: figure.isFavourite ? AnyView(Image(systemName: "star.fill").foregroundStyle(DesignTokens.Color.accent)) : nil
                             )
                         }
                     }
                 }
                 .listStyle(.plain)
             }
+        }
+        .sheet(isPresented: $showingLevelFilter) {
+            NavigationStack {
+                List {
+                    Button("All levels") {
+                        selectedLevel = nil
+                        showingLevelFilter = false
+                    }
+                    ForEach(FigureLevel.allCases, id: \.self) { level in
+                        Button {
+                            selectedLevel = level
+                            showingLevelFilter = false
+                        } label: {
+                            HStack {
+                                Text(level.displayName)
+                                    .foregroundStyle(DesignTokens.Color.textPrimary)
+                                Spacer()
+                                if selectedLevel == level {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(DesignTokens.Color.accent)
+                                }
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("Level")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showingLevelFilter = false }
+                    }
+                }
+            }
+            .presentationDetents([.medium])
         }
     }
 
@@ -499,6 +552,11 @@ struct LibraryRootView: View {
     private func matchesFocusArea(_ focusArea: FocusArea) -> Bool {
         guard let selectedFocusArea else { return true }
         return focusArea == selectedFocusArea
+    }
+
+    private func matchesLevel(_ level: FigureLevel) -> Bool {
+        guard let selectedLevel else { return true }
+        return level == selectedLevel
     }
 
     private func drillRow(_ drill: Drill) -> some View {

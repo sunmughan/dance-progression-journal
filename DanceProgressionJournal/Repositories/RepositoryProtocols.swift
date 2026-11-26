@@ -56,6 +56,7 @@ protocol CompetitionRepositoryProtocol: AnyObject {
     func insert(_ competition: Competition) throws
     func delete(_ competition: Competition) throws
     func toggleChecklistItem(_ item: ChecklistItem) throws
+    func addChecklistItem(title: String, category: ChecklistCategory, to competition: Competition) throws
     func save() throws
 }
 

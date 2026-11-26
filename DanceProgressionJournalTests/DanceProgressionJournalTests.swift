@@ -451,3 +451,151 @@ struct VideoFormTests {
         #expect(saved.relativePath == "Videos/clip.mov")
     }
 }
+
+// MARK: - Figure practice form tests
+
+@MainActor
+struct FigurePracticeFormTests {
+    private func practiceStore() throws -> (SwiftDataPracticeLogRepository, SwiftDataFigureRepository, [Dance]) {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let repository = SwiftDataPracticeLogRepository(store: store)
+        let figures = SwiftDataFigureRepository(store: store)
+        let dances = try SwiftDataDanceRepository(store: store).fetchActiveOrdered()
+        return (repository, figures, dances)
+    }
+
+    @Test("Practice form cannot save without repetitions and duration")
+    func practiceFormRequiresRepetitionsAndDuration() throws {
+        let (repository, figures, dances) = try practiceStore()
+        let figure = Figure(name: "Alemana", dance: dances.first { $0.name == "Rumba" }, level: .bronze)
+        try figures.insert(figure)
+        let model = FigurePracticeFormViewModel(repository: repository)
+        model.load(figure: figure, videos: [])
+        #expect(model.canSave == false)
+        #expect(model.save() == nil)
+        #expect(try repository.fetchAllSortedNewestFirst().isEmpty)
+        model.repetitions = 10
+        #expect(model.canSave == false)
+        model.durationMinutes = 5
+        #expect(model.canSave == true)
+    }
+
+    @Test("Practice form saves a log and updates figure totals")
+    func practiceFormSavesLog() throws {
+        let (repository, figures, dances) = try practiceStore()
+        let figure = Figure(name: "Fan", dance: dances.first { $0.name == "Rumba" }, level: .bronze)
+        try figures.insert(figure)
+        let model = FigurePracticeFormViewModel(repository: repository)
+        model.load(figure: figure, videos: [])
+        model.repetitions = 20
+        model.durationMinutes = 15
+        model.confidenceRating = 4
+        model.notes = "Turn felt steadier."
+        let savedId = try #require(model.save())
+        let saved = try #require(try repository.fetchAllSortedNewestFirst().first { $0.id == savedId })
+        #expect(saved.repetitions == 20)
+        #expect(saved.durationMinutes == 15)
+        #expect(saved.confidenceRating == 4)
+        #expect(saved.figure?.id == figure.id)
+        #expect(figure.totalRepetitions == 20)
+        #expect(figure.totalMinutes == 15)
+        #expect(figure.practiceLogs.count == 1)
+    }
+}
+
+// MARK: - Competition form tests
+
+@MainActor
+struct CompetitionFormTests {
+    private func competitionStore() throws -> SwiftDataCompetitionRepository {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        return SwiftDataCompetitionRepository(store: store)
+    }
+
+    @Test("Competition form cannot save without a name")
+    func competitionFormRequiresName() throws {
+        let repository = try competitionStore()
+        let model = CompetitionFormViewModel(repository: repository)
+        model.load(competition: nil)
+        #expect(model.canSave == false)
+        #expect(model.save() == nil)
+        #expect(try repository.fetchAllSortedByStartDate().isEmpty)
+        model.name = "NDCA Nationals"
+        #expect(model.canSave == true)
+    }
+
+    @Test("Competition form saves a competition with a countdown")
+    func competitionFormCreatesCompetition() throws {
+        let repository = try competitionStore()
+        let model = CompetitionFormViewModel(repository: repository)
+        model.load(competition: nil)
+        model.name = "NDCA Nationals"
+        model.source = .ndca
+        model.location = "Orlando"
+        model.startDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
+        model.endDate = Calendar.current.date(byAdding: .day, value: 32, to: Date()) ?? Date()
+        model.entryStatus = .registered
+        let savedId = try #require(model.save())
+        let saved = try #require(try repository.fetchAllSortedByStartDate().first { $0.id == savedId })
+        #expect(saved.name == "NDCA Nationals")
+        #expect(saved.source == .ndca)
+        #expect(saved.entryStatus == .registered)
+        #expect(saved.daysRemaining == 30)
+    }
+
+    @Test("Competition form edit updates the competition in place")
+    func competitionFormEditsCompetition() throws {
+        let repository = try competitionStore()
+        let competition = Competition(
+            name: "NDCC Regional",
+            source: .ndcc,
+            location: "Leeds",
+            venue: "Town Hall",
+            startDate: Date(),
+            endDate: Date(),
+            entryStatus: .interested
+        )
+        try repository.insert(competition)
+        let model = CompetitionFormViewModel(repository: repository)
+        model.load(competition: competition)
+        #expect(model.isEditing == true)
+        #expect(model.name == "NDCC Regional")
+        model.entryStatus = .registered
+        let savedId = try #require(model.save())
+        #expect(savedId == competition.id)
+        #expect(try repository.fetchAllSortedByStartDate().count == 1)
+        #expect(try repository.fetchAllSortedByStartDate().first?.entryStatus == .registered)
+    }
+
+    @Test("Checklist add and toggle work through the repository")
+    func checklistAddAndToggle() throws {
+        let repository = try competitionStore()
+        let competition = Competition(
+            name: "NDCA Nationals",
+            source: .ndca,
+            location: "Orlando",
+            venue: "Arena",
+            startDate: Date(),
+            endDate: Date(),
+            entryStatus: .interested
+        )
+        try repository.insert(competition)
+        try repository.addChecklistItem(title: "Confirm entry", category: .registration, to: competition)
+        try repository.addChecklistItem(title: "Book travel", category: .travel, to: competition)
+        var items = try #require(try repository.fetchAllSortedByStartDate().first).checklistItems.sorted { $0.sortOrder < $1.sortOrder }
+        #expect(items.count == 2)
+        #expect(items.map { $0.title } == ["Confirm entry", "Book travel"])
+        #expect(items.allSatisfy { !$0.isDone })
+        try repository.toggleChecklistItem(items[0])
+        items = try #require(try repository.fetchAllSortedByStartDate().first).checklistItems.sorted { $0.sortOrder < $1.sortOrder }
+        #expect(items[0].isDone == true)
+        #expect(items[0].doneDate != nil)
+        #expect(items[1].isDone == false)
+    }
+}

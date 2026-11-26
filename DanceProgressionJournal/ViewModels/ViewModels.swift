@@ -527,3 +527,159 @@ final class VideoFormViewModel {
         }
     }
 }
+
+@Observable
+@MainActor
+final class FigurePracticeFormViewModel {
+    var practiceDate = Date()
+    var repetitions = 0
+    var durationMinutes = 0
+    var confidenceRating = 3
+    var notes = ""
+    var selectedVideoId: UUID?
+    var isSaving = false
+    var errorMessage: String?
+
+    private(set) var figure: Figure?
+    private(set) var videos: [Video] = []
+
+    private let repository: PracticeLogRepositoryProtocol
+
+    init(repository: PracticeLogRepositoryProtocol) {
+        self.repository = repository
+    }
+
+    var canSave: Bool {
+        figure != nil && repetitions > 0 && durationMinutes > 0
+    }
+
+    var saveDisabledReason: String? {
+        if repetitions <= 0 || durationMinutes <= 0 {
+            return "Enter repetitions and duration to save."
+        }
+        return nil
+    }
+
+    func load(figure: Figure, videos: [Video]) {
+        self.figure = figure
+        self.videos = videos
+    }
+
+    /// Saves and returns the saved log id, or nil when the save failed.
+    func save() -> UUID? {
+        guard canSave, let figure else { return nil }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            let log = FigurePracticeLog(
+                figure: figure,
+                dance: figure.dance,
+                practiceDate: practiceDate,
+                repetitions: repetitions,
+                durationMinutes: durationMinutes,
+                confidenceRating: confidenceRating,
+                notes: notes,
+                linkedVideoId: selectedVideoId
+            )
+            try repository.insert(log)
+            return log.id
+        } catch {
+            errorMessage = "This practice could not be saved. Check storage and try again."
+            return nil
+        }
+    }
+}
+
+@Observable
+@MainActor
+final class CompetitionFormViewModel {
+    var name = ""
+    var source: CompetitionSource = .ndca
+    var location = ""
+    var venue = ""
+    var startDate = Date()
+    var endDate = Date()
+    var hasRegistrationDeadline = false
+    var registrationDeadline = Date()
+    var entryStatus: EntryStatus = .interested
+    var notes = ""
+    var isSaving = false
+    var errorMessage: String?
+
+    private var editingCompetition: Competition?
+
+    private let repository: CompetitionRepositoryProtocol
+
+    init(repository: CompetitionRepositoryProtocol) {
+        self.repository = repository
+    }
+
+    var isEditing: Bool { editingCompetition != nil }
+
+    var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    var saveDisabledReason: String? {
+        if name.trimmingCharacters(in: .whitespaces).isEmpty {
+            return "Enter a name, pick a source and set a start date to save."
+        }
+        return nil
+    }
+
+    func load(competition: Competition?) {
+        guard let competition else { return }
+        editingCompetition = competition
+        name = competition.name
+        source = competition.source
+        location = competition.location
+        venue = competition.venue
+        startDate = competition.startDate
+        endDate = competition.endDate
+        hasRegistrationDeadline = competition.registrationDeadline != nil
+        registrationDeadline = competition.registrationDeadline ?? competition.startDate
+        entryStatus = competition.entryStatus
+        notes = competition.notes
+    }
+
+    /// Saves and returns the saved competition id, or nil when the save
+    /// failed.
+    func save() -> UUID? {
+        guard canSave else { return nil }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            if let competition = editingCompetition {
+                competition.name = name.trimmingCharacters(in: .whitespaces)
+                competition.source = source
+                competition.location = location.trimmingCharacters(in: .whitespaces)
+                competition.venue = venue.trimmingCharacters(in: .whitespaces)
+                competition.startDate = startDate
+                competition.endDate = endDate
+                competition.registrationDeadline = hasRegistrationDeadline ? registrationDeadline : nil
+                competition.entryStatus = entryStatus
+                competition.notes = notes
+                competition.updatedDate = Date()
+                try repository.save()
+                return competition.id
+            } else {
+                let competition = Competition(
+                    name: name.trimmingCharacters(in: .whitespaces),
+                    source: source,
+                    location: location.trimmingCharacters(in: .whitespaces),
+                    venue: venue.trimmingCharacters(in: .whitespaces),
+                    startDate: startDate,
+                    endDate: endDate,
+                    registrationDeadline: hasRegistrationDeadline ? registrationDeadline : nil,
+                    entryStatus: entryStatus,
+                    notes: notes
+                )
+                try repository.insert(competition)
+                return competition.id
+            }
+        } catch {
+            errorMessage = "This competition could not be saved. Check storage and try again."
+            return nil
+        }
+    }
+}

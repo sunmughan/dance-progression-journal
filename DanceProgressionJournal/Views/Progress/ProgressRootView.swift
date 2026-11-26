@@ -28,8 +28,26 @@ struct ProgressRootView: View {
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \FigurePracticeLog.practiceDate, order: .reverse) private var logs: [FigurePracticeLog]
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
+    @Query(sort: \Figure.name) private var figures: [Figure]
 
     @State private var selectedDance: Dance?
+    @State private var historyDance: Dance?
+    @State private var historyFigure: Figure?
+    @State private var historyDateFilter: HistoryDateFilter = .all
+
+    private enum HistoryDateFilter: String, CaseIterable {
+        case all
+        case thisMonth
+        case last30Days
+
+        var title: String {
+            switch self {
+            case .all: "All dates"
+            case .thisMonth: "This month"
+            case .last30Days: "Last 30 days"
+            }
+        }
+    }
 
     // The sample data set is dated December 2026, so Insights opens on
     // that month. The user can move month to month with the chevrons.
@@ -185,27 +203,54 @@ struct ProgressRootView: View {
     }
 
     private var practiceHistoryContent: some View {
-        let totalRepetitions = logs.reduce(0) { $0 + $1.repetitions }
-        let totalMinutes = logs.reduce(0) { $0 + $1.durationMinutes }
+        let filteredLogs = logs.filter { log in
+            (historyDance == nil || log.dance?.id == historyDance?.id)
+                && (historyFigure == nil || log.figure?.id == historyFigure?.id)
+                && matchesHistoryDate(log.practiceDate)
+        }
+        let totalRepetitions = filteredLogs.reduce(0) { $0 + $1.repetitions }
+        let totalMinutes = filteredLogs.reduce(0) { $0 + $1.durationMinutes }
         return ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+                HStack(spacing: DesignTokens.Space.space2) {
+                    Picker("Dance", selection: $historyDance) {
+                        Text("All dances").tag(Optional<Dance>(nil))
+                        ForEach(dances) { dance in
+                            Text(dance.name).tag(Optional(dance))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    Picker("Figure", selection: $historyFigure) {
+                        Text("All figures").tag(Optional<Figure>(nil))
+                        ForEach(figures) { figure in
+                            Text(figure.name).tag(Optional(figure))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    Picker("Date", selection: $historyDateFilter) {
+                        ForEach(HistoryDateFilter.allCases, id: \.self) { filter in
+                            Text(filter.title).tag(filter)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
                 AppCard {
                     VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                         Text("Totals")
                             .font(DesignTokens.Font.title3)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
-                        Text("\(logs.count) sessions, \(totalRepetitions) repetitions, \(totalMinutes) minutes")
+                        Text("\(filteredLogs.count) sessions, \(totalRepetitions) repetitions, \(totalMinutes) minutes")
                             .font(DesignTokens.Font.body)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                if logs.isEmpty {
-                    Text("No practice sessions yet.")
+                if filteredLogs.isEmpty {
+                    Text(logs.isEmpty ? "No practice sessions yet." : "No sessions match this filter.")
                         .font(DesignTokens.Font.body)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 } else {
-                    ForEach(logs) { log in
+                    ForEach(filteredLogs) { log in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(log.figure?.name ?? "Figure")
                                 .font(DesignTokens.Font.headline)
@@ -220,6 +265,18 @@ struct ProgressRootView: View {
                 }
             }
             .padding(DesignTokens.Space.screenMargin)
+        }
+    }
+
+    private func matchesHistoryDate(_ date: Date) -> Bool {
+        switch historyDateFilter {
+        case .all:
+            return true
+        case .thisMonth:
+            return Calendar.current.isDate(date, equalTo: Date(), toGranularity: .month)
+        case .last30Days:
+            guard let cutoff = Calendar.current.date(byAdding: .day, value: -30, to: Date()) else { return true }
+            return date >= cutoff
         }
     }
 }

@@ -12,13 +12,16 @@ enum JournalRoute: Hashable {
     case journalList
     case entryDetail(entryId: UUID)
     case entryForm(entryId: UUID?)
+    case competitionList
     case competitionDetail(competitionId: UUID)
+    case competitionForm(competitionId: UUID?)
 }
 
 enum LibraryRoute: Hashable {
     case videoDetail(videoId: UUID)
     case videoForm(videoId: UUID?)
     case figureDetail(figureId: UUID)
+    case figurePracticeForm(figureId: UUID)
     case drillDetail(drillId: UUID)
     case drillForm(drillId: UUID?)
 }

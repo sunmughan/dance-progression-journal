@@ -5,17 +5,21 @@ import SwiftData
 //
 // One competition with live countdown, event details and a preparation
 // checklist. Reached from the Home Dashboard countdown card. The sample
-// event is labelled sample data. Checklist create and edit arrive in
-// Week 4; ticking items works now.
+// event is labelled sample data. Checklist items are added here with a
+// title and a category; ticking items works now.
 
 struct CompetitionDetailView: View {
     let competitionId: UUID
 
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
 
     @Query private var competitions: [Competition]
 
     @State private var errorMessage: String?
+    @State private var newItemTitle = ""
+    @State private var newItemCategory: ChecklistCategory = .registration
+    @State private var showingDeleteConfirmation = false
 
     init(competitionId: UUID) {
         self.competitionId = competitionId
@@ -97,6 +101,35 @@ struct CompetitionDetailView: View {
                             Divider()
                         }
                     }
+                    HStack(spacing: DesignTokens.Space.space2) {
+                        TextField("Add a checklist item", text: $newItemTitle)
+                            .font(DesignTokens.Font.body)
+                            .padding(DesignTokens.Space.space3)
+                            .frame(height: 52)
+                            .background(DesignTokens.Color.backgroundSecondary)
+                            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                        Picker("Category", selection: $newItemCategory) {
+                            ForEach(ChecklistCategory.allCases, id: \.self) { category in
+                                Text(category.displayName).tag(category)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        Button("Add") {
+                            do {
+                                try dependencies.competitions.addChecklistItem(
+                                    title: newItemTitle.trimmingCharacters(in: .whitespaces),
+                                    category: newItemCategory,
+                                    to: competition
+                                )
+                                newItemTitle = ""
+                            } catch {
+                                errorMessage = "This item could not be added. Check storage and try again."
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(DesignTokens.Color.accent)
+                        .disabled(newItemTitle.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
                 }
 
                 if let errorMessage {
@@ -106,6 +139,35 @@ struct CompetitionDetailView: View {
             .padding(DesignTokens.Space.screenMargin)
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                NavigationLink(value: JournalRoute.competitionForm(competitionId: competition.id)) {
+                    Text("Edit")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button("Delete", role: .destructive) {
+                    showingDeleteConfirmation = true
+                }
+                .tint(.red)
+            }
+        }
+        .alert(
+            "Delete this competition?",
+            isPresented: $showingDeleteConfirmation
+        ) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                do {
+                    try dependencies.competitions.delete(competition)
+                    dismiss()
+                } catch {
+                    errorMessage = "This competition could not be deleted. Check storage and try again."
+                }
+            }
+        } message: {
+            Text("This cannot be undone. Its checklist is deleted too.")
+        }
     }
 
     private func detailRow(label: String, value: String) -> some View {

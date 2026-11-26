@@ -111,6 +111,15 @@ struct RootView: View {
             })
         case .competitionDetail(let competitionId):
             CompetitionDetailView(competitionId: competitionId)
+        case .competitionList:
+            CompetitionListView()
+        case .competitionForm(let competitionId):
+            CompetitionFormView(competitionId: competitionId, onSaved: { savedId in
+                if !journalPath.isEmpty {
+                    journalPath.removeLast()
+                }
+                journalPath.append(.competitionDetail(competitionId: savedId))
+            })
         }
     }
 
@@ -130,6 +139,11 @@ struct RootView: View {
             })
         case .figureDetail(let figureId):
             FigureDetailView(figureId: figureId)
+        case .figurePracticeForm(let figureId):
+            // The form dismisses itself on save. The figure detail is
+            // already underneath, and it refreshes from the store, so
+            // saving needs no further navigation.
+            FigurePracticeFormView(figureId: figureId)
         case .drillDetail(let drillId):
             DrillDetailView(drillId: drillId)
         case .drillForm(let drillId):

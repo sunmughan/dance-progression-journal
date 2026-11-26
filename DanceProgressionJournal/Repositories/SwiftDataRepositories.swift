@@ -213,6 +213,20 @@ final class SwiftDataCompetitionRepository: CompetitionRepositoryProtocol {
         try store.save()
     }
 
+    func addChecklistItem(title: String, category: ChecklistCategory, to competition: Competition) throws {
+        let nextOrder = (competition.checklistItems.map { $0.sortOrder }.max() ?? -1) + 1
+        let item = ChecklistItem(
+            competition: competition,
+            title: title,
+            category: category,
+            sortOrder: nextOrder
+        )
+        // Setting the competition on the item wires the inverse
+        // relationship, so the item appears in checklistItems.
+        store.insert(item)
+        try store.save()
+    }
+
     func save() throws {
         try store.save()
     }
