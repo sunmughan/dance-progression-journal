@@ -680,6 +680,10 @@ struct SchemaMigrationTests {
         // The store files are removed before and after, so a stale
         // migrated store can never make the 1.0.0 open fail.
         let storeURL = ModelConfiguration().url
+        // The simulator container ships without its Application
+        // Support directory. Core Data cannot create it itself
+        // inside the test host sandbox, so create it first.
+        try? FileManager.default.createDirectory(at: storeURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         let removeStoreFiles = {
             for suffix in ["", "-wal", "-shm"] {
                 try? FileManager.default.removeItem(atPath: storeURL.path + suffix)
