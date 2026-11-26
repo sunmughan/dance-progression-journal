@@ -394,7 +394,7 @@ struct VideoFormTests {
         model.pickedFileSizeBytes = fileService.fileSizeBytes(at: source)
         model.pickedDurationSeconds = 130
         let savedId = try #require(model.save())
-        let saved = try #require(try repository.fetchAllSortedNewestFirst().first { $0.id == savedId }))
+        let saved = try #require(try repository.fetchAllSortedNewestFirst().first { $0.id == savedId })
         #expect(saved.title == "Rumba routine run through")
         #expect(saved.relativePath.hasPrefix("Videos/"))
         #expect(saved.durationSeconds == 130)
@@ -446,7 +446,7 @@ struct VideoFormTests {
         model.title = "Rumba routine, revised"
         let savedId = try #require(model.save())
         #expect(savedId == video.id)
-        let saved = try #require(try repository.fetchAllSortedNewestFirst().first))
+        let saved = try #require(try repository.fetchAllSortedNewestFirst().first)
         #expect(saved.title == "Rumba routine, revised")
         #expect(saved.relativePath == "Videos/clip.mov")
     }
