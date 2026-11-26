@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Dance Progression Journal, Storage security rules.
+//
+// Video backup files live under users/{uid}/videos/{videoId}/{fileName}
+// (see DanceProgressionJournal/Services/StorageBackupService.swift).
+// Owner only: the signed-in user may read and write only the files
+// under their own uid. Everything else is denied by default.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{uid}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

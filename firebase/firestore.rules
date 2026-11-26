@@ -1,0 +1,18 @@
+rules_version = '2';
+
+// Dance Progression Journal, Firestore security rules.
+//
+// Data model (see DanceProgressionJournal/Services/FirestoreMapping.swift):
+// every synced record lives under users/{uid}/ in one of nine
+// subcollections: journalEntries, drills, competitions,
+// checklistItems, figures, practiceLogs, drillSessions, videos,
+// dances. Owner only: the signed-in user may read and write only
+// the documents under their own uid. Everything else is denied
+// by default; there is no public read anywhere.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
