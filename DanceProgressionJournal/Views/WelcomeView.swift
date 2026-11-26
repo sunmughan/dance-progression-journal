@@ -38,7 +38,7 @@ struct WelcomeView: View {
 
     private func welcomeForm(_ viewModel: WelcomeViewModel) -> some View {
         @Bindable var viewModel = viewModel
-        ScrollView {
+        return ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                     Text("Dance Progression Journal")
