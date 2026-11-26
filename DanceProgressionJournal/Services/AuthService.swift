@@ -31,11 +31,6 @@ final class AuthService {
     private(set) var userId: String?
     private(set) var errorMessage: String?
 
-    // The nonce is written on the main thread by the Apple
-    // button's request closure and read back on the MainActor by
-    // completeSignIn, so it lives outside MainActor isolation.
-    // Both accesses happen on the main thread in practice.
-    nonisolated private var currentNonce: String?
 
     var isConfigured: Bool {
         FirebaseService.shared.isConfigured
@@ -53,14 +48,14 @@ final class AuthService {
         #endif
     }
 
-    /// Starts a sign in. Returns a fresh random nonce; the view
-    /// puts its SHA-256 hash on the Apple request. Nonisolated on
-    /// purpose: the Apple button configures its request in a
-    /// synchronous closure, which cannot await the MainActor.
-    nonisolated func beginSignIn() -> String {
-        let nonce = randomNonce()
-        currentNonce = nonce
-        return nonce
+    /// A fresh random nonce for a sign in. Static and nonisolated
+    /// on purpose: the Apple button configures its request in a
+    /// synchronous closure, which cannot await the MainActor. The
+    /// view keeps the nonce in @State and hands it back to
+    /// completeSignIn, so the service holds no sign in state
+    /// between the request and the callback.
+    nonisolated static func makeNonce() -> String {
+        randomNonce()
     }
 
     /// SHA-256 hex of the nonce, for the Apple ID request.
@@ -70,14 +65,15 @@ final class AuthService {
     }
 
     /// Exchanges the Apple credential for a Firebase credential.
-    /// Only runs when Firebase is configured.
-    func completeSignIn(credential: ASAuthorizationAppleIDCredential) async {
+    /// Only runs when Firebase is configured. The raw nonce is the
+    /// one the view generated for this sign in attempt.
+    func completeSignIn(credential: ASAuthorizationAppleIDCredential, rawNonce: String?) async {
         #if canImport(FirebaseAuth)
         guard isConfigured else {
             errorMessage = "Sign in needs the Firebase project connected."
             return
         }
-        guard let nonce = currentNonce else {
+        guard let nonce = rawNonce else {
             errorMessage = "Sign in did not complete. Try again."
             return
         }
@@ -86,9 +82,8 @@ final class AuthService {
             errorMessage = "Sign in did not complete. Try again."
             return
         }
-        currentNonce = nil
         let firebaseCredential = OAuthProvider.credential(
-            providerID: "apple.com",
+            providerID: .apple,
             idToken: idToken,
             rawNonce: nonce
         )
@@ -108,7 +103,6 @@ final class AuthService {
     /// The Apple sheet was dismissed or failed. The raw error can
     /// carry account detail, so only a plain message is kept.
     func noteSignInFailed() {
-        currentNonce = nil
         errorMessage = "Sign in did not complete. Try again."
     }
 
@@ -122,7 +116,7 @@ final class AuthService {
         errorMessage = nil
     }
 
-    nonisolated private func randomNonce() -> String {
+    nonisolated private static func randomNonce() -> String {
         let characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._"
         var result = ""
         result.reserveCapacity(32)

@@ -19,6 +19,8 @@ struct SyncSettingsView: View {
 
     @Query private var settingsList: [AppSettings]
 
+    @State private var signInNonce: String?
+
     private var settings: AppSettings? { settingsList.first }
 
     var body: some View {
@@ -37,13 +39,14 @@ struct SyncSettingsView: View {
                         .font(DesignTokens.Font.body)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                     SignInWithAppleButton(.signIn) { request in
-                        let nonce = dependencies.auth.beginSignIn()
+                        let nonce = AuthService.makeNonce()
+                        signInNonce = nonce
                         request.nonce = AuthService.sha256(nonce)
                     } onCompletion: { result in
                         switch result {
                         case .success(let authorization):
                             if let credential = authorization.credential as? ASAuthorizationAppleIDCredential {
-                                Task { await dependencies.auth.completeSignIn(credential: credential) }
+                                Task { await dependencies.auth.completeSignIn(credential: credential, rawNonce: signInNonce) }
                             }
                         case .failure:
                             Task { @MainActor in dependencies.auth.noteSignInFailed() }

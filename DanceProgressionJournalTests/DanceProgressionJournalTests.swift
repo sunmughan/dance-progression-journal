@@ -739,10 +739,9 @@ struct AuthServiceTests {
     }
 
     @Test("Each sign in starts with a fresh nonce")
-    func beginSignInReturnsFreshNonces() {
-        let auth = AuthService()
-        let first = auth.beginSignIn()
-        let second = auth.beginSignIn()
+    func makeNonceReturnsFreshNonces() {
+        let first = AuthService.makeNonce()
+        let second = AuthService.makeNonce()
         #expect(!first.isEmpty)
         #expect(first != second)
         #expect(AuthService.sha256(first).count == 64)
