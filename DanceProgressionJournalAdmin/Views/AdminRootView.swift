@@ -12,6 +12,7 @@ import SwiftData
 
 struct AdminRootView: View {
     @State private var adminPath: [AdminRoute] = []
+    @State private var didLoad = false
 
     @Query private var entries: [JournalEntry]
     @Query private var drills: [Drill]
@@ -19,49 +20,67 @@ struct AdminRootView: View {
     @Query private var figures: [Figure]
     @Query private var competitions: [Competition]
     @Query private var practiceLogs: [FigurePracticeLog]
+    @Query private var drillSessions: [DrillPracticeSession]
+    @Query private var managedLists: [ManagedListItem]
+
+    // Practice sessions cover figure practice and drill practice.
+    private var practiceSessionCount: Int { practiceLogs.count + drillSessions.count }
 
     var body: some View {
         NavigationStack(path: $adminPath) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: DesignTokens.Space.space3),
-                            GridItem(.flexible(), spacing: DesignTokens.Space.space3)
-                        ],
-                        spacing: DesignTokens.Space.space3
-                    ) {
-                        // Only Figures, Competitions and Drills have a
-                        // management screen. Journal entries, videos and
-                        // practice sessions are counts only: the admin
-                        // spec defines no management screen for them,
-                        // so their cards do not navigate anywhere.
-                        countCard(title: "Journal entries", count: entries.count, route: nil)
-                        countCard(title: "Drills", count: drills.count, route: .manageDrills)
-                        countCard(title: "Videos", count: videos.count, route: nil)
-                        countCard(title: "Figures", count: figures.count, route: .manageFigures)
-                        countCard(title: "Competitions", count: competitions.count, route: .manageCompetitions)
-                        countCard(title: "Practice sessions", count: practiceLogs.count, route: nil)
-                    }
+            if !didLoad {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(DesignTokens.Color.backgroundPrimary)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: DesignTokens.Space.space3) {
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: DesignTokens.Space.space2),
+                                GridItem(.flexible(), spacing: DesignTokens.Space.space2)
+                            ],
+                            spacing: DesignTokens.Space.space2
+                        ) {
+                            // Only Figures, Competitions and Drills have a
+                            // management screen. Journal entries, videos and
+                            // practice sessions are counts only: the admin
+                            // spec defines no management screen for them.
+                            // Their cards carry no chevron and a "Count
+                            // only" line, so they never look tappable.
+                            countCard(title: "Journal entries", count: entries.count, route: nil)
+                            countCard(title: "Drills", count: drills.count, route: .manageDrills)
+                            countCard(title: "Videos", count: videos.count, route: nil)
+                            countCard(title: "Figures", count: figures.count, route: .manageFigures)
+                            countCard(title: "Competitions", count: competitions.count, route: .manageCompetitions)
+                            countCard(title: "Practice sessions", count: practiceSessionCount, route: nil)
+                        }
 
-                    Text("Content by area")
-                        .font(DesignTokens.Font.title3)
-                        .foregroundStyle(DesignTokens.Color.textPrimary)
-                    VStack(spacing: 0) {
-                        areaRow(title: "Figures", count: figures.count, route: .manageFigures)
-                        Divider()
-                        areaRow(title: "Competitions", count: competitions.count, route: .manageCompetitions)
-                        Divider()
-                        areaRow(title: "Drills", count: drills.count, route: .manageDrills)
-                        Divider()
-                        areaRow(title: "Content and Categories", count: 0, route: .contentCategories, showsCount: false)
-                        Divider()
-                        areaRow(title: "App Settings", count: 0, route: .appSettings, showsCount: false)
+                        Text("Content by area")
+                            .font(DesignTokens.Font.title3)
+                            .foregroundStyle(DesignTokens.Color.textPrimary)
+                        VStack(spacing: 0) {
+                            areaRow(title: "Figures", count: figures.count, route: .manageFigures)
+                            Divider()
+                            areaRow(title: "Competitions", count: competitions.count, route: .manageCompetitions)
+                            Divider()
+                            areaRow(title: "Drills", count: drills.count, route: .manageDrills)
+                            Divider()
+                            areaRow(title: "Journal entries", count: entries.count, route: nil)
+                            Divider()
+                            areaRow(title: "Videos", count: videos.count, route: nil)
+                            Divider()
+                            areaRow(title: "Practice sessions", count: practiceSessionCount, route: nil)
+                            Divider()
+                            areaRow(title: "Content and Categories", count: managedLists.count, route: .contentCategories)
+                            Divider()
+                            areaRow(title: "App Settings", count: AppSettingsManagementView.sectionCount, route: .appSettings)
+                        }
                     }
+                    .padding(DesignTokens.Space.screenMargin)
                 }
-                .padding(DesignTokens.Space.screenMargin)
+                .background(DesignTokens.Color.backgroundPrimary)
             }
-            .background(DesignTokens.Color.backgroundPrimary)
             .navigationTitle("Content Management")
             .navigationBarTitleDisplayMode(.large)
             .navigationDestination(for: AdminRoute.self) { route in
@@ -69,6 +88,9 @@ struct AdminRootView: View {
             }
             .onOpenURL { url in
                 openDeepLink(url)
+            }
+            .onAppear {
+                didLoad = true
             }
         }
     }
@@ -97,21 +119,30 @@ struct AdminRootView: View {
     }
 
     private func countCard(title: String, count: Int, route: AdminRoute?) -> some View {
-        let card = VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-            Text("\(count)")
-                .font(DesignTokens.Font.largeTitle)
-                .foregroundStyle(DesignTokens.Color.textPrimary)
+        let card = VStack(alignment: .leading, spacing: DesignTokens.Space.space1) {
+            HStack(alignment: .top) {
+                Text("\(count)")
+                    .font(DesignTokens.Font.title1)
+                    .foregroundStyle(DesignTokens.Color.textPrimary)
+                Spacer()
+                if route != nil {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(DesignTokens.Color.textSecondary)
+                        .padding(.top, DesignTokens.Space.space1)
+                }
+            }
             Text(title)
                 .font(DesignTokens.Font.subheadline)
                 .foregroundStyle(DesignTokens.Color.textSecondary)
-            if route != nil {
-                Text("Manage")
-                    .font(DesignTokens.Font.subheadline)
-                    .foregroundStyle(DesignTokens.Color.accent)
+            if route == nil {
+                Text("Count only")
+                    .font(DesignTokens.Font.footnote)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(DesignTokens.Space.space3)
+        .padding(DesignTokens.Space.space2)
         .background(DesignTokens.Color.backgroundSecondary)
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
         if let route {
@@ -125,25 +156,30 @@ struct AdminRootView: View {
         }
     }
 
-    private func areaRow(title: String, count: Int, route: AdminRoute, showsCount: Bool = true) -> some View {
-        NavigationLink(value: route) {
-            HStack {
-                Text(title)
-                    .font(DesignTokens.Font.body)
-                    .foregroundStyle(DesignTokens.Color.textPrimary)
-                Spacer()
-                if showsCount {
-                    Text("\(count)")
-                        .font(DesignTokens.Font.subheadline)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                }
+    private func areaRow(title: String, count: Int, route: AdminRoute?) -> some View {
+        let row = HStack {
+            Text(title)
+                .font(DesignTokens.Font.body)
+                .foregroundStyle(DesignTokens.Color.textPrimary)
+            Spacer()
+            Text("\(count)")
+                .font(DesignTokens.Font.subheadline)
+                .foregroundStyle(DesignTokens.Color.textSecondary)
+            if route != nil {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(DesignTokens.Color.textSecondary)
             }
-            .frame(minHeight: 52)
         }
-        .buttonStyle(.plain)
+        .frame(minHeight: 52)
+        if let route {
+            return AnyView(
+                NavigationLink(value: route) { row }
+                    .buttonStyle(.plain)
+            )
+        } else {
+            return AnyView(row)
+        }
     }
 
     @ViewBuilder

@@ -17,6 +17,7 @@ struct ManageDrillsView: View {
     @State private var searchText = ""
     @State private var selectedFocusArea: String?
     @State private var drillToRemove: Drill?
+    @State private var showingAddForm = false
     @State private var errorMessage: String?
 
     private var focusAreasInUse: [String] {
@@ -52,29 +53,29 @@ struct ManageDrillsView: View {
                 EmptyStateView(
                     icon: "timer",
                     title: "No drills yet.",
-                    helper: "Add a drill to the library."
+                    helper: "Add a drill to the library.",
+                    actionTitle: "Add Drill",
+                    action: { showingAddForm = true }
                 )
             } else if filtered.isEmpty {
-                VStack(spacing: DesignTokens.Space.space2) {
-                    EmptyStateView(
-                        icon: "magnifyingglass",
-                        title: "No drills found.",
-                        helper: "Try a different search or focus area."
-                    )
-                    Button("Clear search") {
+                EmptyStateView(
+                    icon: "magnifyingglass",
+                    title: "No drills found.",
+                    helper: "Try a different search or focus area.",
+                    actionTitle: "Clear search",
+                    action: {
                         searchText = ""
                         selectedFocusArea = nil
                     }
-                    .font(DesignTokens.Font.subheadline)
-                    .foregroundStyle(DesignTokens.Color.accent)
-                }
+                )
             } else {
                 List {
                     ForEach(filtered) { drill in
                         HStack {
                             AppRow(
                                 title: drill.name,
-                                metadata: "\(drill.dance?.name ?? "") · \(drill.focusAreaDisplayName)"
+                                metadata: metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName),
+                                showsChevron: false
                             )
                             Spacer()
                             NavigationLink(value: AdminRoute.drillForm(drillId: drill.id)) {
@@ -83,9 +84,7 @@ struct ManageDrillsView: View {
                                     .foregroundStyle(DesignTokens.Color.accent)
                             }
                             .buttonStyle(.plain)
-                            Button("Remove") { drillToRemove = drill }
-                                .font(DesignTokens.Font.subheadline)
-                                .foregroundStyle(.red)
+                            DestructiveButton(title: "Remove") { drillToRemove = drill }
                         }
                         .frame(minHeight: 52)
                     }
@@ -101,6 +100,11 @@ struct ManageDrillsView: View {
         .background(DesignTokens.Color.backgroundPrimary)
         .navigationTitle("Manage Drills")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showingAddForm) {
+            NavigationStack {
+                DrillFormView(drillId: nil)
+            }
+        }
         .alert(
             "Remove this drill? Linked journal entries keep their text, the drill link is removed.",
             isPresented: Binding(
@@ -122,9 +126,7 @@ struct ManageDrillsView: View {
         }
         .safeAreaInset(edge: .bottom) {
             NavigationLink(value: AdminRoute.drillForm(drillId: nil)) {
-                Text("Add Drill")
-                    .font(DesignTokens.Font.headline)
-                    .foregroundStyle(.white)
+                PrimaryButtonLabel(title: "Add Drill")
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
             }

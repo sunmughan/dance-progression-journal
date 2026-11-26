@@ -50,37 +50,35 @@ struct ManageFiguresView: View {
                 EmptyStateView(
                     icon: "figure.dance",
                     title: "No figures yet.",
-                    helper: "Add a figure to the library."
+                    helper: "Add a figure to the library.",
+                    actionTitle: "Add Figure",
+                    action: { showingAddForm = true }
                 )
             } else if filtered.isEmpty {
-                VStack(spacing: DesignTokens.Space.space2) {
-                    EmptyStateView(
-                        icon: "magnifyingglass",
-                        title: "No figures found.",
-                        helper: "Try a different search or dance."
-                    )
-                    Button("Clear search") {
+                EmptyStateView(
+                    icon: "magnifyingglass",
+                    title: "No figures found.",
+                    helper: "Try a different search or dance.",
+                    actionTitle: "Clear search",
+                    action: {
                         searchText = ""
                         selectedDance = nil
                     }
-                    .font(DesignTokens.Font.subheadline)
-                    .foregroundStyle(DesignTokens.Color.accent)
-                }
+                )
             } else {
                 List {
                     ForEach(filtered) { figure in
                         HStack {
                             AppRow(
                                 title: figure.name,
-                                metadata: "\(figure.dance?.name ?? "") · \(figure.level.displayName)"
+                                metadata: metadataLine(figure.dance?.name ?? "", figure.level.displayName),
+                                showsChevron: false
                             )
                             Spacer()
                             Button("Edit") { editingFigureId = figure.id }
                                 .font(DesignTokens.Font.subheadline)
                                 .foregroundStyle(DesignTokens.Color.accent)
-                            Button("Remove") { figureToRemove = figure }
-                                .font(DesignTokens.Font.subheadline)
-                                .foregroundStyle(.red)
+                            DestructiveButton(title: "Remove") { figureToRemove = figure }
                         }
                         .frame(minHeight: 52)
                     }
@@ -131,17 +129,10 @@ struct ManageFiguresView: View {
             }
         }
         .safeAreaInset(edge: .bottom) {
-            Button("Add Figure") { showingAddForm = true }
-                .font(DesignTokens.Font.headline)
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 52)
-                .background(DesignTokens.Color.accent)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+            PrimaryButton(title: "Add Figure") { showingAddForm = true }
                 .padding(.horizontal, DesignTokens.Space.screenMargin)
                 .padding(.vertical, DesignTokens.Space.space2)
                 .background(DesignTokens.Color.backgroundPrimary)
-                .accessibilityLabel("Add Figure")
         }
     }
 

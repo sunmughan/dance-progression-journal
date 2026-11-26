@@ -94,6 +94,7 @@ struct DestructiveButton: View {
             Text(title)
                 .font(DesignTokens.Font.headline)
                 .foregroundStyle(DesignTokens.Color.danger)
+                .frame(minHeight: 44)
         }
         .accessibilityLabel(title)
     }
@@ -145,6 +146,9 @@ struct AppRow: View {
     let metadata: String
     var isFavourite: Bool = false
     var leadingIcon: String? = nil
+    /// Admin manage rows are not tappable, so they hide the chevron
+    /// instead of implying navigation that does not exist.
+    var showsChevron: Bool = true
 
     var body: some View {
         HStack(spacing: DesignTokens.Space.space2) {
@@ -172,10 +176,12 @@ struct AppRow: View {
                     .foregroundStyle(DesignTokens.Color.accent)
                     .accessibilityLabel("Favourite")
             }
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(DesignTokens.Color.textTertiary)
-                .accessibilityHidden(true)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(DesignTokens.Color.textTertiary)
+                    .accessibilityHidden(true)
+            }
         }
         .padding(.horizontal, DesignTokens.Space.space3)
         .frame(minHeight: 64)

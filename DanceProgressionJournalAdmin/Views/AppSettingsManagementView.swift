@@ -14,6 +14,11 @@ import SwiftData
 // Saved settings apply in the user app at once.
 
 struct AppSettingsManagementView: View {
+    /// The sections on this screen, shown as the count on the
+    /// dashboard App Settings row: Defaults for the user app,
+    /// Video, Sync and backup, Version and build, Privacy position.
+    static let sectionCount = 5
+
     @Environment(AppDependencies.self) private var dependencies
 
     @Query private var settingsList: [AppSettings]

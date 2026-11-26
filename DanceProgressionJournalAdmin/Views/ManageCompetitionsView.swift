@@ -15,6 +15,7 @@ struct ManageCompetitionsView: View {
     @Query(sort: \Competition.startDate) private var competitions: [Competition]
 
     @State private var competitionToRemove: Competition?
+    @State private var showingAddForm = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -23,7 +24,9 @@ struct ManageCompetitionsView: View {
                 EmptyStateView(
                     icon: "calendar",
                     title: "No competitions yet.",
-                    helper: "Add a competition to track its countdown and checklist."
+                    helper: "Add a competition to track its countdown and checklist.",
+                    actionTitle: "Add Competition",
+                    action: { showingAddForm = true }
                 )
             } else {
                 List {
@@ -31,18 +34,24 @@ struct ManageCompetitionsView: View {
                         HStack {
                             AppRow(
                                 title: competition.name,
-                                metadata: "\(competition.source.displayName) · \(RelativeDateFormatter.shared.calendarString(for: competition.startDate)) · \(competition.daysRemaining) days to go"
+                                metadata: metadataLine(
+                                    competition.source.displayName,
+                                    RelativeDateFormatter.shared.calendarString(for: competition.startDate)
+                                ),
+                                showsChevron: false
                             )
                             Spacer()
+                            Text(countdownLabel(for: competition))
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.textSecondary)
+                                .lineLimit(1)
                             NavigationLink(value: AdminRoute.competitionForm(competitionId: competition.id)) {
                                 Text("Edit")
                                     .font(DesignTokens.Font.subheadline)
                                     .foregroundStyle(DesignTokens.Color.accent)
                             }
                             .buttonStyle(.plain)
-                            Button("Remove") { competitionToRemove = competition }
-                                .font(DesignTokens.Font.subheadline)
-                                .foregroundStyle(.red)
+                            DestructiveButton(title: "Remove") { competitionToRemove = competition }
                         }
                         .frame(minHeight: 52)
                     }
@@ -58,6 +67,11 @@ struct ManageCompetitionsView: View {
         .background(DesignTokens.Color.backgroundPrimary)
         .navigationTitle("Manage Competitions")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showingAddForm) {
+            NavigationStack {
+                CompetitionFormView(competitionId: nil)
+            }
+        }
         .alert(
             "Remove this competition? Its checklist goes with it. This cannot be undone.",
             isPresented: Binding(
@@ -79,9 +93,7 @@ struct ManageCompetitionsView: View {
         }
         .safeAreaInset(edge: .bottom) {
             NavigationLink(value: AdminRoute.competitionForm(competitionId: nil)) {
-                Text("Add Competition")
-                    .font(DesignTokens.Font.headline)
-                    .foregroundStyle(.white)
+                PrimaryButtonLabel(title: "Add Competition")
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
             }
@@ -92,5 +104,14 @@ struct ManageCompetitionsView: View {
             .background(DesignTokens.Color.backgroundPrimary)
             .accessibilityLabel("Add Competition")
         }
+    }
+
+    /// Past competitions read "Ended", never "0 days to go".
+    /// Same rule as the user app competition list.
+    private func countdownLabel(for competition: Competition) -> String {
+        let isUpcoming = competition.startDate >= Calendar.current.startOfDay(for: Date())
+        guard isUpcoming else { return "Ended" }
+        let days = competition.daysRemaining
+        return days == 1 ? "1 day to go" : "\(days) days to go"
     }
 }
