@@ -193,7 +193,8 @@ final class Dance {
     @Relationship(deleteRule: .cascade, inverse: \Figure.dance)
     var figures: [Figure] = []
 
-    @Relationship(inverse: \LocalProfile.preferredDances)
+    // Inverse of LocalProfile.preferredDances, declared there. A second
+    // @Relationship here makes the macro expand in a circle.
     var preferredByProfiles: [LocalProfile] = []
 
     init(
@@ -663,8 +664,8 @@ final class AppSettings {
     var videoQuality: VideoQuality
     var perVideoSizeLimitMB: Int
 
-    @Relationship(inverse: \LocalProfile.appSettings)
-    var profile: LocalProfile?
+    // Inverse of LocalProfile.appSettings, declared there.
+    var profile: LocalProfile? = nil
 
     init(
         id: UUID = UUID(),

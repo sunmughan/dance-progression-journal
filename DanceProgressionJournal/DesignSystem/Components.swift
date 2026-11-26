@@ -472,7 +472,7 @@ struct ConfidenceSelector: View {
 /// Shared relative date formatter for metadata lines and checklist due
 /// dates. Shows real calendar dates under the relative label in
 /// production use, per the design spec.
-enum RelativeDateFormatter {
+struct RelativeDateFormatter {
     @MainActor static let shared = RelativeDateFormatter()
 
     private let relative: RelativeDateTimeFormatter
