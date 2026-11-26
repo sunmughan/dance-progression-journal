@@ -36,13 +36,76 @@ struct AppMigrationPlan: SchemaMigrationPlan {
         [AppSchemaV1_0.self, AppSchemaV1_1.self]
     }
 
-    // Lightweight migration from 1.0.0 to 1.1.0. The enum to String
-    // changes keep the stored values: both enums are String backed,
-    // so the columns stay text with the same values. The new entity
-    // and the new AppSettings flag are added empty, then
+    // Custom migration from 1.0.0 to 1.1.0. The enum to String
+    // changes look value preserving, but Core Data cannot infer a
+    // mapping across the type change, so the destination attributes
+    // arrive empty and the migration fails validation. willMigrate
+    // reads the old enum values out of the source store first, and
+    // didMigrate writes them back as strings. The new entity and
+    // the new AppSettings flag are added empty, then
     // ensureManagedLists seeds the default rows on launch.
     static var stages: [MigrationStage] {
-        [MigrationStage.lightweight(fromVersion: AppSchemaV1_0.self, toVersion: AppSchemaV1_1.self)]
+        [MigrationStage.custom(
+            fromVersion: AppSchemaV1_0.self,
+            toVersion: AppSchemaV1_1.self,
+            willMigrate: { context in
+                let drills = try context.fetch(FetchDescriptor<AppSchemaV1_0.Drill>())
+                let items = try context.fetch(FetchDescriptor<AppSchemaV1_0.ChecklistItem>())
+                capture.store(
+                    focusAreas: Dictionary(uniqueKeysWithValues: drills.map { ($0.id, $0.focusArea.rawValue) }),
+                    categories: Dictionary(uniqueKeysWithValues: items.map { ($0.id, $0.category.rawValue) })
+                )
+            },
+            didMigrate: { context in
+                let drills = try context.fetch(FetchDescriptor<Drill>())
+                for drill in drills {
+                    if let value = capture.focusArea(for: drill.id) {
+                        drill.focusArea = value
+                    }
+                }
+                let items = try context.fetch(FetchDescriptor<ChecklistItem>())
+                for item in items {
+                    if let value = capture.category(for: item.id) {
+                        item.category = value
+                    }
+                }
+                try context.save()
+            }
+        )]
+    }
+
+    /// Holds the enum values read out of the 1.0.0 store between
+    /// willMigrate and didMigrate. A locked box, not a plain static
+    /// var, so Swift 6 accepts it as shared state.
+    private static let capture = MigrationCapture()
+}
+
+/// Locked box for the values carried across the 1.0.0 to 1.1.0
+/// migration. The willMigrate and didMigrate closures run on
+/// either side of the store migration with no shared scope, so
+/// the values travel through here.
+private final class MigrationCapture: @unchecked Sendable {
+    private let lock = NSLock()
+    private var focusAreas: [UUID: String] = [:]
+    private var categories: [UUID: String] = [:]
+
+    func store(focusAreas: [UUID: String], categories: [UUID: String]) {
+        lock.lock()
+        defer { lock.unlock() }
+        self.focusAreas = focusAreas
+        self.categories = categories
+    }
+
+    func focusArea(for id: UUID) -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        return focusAreas[id]
+    }
+
+    func category(for id: UUID) -> String? {
+        lock.lock()
+        defer { lock.unlock() }
+        return categories[id]
     }
 }
 

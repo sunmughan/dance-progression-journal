@@ -300,8 +300,10 @@ final class Drill {
     // Schema 1.0.0 stored the FocusArea enum; the enum is String
     // backed, so the stored values are identical and the 1.1.0
     // migration keeps every drill. The admin app manages the list,
-    // so the pickers read managed lists instead of the enum.
-    var focusArea: String
+    // so the pickers read managed lists instead of the enum. The
+    // property default is what a migrated row gets before the
+    // custom stage writes its real value back.
+    var focusArea: String = FocusArea.footwork.rawValue
     var descriptionText: String
     var targetRepetitions: Int
     var targetDurationMinutes: Int
@@ -486,8 +488,10 @@ final class ChecklistItem {
     // Stored as a plain string, the name of a managed checklist
     // category. Schema 1.0.0 stored the ChecklistCategory enum;
     // the enum is String backed, so the stored values are identical
-    // and the 1.1.0 migration keeps every item.
-    var category: String
+    // and the 1.1.0 migration keeps every item. The property
+    // default is what a migrated row gets before the custom stage
+    // writes its real value back.
+    var category: String = ChecklistCategory.registration.rawValue
     var isDone: Bool
     var doneDate: Date?
     var createdDate: Date
