@@ -58,10 +58,13 @@ jobs:
               ex = d.get("exception", {})
               print("exception:", ex.get("type"), ex.get("signal"), ex.get("codes"))
               print("termination:", d.get("termination", {}))
+              print("diagnosis:", d.get("diagnosis"))
+              print("asi:", d.get("asi"))
+              print("lastExceptionBacktrace:", d.get("lastExceptionBacktrace"))
               for t in d.get("threads", []):
                   if t.get("triggered"):
                       print("crashed thread:", t.get("id"), t.get("name"))
-                      for f in t.get("frames", [])[:30]:
-                          print(" ", f.get("symbol"), "|", f.get("image"), "+", f.get("offset"))
+                      for f in t.get("frames", [])[:40]:
+                          print(" ", f.get("symbol") or f.get("name"), "|", f.get("image"), "+", f.get("offset"), "|", f.get("instruction_addr"))
           PY
           fi
