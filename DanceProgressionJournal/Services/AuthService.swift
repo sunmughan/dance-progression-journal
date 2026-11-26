@@ -35,7 +35,7 @@ final class AuthService {
     // button's request closure and read back on the MainActor by
     // completeSignIn, so it lives outside MainActor isolation.
     // Both accesses happen on the main thread in practice.
-    nonisolated(unsafe) private var currentNonce: String?
+    nonisolated private var currentNonce: String?
 
     var isConfigured: Bool {
         FirebaseService.shared.isConfigured
@@ -88,7 +88,7 @@ final class AuthService {
         }
         currentNonce = nil
         let firebaseCredential = OAuthProvider.credential(
-            withProviderID: "apple.com",
+            providerID: "apple.com",
             idToken: idToken,
             rawNonce: nonce
         )
@@ -122,7 +122,7 @@ final class AuthService {
         errorMessage = nil
     }
 
-    private func randomNonce() -> String {
+    nonisolated private func randomNonce() -> String {
         let characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._"
         var result = ""
         result.reserveCapacity(32)
