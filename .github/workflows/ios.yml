@@ -70,3 +70,26 @@ jobs:
                           print("RAWFRAME:", json.dumps(f))
           PY
           fi
+
+  admin-build:
+    name: Build admin app
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode at $LATEST"
+          sudo xcode-select -s "$LATEST/Contents/Developer"
+          xcodebuild -version
+
+      - name: Build admin app
+        run: |
+          xcodebuild build \
+            -project DanceProgressionJournal.xcodeproj \
+            -scheme DanceProgressionJournalAdmin \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -derivedDataPath DerivedDataAdmin \
+            CODE_SIGNING_ALLOWED=NO

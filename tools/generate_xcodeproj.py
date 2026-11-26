@@ -20,6 +20,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 APP_DIR = REPO / "DanceProgressionJournal"
+ADMIN_DIR = REPO / "DanceProgressionJournalAdmin"
 TEST_DIR = REPO / "DanceProgressionJournalTests"
 OUT = REPO / "DanceProgressionJournal.xcodeproj"
 
@@ -76,16 +77,24 @@ def file_ref(path: Path, kind: str) -> tuple[str, str]:
 
 def main() -> int:
     app_swift = sorted(APP_DIR.rglob("*.swift"))
+    admin_swift = sorted(ADMIN_DIR.rglob("*.swift"))
     test_swift = sorted(TEST_DIR.rglob("*.swift"))
     info_plist = APP_DIR / "Info.plist"
+    admin_plist = ADMIN_DIR / "Info.plist"
     assets = APP_DIR / "Assets.xcassets"
 
     build_files = Section("PBXBuildFile")
     file_refs = Section("PBXFileReference")
     groups = Section("PBXGroup")
     sources_app: list[str] = []
+    sources_admin: list[str] = []
     sources_test: list[str] = []
     resources_app: list[str] = []
+    resources_admin: list[str] = []
+
+    # Build file id per repo relative path, so the admin target reuses
+    # the same PBXBuildFile objects for the shared sources.
+    build_file_by_rel: dict[str, str] = {}
 
     # Group hierarchy: mirror the folders on disk.
     group_defs: dict[str, list[str]] = {}
@@ -104,11 +113,33 @@ def main() -> int:
         fid, entry = file_ref(path, "swift")
         file_refs.add(entry)
         bf = pbx_id("buildfile:" + path.relative_to(REPO).as_posix())
+        build_file_by_rel[path.relative_to(REPO).as_posix()] = bf
         build_files.add(
             f"\t\t{bf} /* {path.name} in Sources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {path.name} */; }};"
         )
         sources_app.append(bf)
+        # The admin target compiles every app source except the user
+        # app entry point, which carries the user @main. The admin
+        # @main lives in the admin directory.
+        if path.name != "DanceProgressionJournalApp.swift":
+            sources_admin.append(bf)
         app_file_ids.setdefault(parent, []).append(fid)
+
+    # Admin source files, grouped by parent folder relative to
+    # ADMIN_DIR. These compile into the admin target only.
+    admin_file_ids: dict[str, list[str]] = {}
+    for path in admin_swift:
+        rel = path.relative_to(ADMIN_DIR)
+        parent = str(rel.parent) if str(rel.parent) != "." else ""
+        fid, entry = file_ref(path, "swift")
+        file_refs.add(entry)
+        bf = pbx_id("buildfile:" + path.relative_to(REPO).as_posix())
+        build_file_by_rel[path.relative_to(REPO).as_posix()] = bf
+        build_files.add(
+            f"\t\t{bf} /* {path.name} in Sources */ = {{isa = PBXBuildFile; fileRef = {fid} /* {path.name} */; }};"
+        )
+        sources_admin.append(bf)
+        admin_file_ids.setdefault(parent, []).append(fid)
 
     # Test source files.
     test_file_ids: list[str] = []
@@ -126,6 +157,8 @@ def main() -> int:
     # Info.plist and asset catalog.
     plist_id, plist_entry = file_ref(info_plist, "plist")
     file_refs.add(plist_entry)
+    admin_plist_id, admin_plist_entry = file_ref(admin_plist, "plist")
+    file_refs.add(admin_plist_entry)
     assets_id, assets_entry = file_ref(assets, "xcassets")
     file_refs.add(assets_entry)
     assets_bf = pbx_id("buildfile:Assets.xcassets")
@@ -133,10 +166,16 @@ def main() -> int:
         f"\t\t{assets_bf} /* Assets.xcassets in Resources */ = {{isa = PBXBuildFile; fileRef = {assets_id} /* Assets.xcassets */; }};"
     )
     resources_app.append(assets_bf)
+    # The admin app reuses the same asset catalog for its icon and
+    # accent colour until it gets its own.
+    resources_admin.append(assets_bf)
 
     # Product references.
     app_product_id, app_product_entry = file_ref(
         REPO / "DanceProgressionJournal.app", "app"
+    )
+    admin_product_id, admin_product_entry = file_ref(
+        REPO / "DanceProgressionJournalAdmin.app", "app"
     )
     test_product_id, test_product_entry = file_ref(
         REPO / "DanceProgressionJournalTests.xctest", "xctest"
@@ -146,16 +185,22 @@ def main() -> int:
         f"path = {q('DanceProgressionJournal.app')}",
         "path = DanceProgressionJournal.app",
     )
+    admin_product_entry = admin_product_entry.replace(
+        f"path = {q('DanceProgressionJournalAdmin.app')}",
+        "path = DanceProgressionJournalAdmin.app",
+    )
     test_product_entry = test_product_entry.replace(
         f"path = {q('DanceProgressionJournalTests.xctest')}",
         "path = DanceProgressionJournalTests.xctest",
     )
     file_refs.add(app_product_entry)
+    file_refs.add(admin_product_entry)
     file_refs.add(test_product_entry)
 
     # Groups.
     main_group_id = group_id("main")
     app_group_id = group_id("DanceProgressionJournal")
+    admin_group_id = group_id("DanceProgressionJournalAdmin")
     test_group_id = group_id("DanceProgressionJournalTests")
     products_group_id = group_id("Products")
 
@@ -220,6 +265,38 @@ def main() -> int:
         f"\t\t\t); path = DanceProgressionJournal; sourceTree = \"<group>\"; }};"
     )
 
+    # Admin subgroups and admin group, mirroring the app group.
+    admin_subgroup_ids: dict[str, str] = {}
+    for parent in sorted(admin_file_ids):
+        if parent == "":
+            continue
+        gid = group_id("admin:" + parent)
+        admin_subgroup_ids[parent] = gid
+        children = "".join(
+            f"\t\t\t\t{pbx_id('fileref:' + p.relative_to(REPO).as_posix())} /* {p.name} */,\n"
+            for p in admin_swift
+            if str(p.relative_to(ADMIN_DIR).parent) == parent
+        )
+        groups.add(
+            f"\t\t{gid} /* {parent.split('/')[-1]} */ = {{isa = PBXGroup; children = (\n"
+            f"{children}\t\t\t); name = {q(parent.split('/')[-1])}; path = {q(parent)}; sourceTree = \"<group>\"; }};"
+        )
+    admin_root_children = "".join(
+        f"\t\t\t\t{pbx_id('fileref:' + p.relative_to(REPO).as_posix())} /* {p.name} */,\n"
+        for p in admin_swift
+        if str(p.relative_to(ADMIN_DIR).parent) == "."
+    )
+    admin_subgroup_children_text = "".join(
+        f"\t\t\t\t{admin_subgroup_ids[p]} /* {p.split('/')[-1]} */,\n"
+        for p in sorted(admin_subgroup_ids)
+    )
+    groups.add(
+        f"\t\t{admin_group_id} /* DanceProgressionJournalAdmin */ = {{isa = PBXGroup; children = (\n"
+        f"{admin_root_children}{admin_subgroup_children_text}"
+        f"\t\t\t\t{admin_plist_id} /* Info.plist */,\n"
+        f"\t\t\t); path = DanceProgressionJournalAdmin; sourceTree = \"<group>\"; }};"
+    )
+
     test_children = "".join(
         f"\t\t\t\t{fid} /* {p.name} */,\n"
         for fid, p in zip(test_file_ids, test_swift)
@@ -231,12 +308,14 @@ def main() -> int:
     groups.add(
         f"\t\t{products_group_id} /* Products */ = {{isa = PBXGroup; children = (\n"
         f"\t\t\t\t{app_product_id} /* DanceProgressionJournal.app */,\n"
+        f"\t\t\t\t{admin_product_id} /* DanceProgressionJournalAdmin.app */,\n"
         f"\t\t\t\t{test_product_id} /* DanceProgressionJournalTests.xctest */,\n"
         f"\t\t\t); name = Products; sourceTree = \"<group>\"; }};"
     )
     groups.add(
         f"\t\t{main_group_id} = {{isa = PBXGroup; children = (\n"
         f"\t\t\t\t{app_group_id} /* DanceProgressionJournal */,\n"
+        f"\t\t\t\t{admin_group_id} /* DanceProgressionJournalAdmin */,\n"
         f"\t\t\t\t{test_group_id} /* DanceProgressionJournalTests */,\n"
         f"\t\t\t\t{products_group_id} /* Products */,\n"
         f"\t\t\t); sourceTree = \"<group>\"; }};"
@@ -244,9 +323,12 @@ def main() -> int:
 
     # Build phases.
     sources_app_id = pbx_id("phase:sources:app")
+    sources_admin_id = pbx_id("phase:sources:admin")
     sources_test_id = pbx_id("phase:sources:test")
     resources_app_id = pbx_id("phase:resources:app")
+    resources_admin_id = pbx_id("phase:resources:admin")
     frameworks_app_id = pbx_id("phase:frameworks:app")
+    frameworks_admin_id = pbx_id("phase:frameworks:admin")
     frameworks_test_id = pbx_id("phase:frameworks:test")
 
     def phase_list(phase_id: str, kind: str, name: str, files: list[str], target_comment: str) -> str:
@@ -258,12 +340,17 @@ def main() -> int:
 
     sources_section = Section("PBXSourcesBuildPhase")
     sources_section.add(phase_list(sources_app_id, "PBXSourcesBuildPhase", "Sources", sources_app, "app"))
+    sources_section.add(phase_list(sources_admin_id, "PBXSourcesBuildPhase", "Sources", sources_admin, "admin"))
     sources_section.add(phase_list(sources_test_id, "PBXSourcesBuildPhase", "Sources", sources_test, "test"))
     resources_section = Section("PBXResourcesBuildPhase")
     resources_section.add(phase_list(resources_app_id, "PBXResourcesBuildPhase", "Resources", resources_app, "app"))
+    resources_section.add(phase_list(resources_admin_id, "PBXResourcesBuildPhase", "Resources", resources_admin, "admin"))
     frameworks_section = Section("PBXFrameworksBuildPhase")
     frameworks_section.add(
         f"\t\t{frameworks_app_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
+    )
+    frameworks_section.add(
+        f"\t\t{frameworks_admin_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
     )
     frameworks_section.add(
         f"\t\t{frameworks_test_id} /* Frameworks */ = {{isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; }};"
@@ -271,8 +358,10 @@ def main() -> int:
 
     # Targets.
     app_target_id = pbx_id("target:app")
+    admin_target_id = pbx_id("target:admin")
     test_target_id = pbx_id("target:test")
     app_config_list = pbx_id("configlist:app")
+    admin_config_list = pbx_id("configlist:admin")
     test_config_list = pbx_id("configlist:test")
     project_config_list = pbx_id("configlist:project")
     project_id = pbx_id("project")
@@ -289,6 +378,17 @@ def main() -> int:
         f"\t\t\t\t{resources_app_id} /* Resources */,\n"
         f"\t\t\t); buildRules = (); dependencies = (); name = DanceProgressionJournal; "
         f"productName = DanceProgressionJournal; productReference = {app_product_id} /* DanceProgressionJournal.app */; "
+        f"productType = \"com.apple.product-type.application\"; }};"
+    )
+    targets_section.add(
+        f"\t\t{admin_target_id} /* DanceProgressionJournalAdmin */ = {{isa = PBXNativeTarget; "
+        f"buildConfigurationList = {admin_config_list} /* Build configuration list for PBXNativeTarget \"DanceProgressionJournalAdmin\" */; "
+        f"buildPhases = (\n"
+        f"\t\t\t\t{sources_admin_id} /* Sources */,\n"
+        f"\t\t\t\t{frameworks_admin_id} /* Frameworks */,\n"
+        f"\t\t\t\t{resources_admin_id} /* Resources */,\n"
+        f"\t\t\t); buildRules = (); dependencies = (); name = DanceProgressionJournalAdmin; "
+        f"productName = DanceProgressionJournalAdmin; productReference = {admin_product_id} /* DanceProgressionJournalAdmin.app */; "
         f"productType = \"com.apple.product-type.application\"; }};"
     )
     targets_section.add(
@@ -324,6 +424,8 @@ def main() -> int:
     project_release = pbx_id("config:project:release")
     app_debug = pbx_id("config:app:debug")
     app_release = pbx_id("config:app:release")
+    admin_debug = pbx_id("config:admin:debug")
+    admin_release = pbx_id("config:admin:release")
     test_debug = pbx_id("config:test:debug")
     test_release = pbx_id("config:test:release")
 
@@ -445,6 +547,28 @@ def main() -> int:
     configs_section.add(config(app_debug, "Debug", app_debug_settings))
     configs_section.add(config(app_release, "Release", app_release_settings))
 
+    admin_common = dict(app_common)
+    admin_common.update({
+        "INFOPLIST_FILE": "DanceProgressionJournalAdmin/Info.plist",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.codeair.danceprogressionjournal.admin",
+    })
+    admin_debug_settings = dict(admin_common)
+    admin_debug_settings.update({
+        "DEBUG_INFORMATION_FORMAT": "dwarf",
+        "ENABLE_TESTABILITY": "YES",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG",
+        "SWIFT_OPTIMIZATION_LEVEL": "-Onone",
+    })
+    admin_release_settings = dict(admin_common)
+    admin_release_settings.update({
+        "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
+        "SWIFT_COMPILATION_MODE": "wholemodule",
+        "SWIFT_OPTIMIZATION_LEVEL": "-O",
+        "SWIFT_TREAT_WARNINGS_AS_ERRORS": "YES",
+    })
+    configs_section.add(config(admin_debug, "Debug", admin_debug_settings))
+    configs_section.add(config(admin_release, "Release", admin_release_settings))
+
     test_common = {
         "BUNDLE_LOADER": "$(TEST_HOST)",
         "CODE_SIGN_STYLE": "Automatic",
@@ -486,6 +610,7 @@ def main() -> int:
 
     config_lists_section.add(config_list(project_config_list, "PBXProject \"DanceProgressionJournal\"", project_debug, project_release))
     config_lists_section.add(config_list(app_config_list, "PBXNativeTarget \"DanceProgressionJournal\"", app_debug, app_release))
+    config_lists_section.add(config_list(admin_config_list, "PBXNativeTarget \"DanceProgressionJournalAdmin\"", admin_debug, admin_release))
     config_lists_section.add(config_list(test_config_list, "PBXNativeTarget \"DanceProgressionJournalTests\"", test_debug, test_release))
 
     # Project object.
@@ -495,6 +620,7 @@ def main() -> int:
         f"BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; "
         f"LastUpgradeCheck = 2610; TargetAttributes = {{"
         f"{app_target_id} = {{CreatedOnToolsVersion = 26.1; }}; "
+        f"{admin_target_id} = {{CreatedOnToolsVersion = 26.1; }}; "
         f"{test_target_id} = {{CreatedOnToolsVersion = 26.1; }}; }}; }}; "
         f"buildConfigurationList = {project_config_list} /* Build configuration list for PBXProject \"DanceProgressionJournal\" */; "
         f"compatibilityVersion = \"Xcode 14.0\"; developmentRegion = en; hasScannedForEncodings = 0; "
@@ -502,6 +628,7 @@ def main() -> int:
         f"productRefGroup = {products_group_id} /* Products */; projectDirPath = \"\"; "
         f"projectRoot = \"\"; targets = (\n"
         f"\t\t\t\t{app_target_id} /* DanceProgressionJournal */,\n"
+        f"\t\t\t\t{admin_target_id} /* DanceProgressionJournalAdmin */,\n"
         f"\t\t\t\t{test_target_id} /* DanceProgressionJournalTests */,\n"
         f"\t\t\t); }};"
     )
@@ -545,7 +672,7 @@ def main() -> int:
         encoding="utf-8",
     )
     print(f"Wrote {OUT / 'project.pbxproj'}")
-    print(f"App sources: {len(app_swift)}, test sources: {len(test_swift)}")
+    print(f"App sources: {len(app_swift)}, admin sources: {len(admin_swift)}, test sources: {len(test_swift)}")
     return 0
 
 

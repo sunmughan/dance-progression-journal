@@ -66,6 +66,7 @@ protocol FigureRepositoryProtocol: AnyObject {
     func fetch(byDance dance: Dance) throws -> [Figure]
     func fetch(byLevel level: FigureLevel) throws -> [Figure]
     func insert(_ figure: Figure) throws
+    func delete(_ figure: Figure) throws
     func save() throws
 }
 

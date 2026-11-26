@@ -27,6 +27,7 @@
 		14BEFA3F85184A330B560DBF /* JournalEntryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */; };
 		B2B40BA7603C7A58C14D54A4 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E0FF24C63782D93379B070F /* JournalListView.swift */; };
 		01894637F7001BE6677F7F7E /* DrillFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 433968C648CABACB794F9D1F /* DrillFormView.swift */; };
+		C0FE0EFF9D04B55750E06D32 /* FigureFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BBBD4E070BE0C16DF0EE046 /* FigureFormView.swift */; };
 		2D770A23E589FC5EC26F9AB2 /* FigurePracticeFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */; };
 		69EE039C645C15E740D002EF /* LibraryDetailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */; };
 		52F2DF97B26A8653DBABB60E /* LibraryRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7365C7B3B560756D7473C519 /* LibraryRootView.swift */; };
@@ -36,6 +37,14 @@
 		3ABA8D03100240F634CD3A7F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CE54B852E1B97C70759A62 /* RootView.swift */; };
 		7A32411A89352E75D5F80066 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB3A9563D75FF86428A563D6 /* SettingsView.swift */; };
 		348C171A3F07EFF5C796CB3E /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D36A1DCA32914D11BA59FA /* WelcomeView.swift */; };
+		589AF8DF9194CE59C7ABD619 /* DanceProgressionJournalAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */; };
+		798C84A0AD3069FD2BC2B026 /* AdminRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91DE5A1D253A66F5D5908012 /* AdminRootView.swift */; };
+		580140A7151ACE0942F04C22 /* AdminRoutes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49344EE094F5CE726518201B /* AdminRoutes.swift */; };
+		DEA0F2487CA1FE9225F9AD66 /* AppSettingsManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE7E1DF66792524210905DC /* AppSettingsManagementView.swift */; };
+		DEC6B092D7F8A44391C5E93B /* ContentCategoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB08E415C6DE40745ACAC2D /* ContentCategoriesView.swift */; };
+		3843B8545AE114D24AACAC59 /* ManageCompetitionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A8377582FD7328F7AA1D03A /* ManageCompetitionsView.swift */; };
+		E6DF5ED32190180F22FEE3A2 /* ManageDrillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51BE502A3A746AE45F99DB10 /* ManageDrillsView.swift */; };
+		075CC66F848090576D3A93DC /* ManageFiguresView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD6ED5C5007D52BEAA8C9A80 /* ManageFiguresView.swift */; };
 		6B1E87C25325437A4D15CB3C /* DanceProgressionJournalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */; };
 		7D1DBA83F5517888388F38D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -65,6 +74,7 @@
 		D42F97F47B9705D03D9AA70C /* JournalEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalEntryFormView.swift"; path = "JournalEntryFormView.swift"; sourceTree = "<group>"; };
 		9E0FF24C63782D93379B070F /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "JournalListView.swift"; path = "JournalListView.swift"; sourceTree = "<group>"; };
 		433968C648CABACB794F9D1F /* DrillFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DrillFormView.swift"; path = "DrillFormView.swift"; sourceTree = "<group>"; };
+		8BBBD4E070BE0C16DF0EE046 /* FigureFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FigureFormView.swift"; path = "FigureFormView.swift"; sourceTree = "<group>"; };
 		D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "FigurePracticeFormView.swift"; path = "FigurePracticeFormView.swift"; sourceTree = "<group>"; };
 		BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryDetailViews.swift"; path = "LibraryDetailViews.swift"; sourceTree = "<group>"; };
 		7365C7B3B560756D7473C519 /* LibraryRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "LibraryRootView.swift"; path = "LibraryRootView.swift"; sourceTree = "<group>"; };
@@ -74,15 +84,26 @@
 		D4CE54B852E1B97C70759A62 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RootView.swift"; path = "RootView.swift"; sourceTree = "<group>"; };
 		DB3A9563D75FF86428A563D6 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SettingsView.swift"; path = "SettingsView.swift"; sourceTree = "<group>"; };
 		E1D36A1DCA32914D11BA59FA /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "WelcomeView.swift"; path = "WelcomeView.swift"; sourceTree = "<group>"; };
+		515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DanceProgressionJournalAdminApp.swift"; path = "DanceProgressionJournalAdminApp.swift"; sourceTree = "<group>"; };
+		91DE5A1D253A66F5D5908012 /* AdminRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AdminRootView.swift"; path = "AdminRootView.swift"; sourceTree = "<group>"; };
+		49344EE094F5CE726518201B /* AdminRoutes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AdminRoutes.swift"; path = "AdminRoutes.swift"; sourceTree = "<group>"; };
+		DCE7E1DF66792524210905DC /* AppSettingsManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AppSettingsManagementView.swift"; path = "AppSettingsManagementView.swift"; sourceTree = "<group>"; };
+		DFB08E415C6DE40745ACAC2D /* ContentCategoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ContentCategoriesView.swift"; path = "ContentCategoriesView.swift"; sourceTree = "<group>"; };
+		0A8377582FD7328F7AA1D03A /* ManageCompetitionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ManageCompetitionsView.swift"; path = "ManageCompetitionsView.swift"; sourceTree = "<group>"; };
+		51BE502A3A746AE45F99DB10 /* ManageDrillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ManageDrillsView.swift"; path = "ManageDrillsView.swift"; sourceTree = "<group>"; };
+		FD6ED5C5007D52BEAA8C9A80 /* ManageFiguresView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "ManageFiguresView.swift"; path = "ManageFiguresView.swift"; sourceTree = "<group>"; };
 		B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DanceProgressionJournalTests.swift"; path = "DanceProgressionJournalTests.swift"; sourceTree = "<group>"; };
 		BB43517A2E02E3B0259D25E2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; };
+		2F3735CF8387FD493B809AF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Info.plist"; path = "Info.plist"; sourceTree = "<group>"; };
 		99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = "Assets.xcassets"; path = "Assets.xcassets"; sourceTree = "<group>"; };
 		133A80E69B9DAA15345972C0 /* DanceProgressionJournal.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournal.app"; path = DanceProgressionJournal.app; sourceTree = "<group>"; };
+		A20A95D8A59714E71E6A5018 /* DanceProgressionJournalAdmin.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = "DanceProgressionJournalAdmin.app"; path = DanceProgressionJournalAdmin.app; sourceTree = "<group>"; };
 		76F0CB77870E475EB52783E1 /* DanceProgressionJournalTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = "DanceProgressionJournalTests.xctest"; path = DanceProgressionJournalTests.xctest; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		44086AC38F580DDA340DB7B6 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1081F68CB935F14998308BDF /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		30840D6AD566AFF05C421661 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXFrameworksBuildPhase section */
 
@@ -129,6 +150,7 @@
 			); name = "Journal"; path = "Views/Journal"; sourceTree = "<group>"; };
 		1768CA858311E1E15A4B503D /* Library */ = {isa = PBXGroup; children = (
 				433968C648CABACB794F9D1F /* DrillFormView.swift */,
+				8BBBD4E070BE0C16DF0EE046 /* FigureFormView.swift */,
 				D46D404EF3C89EC4BE7A7486 /* FigurePracticeFormView.swift */,
 				BEF17EB428C58F181C9F67CA /* LibraryDetailViews.swift */,
 				7365C7B3B560756D7473C519 /* LibraryRootView.swift */,
@@ -159,15 +181,31 @@
 				BB43517A2E02E3B0259D25E2 /* Info.plist */,
 				99F1E5DB738DC7CEC03623D4 /* Assets.xcassets */,
 			); path = DanceProgressionJournal; sourceTree = "<group>"; };
+		82B3DD94CD19249EB4EC2ECE /* Views */ = {isa = PBXGroup; children = (
+				91DE5A1D253A66F5D5908012 /* AdminRootView.swift */,
+				49344EE094F5CE726518201B /* AdminRoutes.swift */,
+				DCE7E1DF66792524210905DC /* AppSettingsManagementView.swift */,
+				DFB08E415C6DE40745ACAC2D /* ContentCategoriesView.swift */,
+				0A8377582FD7328F7AA1D03A /* ManageCompetitionsView.swift */,
+				51BE502A3A746AE45F99DB10 /* ManageDrillsView.swift */,
+				FD6ED5C5007D52BEAA8C9A80 /* ManageFiguresView.swift */,
+			); name = "Views"; path = "Views"; sourceTree = "<group>"; };
+		D2084975F36739831BBE05B4 /* DanceProgressionJournalAdmin */ = {isa = PBXGroup; children = (
+				515E2C195D46901D4CE483A6 /* DanceProgressionJournalAdminApp.swift */,
+				82B3DD94CD19249EB4EC2ECE /* Views */,
+				2F3735CF8387FD493B809AF3 /* Info.plist */,
+			); path = DanceProgressionJournalAdmin; sourceTree = "<group>"; };
 		F5FA1223E19EE299280D706E /* DanceProgressionJournalTests */ = {isa = PBXGroup; children = (
 				B7289A96C9646F8FDBB8B6B5 /* DanceProgressionJournalTests.swift */,
 			); path = DanceProgressionJournalTests; sourceTree = "<group>"; };
 		2F3A6B1E78F896718625FF06 /* Products */ = {isa = PBXGroup; children = (
 				133A80E69B9DAA15345972C0 /* DanceProgressionJournal.app */,
+				A20A95D8A59714E71E6A5018 /* DanceProgressionJournalAdmin.app */,
 				76F0CB77870E475EB52783E1 /* DanceProgressionJournalTests.xctest */,
 			); name = Products; sourceTree = "<group>"; };
 		518DA81DB9B99529C0C0AEBE = {isa = PBXGroup; children = (
 				4A9EC8DB43F09B3F060C28D9 /* DanceProgressionJournal */,
+				D2084975F36739831BBE05B4 /* DanceProgressionJournalAdmin */,
 				F5FA1223E19EE299280D706E /* DanceProgressionJournalTests */,
 				2F3A6B1E78F896718625FF06 /* Products */,
 			); sourceTree = "<group>"; };
@@ -179,6 +217,11 @@
 				44086AC38F580DDA340DB7B6 /* Frameworks */,
 				F6AD09023A80268DFA48D911 /* Resources */,
 			); buildRules = (); dependencies = (); name = DanceProgressionJournal; productName = DanceProgressionJournal; productReference = 133A80E69B9DAA15345972C0 /* DanceProgressionJournal.app */; productType = "com.apple.product-type.application"; };
+		D7F92D5B06280F1A98899634 /* DanceProgressionJournalAdmin */ = {isa = PBXNativeTarget; buildConfigurationList = 462CA9E2D313D96CF71A101A /* Build configuration list for PBXNativeTarget "DanceProgressionJournalAdmin" */; buildPhases = (
+				716FB3BDB1E92D05BEB5FF96 /* Sources */,
+				1081F68CB935F14998308BDF /* Frameworks */,
+				6AE06FC28721BFA76C598B7A /* Resources */,
+			); buildRules = (); dependencies = (); name = DanceProgressionJournalAdmin; productName = DanceProgressionJournalAdmin; productReference = A20A95D8A59714E71E6A5018 /* DanceProgressionJournalAdmin.app */; productType = "com.apple.product-type.application"; };
 		5DED2D04DB49D4091162647E /* DanceProgressionJournalTests */ = {isa = PBXNativeTarget; buildConfigurationList = 96375ECE1B94BBE7901BC88B /* Build configuration list for PBXNativeTarget "DanceProgressionJournalTests" */; buildPhases = (
 				E26B8CF98EBAD166F63F96BF /* Sources */,
 				30840D6AD566AFF05C421661 /* Frameworks */,
@@ -188,14 +231,18 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 2610; TargetAttributes = {E3435DDA2687639586BF0B70 = {CreatedOnToolsVersion = 26.1; }; 5DED2D04DB49D4091162647E = {CreatedOnToolsVersion = 26.1; }; }; }; buildConfigurationList = 1F4E3D13C2320EDA50221924 /* Build configuration list for PBXProject "DanceProgressionJournal" */; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, ); mainGroup = 518DA81DB9B99529C0C0AEBE; productRefGroup = 2F3A6B1E78F896718625FF06 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 2610; TargetAttributes = {E3435DDA2687639586BF0B70 = {CreatedOnToolsVersion = 26.1; }; D7F92D5B06280F1A98899634 = {CreatedOnToolsVersion = 26.1; }; 5DED2D04DB49D4091162647E = {CreatedOnToolsVersion = 26.1; }; }; }; buildConfigurationList = 1F4E3D13C2320EDA50221924 /* Build configuration list for PBXProject "DanceProgressionJournal" */; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base, ); mainGroup = 518DA81DB9B99529C0C0AEBE; productRefGroup = 2F3A6B1E78F896718625FF06 /* Products */; projectDirPath = ""; projectRoot = ""; targets = (
 				E3435DDA2687639586BF0B70 /* DanceProgressionJournal */,
+				D7F92D5B06280F1A98899634 /* DanceProgressionJournalAdmin */,
 				5DED2D04DB49D4091162647E /* DanceProgressionJournalTests */,
 			); };
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F6AD09023A80268DFA48D911 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
+				7D1DBA83F5517888388F38D2 /* Resources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		6AE06FC28721BFA76C598B7A /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (
 				7D1DBA83F5517888388F38D2 /* Resources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXResourcesBuildPhase section */
@@ -222,6 +269,7 @@
 				14BEFA3F85184A330B560DBF /* Sources */,
 				B2B40BA7603C7A58C14D54A4 /* Sources */,
 				01894637F7001BE6677F7F7E /* Sources */,
+				C0FE0EFF9D04B55750E06D32 /* Sources */,
 				2D770A23E589FC5EC26F9AB2 /* Sources */,
 				69EE039C645C15E740D002EF /* Sources */,
 				52F2DF97B26A8653DBABB60E /* Sources */,
@@ -231,6 +279,45 @@
 				3ABA8D03100240F634CD3A7F /* Sources */,
 				7A32411A89352E75D5F80066 /* Sources */,
 				348C171A3F07EFF5C796CB3E /* Sources */,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		716FB3BDB1E92D05BEB5FF96 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+				89619ED6FBCE59C280A5A099 /* Sources */,
+				6FC8238E6733D7F800016F4E /* Sources */,
+				776F207EA7DE6087195ACAA0 /* Sources */,
+				DDC94EE6157E81B65E4794AF /* Sources */,
+				7585C1954B644F393942988C /* Sources */,
+				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
+				3779E0CDBAED21466D2EA413 /* Sources */,
+				ED5B2652EAD4B1E2E4310EEA /* Sources */,
+				BADB2C0D139290D00543A282 /* Sources */,
+				519D161F31DD39F69AB88364 /* Sources */,
+				CC4E2D0331BF85703AF35166 /* Sources */,
+				A0FFAF665D2500FFF4EA6275 /* Sources */,
+				A5DC9035723BDEEBA956A138 /* Sources */,
+				0E6885CE7D72D9985218FF1B /* Sources */,
+				065769A7AC0CC92EA5B1DC78 /* Sources */,
+				CD520E3D0DE2829911742508 /* Sources */,
+				14BEFA3F85184A330B560DBF /* Sources */,
+				B2B40BA7603C7A58C14D54A4 /* Sources */,
+				01894637F7001BE6677F7F7E /* Sources */,
+				C0FE0EFF9D04B55750E06D32 /* Sources */,
+				2D770A23E589FC5EC26F9AB2 /* Sources */,
+				69EE039C645C15E740D002EF /* Sources */,
+				52F2DF97B26A8653DBABB60E /* Sources */,
+				A9CE86511616595DFB8AFDA0 /* Sources */,
+				AE322CA06552A400DB6955CD /* Sources */,
+				B57AFA7A8D3E85DEFA3A808A /* Sources */,
+				3ABA8D03100240F634CD3A7F /* Sources */,
+				7A32411A89352E75D5F80066 /* Sources */,
+				348C171A3F07EFF5C796CB3E /* Sources */,
+				589AF8DF9194CE59C7ABD619 /* Sources */,
+				798C84A0AD3069FD2BC2B026 /* Sources */,
+				580140A7151ACE0942F04C22 /* Sources */,
+				DEA0F2487CA1FE9225F9AD66 /* Sources */,
+				DEC6B092D7F8A44391C5E93B /* Sources */,
+				3843B8545AE114D24AACAC59 /* Sources */,
+				E6DF5ED32190180F22FEE3A2 /* Sources */,
+				075CC66F848090576D3A93DC /* Sources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 		E26B8CF98EBAD166F63F96BF /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
 				6B1E87C25325437A4D15CB3C /* Sources */,
@@ -386,6 +473,48 @@
 				SWIFT_VERSION = "6.0";
 				TARGETED_DEVICE_FAMILY = "1";
 			}; name = Release; };
+		6289B0FD077CF9C1FFAED5BB /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEBUG_INFORMATION_FORMAT = "dwarf";
+				DEFINES_MODULE = "YES";
+				ENABLE_PREVIEWS = "YES";
+				ENABLE_TESTABILITY = "YES";
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "DanceProgressionJournalAdmin/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "1.0.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codeair.danceprogressionjournal.admin";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = "6.0";
+				TARGETED_DEVICE_FAMILY = "1";
+			}; name = Debug; };
+		1A2EAD8CF4162CB2D2998795 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+				CODE_SIGN_STYLE = "Automatic";
+				CURRENT_PROJECT_VERSION = "1";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEFINES_MODULE = "YES";
+				ENABLE_PREVIEWS = "YES";
+				GENERATE_INFOPLIST_FILE = "NO";
+				INFOPLIST_FILE = "DanceProgressionJournalAdmin/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = "17.0";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = "1.0.0";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.codeair.danceprogressionjournal.admin";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = "wholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = "YES";
+				SWIFT_VERSION = "6.0";
+				TARGETED_DEVICE_FAMILY = "1";
+			}; name = Release; };
 		84F9322E66EE35E48CCB22FE /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = "Automatic";
@@ -431,6 +560,10 @@
 		1D97B77EAD2380603A3F2A82 /* Build configuration list for PBXNativeTarget "DanceProgressionJournal" */ = {isa = XCConfigurationList; buildConfigurations = (
 				82000B87E0EC13AD7FD6DA43 /* Debug */,
 				16ACE556BD5CA3C51FD3F043 /* Release */,
+			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		462CA9E2D313D96CF71A101A /* Build configuration list for PBXNativeTarget "DanceProgressionJournalAdmin" */ = {isa = XCConfigurationList; buildConfigurations = (
+				6289B0FD077CF9C1FFAED5BB /* Debug */,
+				1A2EAD8CF4162CB2D2998795 /* Release */,
 			); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		96375ECE1B94BBE7901BC88B /* Build configuration list for PBXNativeTarget "DanceProgressionJournalTests" */ = {isa = XCConfigurationList; buildConfigurations = (
 				84F9322E66EE35E48CCB22FE /* Debug */,

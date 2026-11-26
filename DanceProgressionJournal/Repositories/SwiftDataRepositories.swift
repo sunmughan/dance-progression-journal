@@ -266,6 +266,11 @@ final class SwiftDataFigureRepository: FigureRepositoryProtocol {
         try store.save()
     }
 
+    func delete(_ figure: Figure) throws {
+        store.delete(figure)
+        try store.save()
+    }
+
     func save() throws {
         try store.save()
     }

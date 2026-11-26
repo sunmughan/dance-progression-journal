@@ -683,3 +683,92 @@ final class CompetitionFormViewModel {
         }
     }
 }
+
+@Observable
+@MainActor
+final class FigureFormViewModel {
+    var name = ""
+    var selectedDance: Dance?
+    var level: FigureLevel = .bronze
+    var descriptionText = ""
+    var stepsText = ""
+    var timing = ""
+    var ndcaReferenceCode = ""
+    var isSaving = false
+    var errorMessage: String?
+
+    private(set) var dances: [Dance] = []
+    private var editingFigure: Figure?
+
+    private let repository: FigureRepositoryProtocol
+
+    init(repository: FigureRepositoryProtocol) {
+        self.repository = repository
+    }
+
+    var isEditing: Bool { editingFigure != nil }
+
+    var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && selectedDance != nil
+    }
+
+    var saveDisabledReason: String? {
+        if name.trimmingCharacters(in: .whitespaces).isEmpty || selectedDance == nil {
+            return "Enter a name and pick a dance to save."
+        }
+        return nil
+    }
+
+    func load(figure: Figure?, dances: [Dance]) {
+        self.dances = dances
+        guard let figure else { return }
+        editingFigure = figure
+        name = figure.name
+        selectedDance = figure.dance
+        level = figure.level
+        descriptionText = figure.descriptionText
+        stepsText = figure.stepsText
+        timing = figure.timing
+        ndcaReferenceCode = figure.ndcaReferenceCode ?? ""
+    }
+
+    /// Saves and returns the saved figure id, or nil when the save
+    /// failed.
+    func save() -> UUID? {
+        guard canSave, let dance = selectedDance else { return nil }
+        isSaving = true
+        defer { isSaving = false }
+        do {
+            if let figure = editingFigure {
+                figure.name = name.trimmingCharacters(in: .whitespaces)
+                figure.dance = dance
+                figure.level = level
+                figure.descriptionText = descriptionText
+                figure.stepsText = stepsText
+                figure.timing = timing
+                figure.ndcaReferenceCode = ndcaReferenceCode.trimmingCharacters(in: .whitespaces).isEmpty
+                    ? nil
+                    : ndcaReferenceCode.trimmingCharacters(in: .whitespaces)
+                try repository.save()
+                return figure.id
+            } else {
+                let figure = Figure(
+                    name: name.trimmingCharacters(in: .whitespaces),
+                    dance: dance,
+                    level: level,
+                    descriptionText: descriptionText,
+                    stepsText: stepsText,
+                    timing: timing,
+                    ndcaReferenceCode: ndcaReferenceCode.trimmingCharacters(in: .whitespaces).isEmpty
+                        ? nil
+                        : ndcaReferenceCode.trimmingCharacters(in: .whitespaces)
+                )
+                try repository.insert(figure)
+                return figure.id
+            }
+        } catch {
+            errorMessage = "This figure could not be saved. Check storage and try again."
+            return nil
+        }
+    }
+}

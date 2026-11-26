@@ -509,7 +509,10 @@ final class Figure {
     var ndcaReferenceCode: String?
     var createdDate: Date
 
-    @Relationship(deleteRule: .cascade, inverse: \FigurePracticeLog.figure)
+    // Practice logs survive figure removal: the admin spec says
+    // removing a figure keeps its practice history. The log keeps
+    // its date, repetitions and duration with no figure attached.
+    @Relationship(deleteRule: .nullify, inverse: \FigurePracticeLog.figure)
     var practiceLogs: [FigurePracticeLog] = []
 
     init(
