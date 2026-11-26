@@ -540,12 +540,12 @@ struct CompetitionFormTests {
         model.location = "Orlando"
         model.startDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
         model.endDate = Calendar.current.date(byAdding: .day, value: 32, to: Date()) ?? Date()
-        model.entryStatus = .registered
+        model.entryStatus = .entered
         let savedId = try #require(model.save())
         let saved = try #require(try repository.fetchAllSortedByStartDate().first { $0.id == savedId })
         #expect(saved.name == "NDCA Nationals")
         #expect(saved.source == .ndca)
-        #expect(saved.entryStatus == .registered)
+        #expect(saved.entryStatus == .entered)
         #expect(saved.daysRemaining == 30)
     }
 
@@ -566,11 +566,11 @@ struct CompetitionFormTests {
         model.load(competition: competition)
         #expect(model.isEditing == true)
         #expect(model.name == "NDCC Regional")
-        model.entryStatus = .registered
+        model.entryStatus = .entered
         let savedId = try #require(model.save())
         #expect(savedId == competition.id)
         #expect(try repository.fetchAllSortedByStartDate().count == 1)
-        #expect(try repository.fetchAllSortedByStartDate().first?.entryStatus == .registered)
+        #expect(try repository.fetchAllSortedByStartDate().first?.entryStatus == .entered)
     }
 
     @Test("Checklist add and toggle work through the repository")
