@@ -424,7 +424,7 @@ struct ChecklistRow: View {
                 Text(item.title)
                     .font(DesignTokens.Font.body)
                     .foregroundStyle(item.isDone ? DesignTokens.Color.textSecondary : DesignTokens.Color.textPrimary)
-                Text(item.category.displayName)
+                Text(ChecklistCategory.displayName(for: item.category))
                     .font(DesignTokens.Font.footnote)
                     .foregroundStyle(DesignTokens.Color.textSecondary)
             }

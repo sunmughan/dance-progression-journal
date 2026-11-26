@@ -38,6 +38,15 @@ enum SeedData {
     static func seed(into context: ModelContext) {
         let today = Date()
 
+        // MARK: Managed lists. The fixed roadmap lists the pickers
+        // offer. Admin edits change them afterwards. Only seed when
+        // the store holds none: deleteAllData re seeds them first,
+        // and seeding twice would duplicate every row.
+        let managedCount = (try? context.fetchCount(FetchDescriptor<ManagedListItem>())) ?? 0
+        if managedCount == 0 {
+            ManagedListItem.defaultRows().forEach { context.insert($0) }
+        }
+
         // MARK: Dances, all five International Latin dances.
         let chaCha = Dance(name: "Cha cha", displayOrder: 1)
         let samba = Dance(name: "Samba", displayOrder: 2)
@@ -128,7 +137,7 @@ enum SeedData {
         let rumbaWalks = Drill(
             name: "Rumba Walks",
             dance: rumba,
-            focusArea: .footwork,
+            focusArea: FocusArea.footwork.rawValue,
             descriptionText: "Slow forward and back walks with full weight transfer on every count.",
             targetRepetitions: 20,
             targetDurationMinutes: 15,
@@ -139,7 +148,7 @@ enum SeedData {
         let sambaBounce = Drill(
             name: "Samba Bounce Basics",
             dance: samba,
-            focusArea: .timing,
+            focusArea: FocusArea.timing.rawValue,
             descriptionText: "Low even bounce through the basic step.",
             targetRepetitions: 12,
             targetDurationMinutes: 10,
@@ -150,7 +159,7 @@ enum SeedData {
         let chaChaLocks = Drill(
             name: "Cha Cha Lock Steps",
             dance: chaCha,
-            focusArea: .footwork,
+            focusArea: FocusArea.footwork.rawValue,
             descriptionText: "Sharp lock steps with a settled weight on every count.",
             targetRepetitions: 16,
             targetDurationMinutes: 10,
@@ -259,7 +268,7 @@ enum SeedData {
                 competition: sampleCompetition,
                 title: item.title,
                 dueDate: daysAhead(item.dueInDays, from: today),
-                category: item.category,
+                category: item.category.rawValue,
                 isDone: item.isDone,
                 doneDate: item.isDone ? daysAgo(2, from: today) : nil,
                 sortOrder: index

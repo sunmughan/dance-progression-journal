@@ -17,6 +17,11 @@ struct DrillFormView: View {
 
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
     @Query private var drills: [Drill]
+    @Query(sort: \ManagedListItem.sortOrder) private var managedItems: [ManagedListItem]
+
+    private var focusAreas: [String] {
+        managedItems.filter { $0.kind == .focusArea && $0.isActive }.map { $0.name }
+    }
 
     @State private var viewModel: DrillFormViewModel?
 
@@ -38,7 +43,7 @@ struct DrillFormView: View {
         }
         .task {
             let model = DrillFormViewModel(repository: dependencies.drills)
-            model.load(drill: drills.first, dances: dances)
+            model.load(drill: drills.first, dances: dances, focusAreas: focusAreas)
             viewModel = model
         }
         .navigationTitle(viewModel?.isEditing == true ? "Edit drill" : "New drill")
@@ -84,8 +89,8 @@ struct DrillFormView: View {
                         .font(DesignTokens.Font.headline)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
                     Picker("Focus area", selection: $viewModel.focusArea) {
-                        ForEach(FocusArea.allCases, id: \.self) { area in
-                            Text(area.displayName).tag(area)
+                        ForEach(viewModel.focusAreas, id: \.self) { area in
+                            Text(FocusArea.displayName(for: area)).tag(area)
                         }
                     }
                     .pickerStyle(.segmented)

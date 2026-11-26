@@ -127,7 +127,7 @@ struct JournalEntryDetailView: View {
                             NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
                                 AppRow(
                                     title: drill.name,
-                                    metadata: "\(drill.dance?.name ?? ""), \(drill.focusArea.displayName)",
+                                    metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName)",
                                     isFavourite: drill.isFavourite
                                 )
                             }

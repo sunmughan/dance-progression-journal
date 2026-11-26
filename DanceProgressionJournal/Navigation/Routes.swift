@@ -82,6 +82,7 @@ final class AppDependencies {
     let figures: FigureRepositoryProtocol
     let practiceLogs: PracticeLogRepositoryProtocol
     let profile: ProfileRepositoryProtocol
+    let managedLists: ManagedListRepositoryProtocol
     let categorisation: CategorisationServiceProtocol
     let videoFiles: VideoFileService
 
@@ -96,6 +97,7 @@ final class AppDependencies {
         self.figures = SwiftDataFigureRepository(store: store)
         self.practiceLogs = SwiftDataPracticeLogRepository(store: store)
         self.profile = SwiftDataProfileRepository(store: store)
+        self.managedLists = SwiftDataManagedListRepository(store: store)
         self.categorisation = LocalRulesCategorisationService()
         self.videoFiles = persistence.videoFileService
     }

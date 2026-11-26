@@ -122,7 +122,7 @@ struct HomeDashboardView: View {
                         NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
                             AppRow(
                                 title: drill.name,
-                                metadata: "\(drill.dance?.name ?? ""), \(drill.focusArea.displayName), \(drill.targetRepetitions) repetitions",
+                                metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.targetRepetitions) repetitions",
                                 isFavourite: drill.isFavourite
                             )
                         }

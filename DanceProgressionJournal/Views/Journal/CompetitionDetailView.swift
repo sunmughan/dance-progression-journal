@@ -15,10 +15,15 @@ struct CompetitionDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query private var competitions: [Competition]
+    @Query(sort: \ManagedListItem.sortOrder) private var managedItems: [ManagedListItem]
+
+    private var checklistCategories: [String] {
+        managedItems.filter { $0.kind == .checklistCategory && $0.isActive }.map { $0.name }
+    }
 
     @State private var errorMessage: String?
     @State private var newItemTitle = ""
-    @State private var newItemCategory: ChecklistCategory = .registration
+    @State private var newItemCategory = ChecklistCategory.registration.rawValue
     @State private var showingDeleteConfirmation = false
 
     init(competitionId: UUID) {
@@ -109,8 +114,8 @@ struct CompetitionDetailView: View {
                             .background(DesignTokens.Color.backgroundSecondary)
                             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
                         Picker("Category", selection: $newItemCategory) {
-                            ForEach(ChecklistCategory.allCases, id: \.self) { category in
-                                Text(category.displayName).tag(category)
+                            ForEach(checklistCategories, id: \.self) { category in
+                                Text(ChecklistCategory.displayName(for: category)).tag(category)
                             }
                         }
                         .pickerStyle(.menu)

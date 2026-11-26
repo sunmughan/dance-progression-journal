@@ -90,6 +90,13 @@ enum ChecklistCategory: String, Codable, CaseIterable, Sendable {
         case .paperwork: "Paperwork"
         }
     }
+
+    /// Display name for a stored checklist category string. A stored
+    /// string is the raw value of one of these cases; an admin
+    /// renamed or custom value shows as itself.
+    static func displayName(for stored: String) -> String {
+        ChecklistCategory(rawValue: stored)?.displayName ?? stored
+    }
 }
 
 enum FigureLevel: String, Codable, CaseIterable, Sendable {
@@ -137,6 +144,13 @@ enum FocusArea: String, Codable, CaseIterable, Sendable {
         case .partnerConnection: "Partner Connection"
         case .routine: "Routine"
         }
+    }
+
+    /// Display name for a stored focus area string. A stored string
+    /// is the raw value of one of these cases; an admin renamed or
+    /// custom value shows as itself.
+    static func displayName(for stored: String) -> String {
+        FocusArea(rawValue: stored)?.displayName ?? stored
     }
 }
 
@@ -282,7 +296,12 @@ final class Drill {
     @Attribute(.unique) var id: UUID
     var name: String
     var dance: Dance?
-    var focusArea: FocusArea
+    // Stored as a plain string, the name of a managed focus area.
+    // Schema 1.0.0 stored the FocusArea enum; the enum is String
+    // backed, so the stored values are identical and the 1.1.0
+    // migration keeps every drill. The admin app manages the list,
+    // so the pickers read managed lists instead of the enum.
+    var focusArea: String
     var descriptionText: String
     var targetRepetitions: Int
     var targetDurationMinutes: Int
@@ -292,11 +311,15 @@ final class Drill {
     var createdDate: Date
     var updatedDate: Date
 
+    var focusAreaDisplayName: String {
+        FocusArea.displayName(for: focusArea)
+    }
+
     init(
         id: UUID = UUID(),
         name: String,
         dance: Dance? = nil,
-        focusArea: FocusArea,
+        focusArea: String,
         descriptionText: String = "",
         targetRepetitions: Int = 0,
         targetDurationMinutes: Int = 0,
@@ -460,18 +483,26 @@ final class ChecklistItem {
     var competition: Competition?
     var title: String
     var dueDate: Date?
-    var category: ChecklistCategory
+    // Stored as a plain string, the name of a managed checklist
+    // category. Schema 1.0.0 stored the ChecklistCategory enum;
+    // the enum is String backed, so the stored values are identical
+    // and the 1.1.0 migration keeps every item.
+    var category: String
     var isDone: Bool
     var doneDate: Date?
     var createdDate: Date
     var sortOrder: Int
+
+    var categoryDisplayName: String {
+        ChecklistCategory.displayName(for: category)
+    }
 
     init(
         id: UUID = UUID(),
         competition: Competition? = nil,
         title: String,
         dueDate: Date? = nil,
-        category: ChecklistCategory,
+        category: String,
         isDone: Bool = false,
         doneDate: Date? = nil,
         createdDate: Date = Date(),
@@ -668,6 +699,10 @@ final class AppSettings {
     var lastBackupDate: Date?
     var videoQuality: VideoQuality
     var perVideoSizeLimitMB: Int
+    // Firebase Storage video backup, off by default. Only ever on
+    // when the dancer turns it on, and only once the Firebase
+    // project exists and the Blaze plan cost is approved.
+    var videoBackupEnabled: Bool
 
     // Inverse of LocalProfile.appSettings, declared there with the
     // inverse key path. This side carries no inverse argument.
@@ -683,7 +718,8 @@ final class AppSettings {
         storageLimitWarning: Bool = true,
         lastBackupDate: Date? = nil,
         videoQuality: VideoQuality = .p1080,
-        perVideoSizeLimitMB: Int = 500
+        perVideoSizeLimitMB: Int = 500,
+        videoBackupEnabled: Bool = false
     ) {
         self.id = id
         self.defaultDanceId = defaultDanceId
@@ -694,5 +730,94 @@ final class AppSettings {
         self.lastBackupDate = lastBackupDate
         self.videoQuality = videoQuality
         self.perVideoSizeLimitMB = perVideoSizeLimitMB
+        self.videoBackupEnabled = videoBackupEnabled
+    }
+}
+
+// MARK: - ManagedListItem
+//
+// Schema 1.1.0. One row per value in a list the admin app manages
+// and the user app offers: journal categories, drill focus areas
+// and checklist categories. The user app pickers and filters read
+// these rows instead of the enums, so an admin edit changes what
+// the dancer sees at once. Dances are not managed here: Dance is
+// its own entity with its own isActive flag.
+//
+// The stored name is the value drills and checklist items keep.
+// Renaming a row does not rewrite existing records; they keep
+// their stored name until the dancer changes them, exactly like
+// the admin spec in use rule for removals.
+
+enum ManagedListKind: String, Codable, CaseIterable, Sendable {
+    case journalCategory
+    case focusArea
+    case checklistCategory
+
+    var displayName: String {
+        switch self {
+        case .journalCategory: "Journal category"
+        case .focusArea: "Focus area"
+        case .checklistCategory: "Checklist category"
+        }
+    }
+}
+
+@Model
+final class ManagedListItem {
+    @Attribute(.unique) var id: UUID
+    var kind: ManagedListKind
+    var name: String
+    var isActive: Bool
+    var sortOrder: Int
+    var createdDate: Date
+
+    var displayName: String {
+        switch kind {
+        case .journalCategory:
+            return EntryCategory(rawValue: name)?.displayName ?? name
+        case .focusArea:
+            return FocusArea.displayName(for: name)
+        case .checklistCategory:
+            return ChecklistCategory.displayName(for: name)
+        }
+    }
+
+    init(
+        id: UUID = UUID(),
+        kind: ManagedListKind,
+        name: String,
+        isActive: Bool = true,
+        sortOrder: Int = 0,
+        createdDate: Date = Date()
+    ) {
+        self.id = id
+        self.kind = kind
+        self.name = name
+        self.isActive = isActive
+        self.sortOrder = sortOrder
+        self.createdDate = createdDate
+    }
+
+    /// The default rows, seeded from the roadmap lists on first
+    /// launch and in test fixtures. These are the fixed lists the
+    /// design spec starts with, not sample content.
+    static func defaultRows() -> [ManagedListItem] {
+        var rows: [ManagedListItem] = []
+        var order = 0
+        for category in EntryCategory.allCases {
+            rows.append(ManagedListItem(kind: .journalCategory, name: category.rawValue, sortOrder: order))
+            order += 1
+        }
+        order = 0
+        for area in FocusArea.allCases {
+            rows.append(ManagedListItem(kind: .focusArea, name: area.rawValue, sortOrder: order))
+            order += 1
+        }
+        order = 0
+        for category in ChecklistCategory.allCases {
+            rows.append(ManagedListItem(kind: .checklistCategory, name: category.rawValue, sortOrder: order))
+            order += 1
+        }
+        return rows
     }
 }

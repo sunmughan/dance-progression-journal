@@ -294,7 +294,7 @@ struct DrillFormTests {
     func drillFormRequiresName() throws {
         let (repository, dances) = try danceStore()
         let model = DrillFormViewModel(repository: repository)
-        model.load(drill: nil, dances: dances)
+        model.load(drill: nil, dances: dances, focusAreas: FocusArea.allCases.map { $0.rawValue })
         #expect(model.canSave == false)
         #expect(model.save() == nil)
         #expect(try repository.fetchAll().isEmpty)
@@ -304,10 +304,10 @@ struct DrillFormTests {
     func drillFormCreatesDrill() throws {
         let (repository, dances) = try danceStore()
         let model = DrillFormViewModel(repository: repository)
-        model.load(drill: nil, dances: dances)
+        model.load(drill: nil, dances: dances, focusAreas: FocusArea.allCases.map { $0.rawValue })
         model.name = "Cha Cha Lock Steps"
         model.selectedDance = dances.first { $0.name == "Cha cha" }
-        model.focusArea = .footwork
+        model.focusArea = FocusArea.footwork.rawValue
         model.targetRepetitions = 24
         model.targetDurationMinutes = 10
         model.difficulty = .intermediate
@@ -327,13 +327,13 @@ struct DrillFormTests {
         let drill = Drill(
             name: "Rumba Walks",
             dance: dances.first { $0.name == "Rumba" },
-            focusArea: .footwork,
+            focusArea: FocusArea.footwork.rawValue,
             targetRepetitions: 20,
             targetDurationMinutes: 15
         )
         try repository.insert(drill)
         let model = DrillFormViewModel(repository: repository)
-        model.load(drill: drill, dances: dances)
+        model.load(drill: drill, dances: dances, focusAreas: FocusArea.allCases.map { $0.rawValue })
         #expect(model.isEditing == true)
         #expect(model.name == "Rumba Walks")
         model.targetRepetitions = 30
@@ -586,8 +586,8 @@ struct CompetitionFormTests {
             entryStatus: .interested
         )
         try repository.insert(competition)
-        try repository.addChecklistItem(title: "Confirm entry", category: .registration, to: competition)
-        try repository.addChecklistItem(title: "Book travel", category: .travel, to: competition)
+        try repository.addChecklistItem(title: "Confirm entry", category: ChecklistCategory.registration.rawValue, to: competition)
+        try repository.addChecklistItem(title: "Book travel", category: ChecklistCategory.travel.rawValue, to: competition)
         var items = try #require(try repository.fetchAllSortedByStartDate().first).checklistItems.sorted { $0.sortOrder < $1.sortOrder }
         #expect(items.count == 2)
         #expect(items.map { $0.title } == ["Confirm entry", "Book travel"])
@@ -597,5 +597,124 @@ struct CompetitionFormTests {
         #expect(items[0].isDone == true)
         #expect(items[0].doneDate != nil)
         #expect(items[1].isDone == false)
+    }
+}
+
+// MARK: - Managed list tests
+
+@MainActor
+struct ManagedListTests {
+    private func listStore() throws -> (SwiftDataManagedListRepository, ModelContext, [Dance]) {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let store = SwiftDataStore(context: persistence.mainContext)
+        let dances = try SwiftDataDanceRepository(store: store).fetchActiveOrdered()
+        return (SwiftDataManagedListRepository(store: store), persistence.mainContext, dances)
+    }
+
+    @Test("Managed lists seed 14 default rows")
+    func managedListsSeedDefaults() throws {
+        let (repository, _, _) = try listStore()
+        let all = try repository.fetchAll()
+        #expect(all.filter { $0.kind == .journalCategory }.count == 3)
+        #expect(all.filter { $0.kind == .focusArea }.count == 5)
+        #expect(all.filter { $0.kind == .checklistCategory }.count == 6)
+        #expect(all.filter { $0.kind == .focusArea }.map { $0.name } == ["footwork", "timing", "posture", "partnerConnection", "routine"])
+    }
+
+    @Test("Hiding a focus area removes it from the active list")
+    func hidingFocusAreaRemovesItFromActive() throws {
+        let (repository, _, _) = try listStore()
+        var active = try repository.fetchActive(kind: .focusArea)
+        #expect(active.count == 5)
+        let footwork = try #require(active.first { $0.name == "footwork" })
+        footwork.isActive = false
+        try repository.save()
+        active = try repository.fetchActive(kind: .focusArea)
+        #expect(active.count == 4)
+        #expect(active.allSatisfy { $0.name != "footwork" })
+    }
+
+    @Test("A custom focus area can be added and a drill can use it")
+    func customFocusAreaCanBeAddedAndUsed() throws {
+        let (repository, context, dances) = try listStore()
+        let custom = ManagedListItem(kind: .focusArea, name: "turns", sortOrder: 5)
+        try repository.insert(custom)
+        let active = try repository.fetchActive(kind: .focusArea)
+        #expect(active.count == 6)
+        #expect(active.map { $0.name }.contains("turns"))
+
+        let drillStore = SwiftDataStore(context: context)
+        let drills = SwiftDataDrillRepository(store: drillStore)
+        let model = DrillFormViewModel(repository: drills)
+        model.load(drill: nil, dances: dances, focusAreas: active.map { $0.name })
+        model.name = "Spot turn practice"
+        model.focusArea = "turns"
+        let savedId = try #require(model.save())
+        let saved = try #require(try drills.fetchAll().first { $0.id == savedId })
+        #expect(saved.focusArea == "turns")
+        #expect(saved.focusAreaDisplayName == "turns")
+    }
+
+    @Test("Drill form defaults its focus area to the first managed one")
+    func drillFormDefaultsToFirstFocusArea() throws {
+        let (repository, context, _) = try listStore()
+        let active = try repository.fetchActive(kind: .focusArea)
+        let drills = SwiftDataDrillRepository(store: SwiftDataStore(context: context))
+        let model = DrillFormViewModel(repository: drills)
+        model.load(drill: nil, dances: [], focusAreas: active.map { $0.name })
+        #expect(model.focusArea == "footwork")
+    }
+}
+
+// MARK: - Schema migration tests
+
+@MainActor
+struct SchemaMigrationTests {
+    @Test("Migration from 1.0.0 to 1.1.0 keeps drills, checklist items and settings")
+    func migrationKeepsData() throws {
+        let base = FileManager.default.temporaryDirectory
+            .appending(path: "migration-test-\(UUID().uuidString).sqlite")
+        defer {
+            for suffix in ["", "-wal", "-shm"] {
+                try? FileManager.default.removeItem(atPath: base.path + suffix)
+            }
+        }
+
+        // Build a 1.0.0 store with one drill, one checklist item and
+        // settings, using the frozen 1.0.0 shapes.
+        let v1Schema = Schema(versionedSchema: AppSchemaV1_0.self)
+        let v1Configuration = ModelConfiguration(schema: v1Schema, url: base, isStoredInMemoryOnly: false)
+        let v1Container = try ModelContainer(for: v1Schema, configurations: [v1Configuration])
+        let v1Context = v1Container.mainContext
+        let oldDrill = AppSchemaV1_0.Drill(name: "Rumba Walks", focusArea: .footwork, targetRepetitions: 20)
+        v1Context.insert(oldDrill)
+        let oldCompetition = Competition(name: "Sample NDCA event", source: .ndca, location: "Sample", venue: "Sample", startDate: Date(), endDate: Date())
+        v1Context.insert(oldCompetition)
+        let oldItem = AppSchemaV1_0.ChecklistItem(competition: oldCompetition, title: "Book travel", category: .travel)
+        v1Context.insert(oldItem)
+        let oldSettings = AppSchemaV1_0.AppSettings(perVideoSizeLimitMB: 500)
+        v1Context.insert(oldSettings)
+        try v1Context.save()
+
+        // Open the same file with the 1.1.0 schema and migration plan.
+        let v2Schema = Schema(versionedSchema: AppSchemaV1_1.self)
+        let v2Configuration = ModelConfiguration(schema: v2Schema, url: base, isStoredInMemoryOnly: false)
+        let v2Container = try ModelContainer(for: v2Schema, migrationPlan: AppMigrationPlan.self, configurations: [v2Configuration])
+        let v2Context = v2Container.mainContext
+
+        let drills = try v2Context.fetch(FetchDescriptor<Drill>())
+        #expect(drills.count == 1)
+        #expect(drills.first?.focusArea == "footwork")
+        #expect(drills.first?.focusAreaDisplayName == "Footwork")
+        let items = try v2Context.fetch(FetchDescriptor<ChecklistItem>())
+        #expect(items.count == 1)
+        #expect(items.first?.category == "travel")
+        #expect(items.first?.categoryDisplayName == "Travel")
+        let settings = try v2Context.fetch(FetchDescriptor<AppSettings>())
+        #expect(settings.count == 1)
+        #expect(settings.first?.videoBackupEnabled == false)
+        #expect(settings.first?.perVideoSizeLimitMB == 500)
     }
 }

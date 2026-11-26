@@ -290,7 +290,7 @@ final class SettingsViewModel {
 final class DrillFormViewModel {
     var name = ""
     var selectedDance: Dance?
-    var focusArea: FocusArea = .footwork
+    var focusArea = FocusArea.footwork.rawValue
     var descriptionText = ""
     var targetRepetitions = 20
     var targetDurationMinutes = 15
@@ -300,6 +300,7 @@ final class DrillFormViewModel {
     var errorMessage: String?
 
     private(set) var dances: [Dance] = []
+    private(set) var focusAreas: [String] = []
     private var editingDrill: Drill?
 
     private let repository: DrillRepositoryProtocol
@@ -324,10 +325,14 @@ final class DrillFormViewModel {
         return nil
     }
 
-    func load(drill: Drill?, dances: [Dance]) {
+    func load(drill: Drill?, dances: [Dance], focusAreas: [String]) {
         self.dances = dances
+        self.focusAreas = focusAreas
         guard let drill else {
             selectedDance = dances.first
+            if let firstArea = focusAreas.first {
+                focusArea = firstArea
+            }
             return
         }
         editingDrill = drill

@@ -78,7 +78,7 @@ struct LibraryRootView: View {
     @State private var searchText = ""
     @State private var selectedDance: Dance?
     @State private var showingDanceFilter = false
-    @State private var selectedFocusArea: FocusArea?
+    @State private var selectedFocusArea: String?
     @State private var showingFocusAreaFilter = false
     @State private var favouritesOnly = false
     @State private var selectedVideoType: VideoType?
@@ -87,6 +87,11 @@ struct LibraryRootView: View {
     @State private var showingLevelFilter = false
     @State private var videoLayout: VideoLayout = .grid
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
+    @Query(sort: \ManagedListItem.sortOrder) private var managedItems: [ManagedListItem]
+
+    private var focusAreas: [String] {
+        managedItems.filter { $0.kind == .focusArea && $0.isActive }.map { $0.name }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -180,7 +185,7 @@ struct LibraryRootView: View {
 
     private var focusAreaFilterChip: some View {
         FilterChip(
-            title: selectedFocusArea?.displayName ?? "All focus areas",
+            title: selectedFocusArea.map { FocusArea.displayName(for: $0) } ?? "All focus areas",
             isSelected: selectedFocusArea != nil
         ) {
             showingFocusAreaFilter = true
@@ -252,13 +257,13 @@ struct LibraryRootView: View {
                     selectedFocusArea = nil
                     showingFocusAreaFilter = false
                 }
-                ForEach(FocusArea.allCases, id: \.self) { area in
+                ForEach(focusAreas, id: \.self) { area in
                     Button {
                         selectedFocusArea = area
                         showingFocusAreaFilter = false
                     } label: {
                         HStack {
-                            Text(area.displayName)
+                            Text(FocusArea.displayName(for: area))
                                 .foregroundStyle(DesignTokens.Color.textPrimary)
                             Spacer()
                             if selectedFocusArea == area {
@@ -549,7 +554,7 @@ struct LibraryRootView: View {
         }
     }
 
-    private func matchesFocusArea(_ focusArea: FocusArea) -> Bool {
+    private func matchesFocusArea(_ focusArea: String) -> Bool {
         guard let selectedFocusArea else { return true }
         return focusArea == selectedFocusArea
     }
@@ -563,7 +568,7 @@ struct LibraryRootView: View {
         NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
             AppRow(
                 title: drill.name,
-                metadata: "\(drill.dance?.name ?? ""), \(drill.focusArea.displayName), \(drill.targetRepetitions) repetitions",
+                metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.targetRepetitions) repetitions",
                 isFavourite: drill.isFavourite
             )
         }

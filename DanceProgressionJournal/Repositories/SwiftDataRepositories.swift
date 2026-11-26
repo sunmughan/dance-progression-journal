@@ -213,7 +213,7 @@ final class SwiftDataCompetitionRepository: CompetitionRepositoryProtocol {
         try store.save()
     }
 
-    func addChecklistItem(title: String, category: ChecklistCategory, to competition: Competition) throws {
+    func addChecklistItem(title: String, category: String, to competition: Competition) throws {
         let nextOrder = (competition.checklistItems.map { $0.sortOrder }.max() ?? -1) + 1
         let item = ChecklistItem(
             competition: competition,
@@ -331,6 +331,44 @@ final class SwiftDataProfileRepository: ProfileRepositoryProtocol {
 
     func fetchSettings() throws -> AppSettings? {
         try store.fetch(FetchDescriptor<AppSettings>()).first
+    }
+
+    func save() throws {
+        try store.save()
+    }
+}
+
+@MainActor
+final class SwiftDataManagedListRepository: ManagedListRepositoryProtocol {
+    private let store: SwiftDataStore
+
+    init(store: SwiftDataStore) {
+        self.store = store
+    }
+
+    func fetchAll() throws -> [ManagedListItem] {
+        try store.fetch(FetchDescriptor<ManagedListItem>(
+            sortBy: [SortDescriptor(\.sortOrder)]
+        ))
+    }
+
+    func fetchActive(kind: ManagedListKind) throws -> [ManagedListItem] {
+        // Enum values are not comparable inside #Predicate on current
+        // SDKs, so fetch sorted and filter in memory.
+        let kindRaw = kind.rawValue
+        return try store.fetch(FetchDescriptor<ManagedListItem>(
+            sortBy: [SortDescriptor(\.sortOrder)]
+        )).filter { $0.kind.rawValue == kindRaw && $0.isActive }
+    }
+
+    func insert(_ item: ManagedListItem) throws {
+        store.insert(item)
+        try store.save()
+    }
+
+    func delete(_ item: ManagedListItem) throws {
+        store.delete(item)
+        try store.save()
     }
 
     func save() throws {

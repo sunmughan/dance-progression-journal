@@ -56,7 +56,7 @@ protocol CompetitionRepositoryProtocol: AnyObject {
     func insert(_ competition: Competition) throws
     func delete(_ competition: Competition) throws
     func toggleChecklistItem(_ item: ChecklistItem) throws
-    func addChecklistItem(title: String, category: ChecklistCategory, to competition: Competition) throws
+    func addChecklistItem(title: String, category: String, to competition: Competition) throws
     func save() throws
 }
 
@@ -76,6 +76,15 @@ protocol PracticeLogRepositoryProtocol: AnyObject {
     func fetch(forFigure figure: Figure) throws -> [FigurePracticeLog]
     func insert(_ log: FigurePracticeLog) throws
     func delete(_ log: FigurePracticeLog) throws
+    func save() throws
+}
+
+@MainActor
+protocol ManagedListRepositoryProtocol: AnyObject {
+    func fetchAll() throws -> [ManagedListItem]
+    func fetchActive(kind: ManagedListKind) throws -> [ManagedListItem]
+    func insert(_ item: ManagedListItem) throws
+    func delete(_ item: ManagedListItem) throws
     func save() throws
 }
 

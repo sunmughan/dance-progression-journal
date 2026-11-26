@@ -56,6 +56,7 @@ private struct LaunchView: View {
             await MainActor.run { FirebaseService.shared.configureIfPresent() }
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.ensureDanceTaxonomy() }
+            await MainActor.run { controller.ensureManagedLists() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }
             await MainActor.run {
                 persistence = controller

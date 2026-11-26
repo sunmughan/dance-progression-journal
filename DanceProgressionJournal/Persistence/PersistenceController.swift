@@ -4,11 +4,15 @@ import SwiftData
 // MARK: - Versioned schema
 //
 // Versioned from day one. Schema version 1.0.0 holds all 10 entities from
-// roadmap section 7. When a later week changes a model, add a new schema
-// version and a migration stage here, never an unversioned change.
+// roadmap section 7. Version 1.1.0 adds the ManagedListItem entity,
+// stores drill focus areas and checklist categories as plain strings
+// instead of enums, and adds AppSettings.videoBackupEnabled. The old
+// shapes live frozen in Models/SchemaV1_0.swift. When a later week
+// changes a model, add a new schema version and a migration stage
+// here, never an unversioned change.
 
-enum AppSchema: VersionedSchema {
-    static let versionIdentifier = Schema.Version(1, 0, 0)
+enum AppSchemaV1_1: VersionedSchema {
+    static let versionIdentifier = Schema.Version(1, 1, 0)
 
     static var models: [any PersistentModel.Type] {
         [
@@ -21,20 +25,24 @@ enum AppSchema: VersionedSchema {
             Figure.self,
             FigurePracticeLog.self,
             LocalProfile.self,
-            AppSettings.self
+            AppSettings.self,
+            ManagedListItem.self
         ]
     }
 }
 
 struct AppMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [AppSchema.self]
+        [AppSchemaV1_0.self, AppSchemaV1_1.self]
     }
 
-    // No stages yet. Version 1.0.0 is the first schema, so there is
-    // nothing to migrate from. Add a stage per new version.
+    // Lightweight migration from 1.0.0 to 1.1.0. The enum to String
+    // changes keep the stored values: both enums are String backed,
+    // so the columns stay text with the same values. The new entity
+    // and the new AppSettings flag are added empty, then
+    // ensureManagedLists seeds the default rows on launch.
     static var stages: [MigrationStage] {
-        []
+        [MigrationStage.lightweight(fromVersion: AppSchemaV1_0.self, toVersion: AppSchemaV1_1.self)]
     }
 }
 
@@ -53,7 +61,7 @@ final class PersistenceController {
     let videoFileService: VideoFileService
 
     private init() {
-        let schema = Schema(versionedSchema: AppSchema.self)
+        let schema = Schema(versionedSchema: AppSchemaV1_1.self)
         let configuration = ModelConfiguration(
             schema: schema,
             isStoredInMemoryOnly: false
@@ -96,7 +104,7 @@ final class PersistenceController {
     }
 
     private init(inMemory: Bool) throws {
-        let schema = Schema(versionedSchema: AppSchema.self)
+        let schema = Schema(versionedSchema: AppSchemaV1_1.self)
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
         container = try ModelContainer(
             for: schema,
@@ -132,6 +140,21 @@ final class PersistenceController {
         try? mainContext.save()
     }
 
+    /// Ensures the managed lists exist: journal categories, drill
+    /// focus areas and checklist categories from the roadmap lists.
+    /// Runs whenever the store holds no managed rows yet, including
+    /// after Delete all data in Settings and after the 1.0.0 to
+    /// 1.1.0 migration, which adds the entity empty. These are the
+    /// fixed lists the pickers offer, not sample content: admin edits
+    /// change them afterwards.
+    func ensureManagedLists() {
+        let descriptor = FetchDescriptor<ManagedListItem>()
+        let count = (try? mainContext.fetchCount(descriptor)) ?? 0
+        guard count == 0 else { return }
+        ManagedListItem.defaultRows().forEach { mainContext.insert($0) }
+        try? mainContext.save()
+    }
+
     /// Deletes every local record and every video file. Used by the
     /// Delete all data action in Settings. There is no undo.
     /// Objects are deleted one by one, not with the batch delete API:
@@ -149,8 +172,12 @@ final class PersistenceController {
         try deleteAll(ChecklistItem.self)
         try deleteAll(Figure.self)
         try deleteAll(FigurePracticeLog.self)
+        try deleteAll(ManagedListItem.self)
         try videoFileService.deleteAllVideos()
         try mainContext.save()
+        // The managed lists are the fixed picker lists, not user
+        // content, so they come straight back.
+        ensureManagedLists()
     }
 
     private func deleteAll<T: PersistentModel>(_ type: T.Type) throws {

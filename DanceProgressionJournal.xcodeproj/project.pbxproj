@@ -11,6 +11,7 @@
 		89619ED6FBCE59C280A5A099 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF6EF0CAEBB2DC9C5B0A53E /* Components.swift */; };
 		6FC8238E6733D7F800016F4E /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2FD8ED3A7D9EB34FE361AAD /* DesignTokens.swift */; };
 		776F207EA7DE6087195ACAA0 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5174116B1AC7040F854ED76E /* Models.swift */; };
+		E3499CC6AFDAD6A9578D3106 /* SchemaV1_0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD5AF3C520A667A67670823 /* SchemaV1_0.swift */; };
 		DDC94EE6157E81B65E4794AF /* Routes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68120C652F2D29CD8D493B67 /* Routes.swift */; };
 		7585C1954B644F393942988C /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEEFAC3202420E66E5205AA /* PersistenceController.swift */; };
 		F4C2D5C6EBA2319B2FD9FB24 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */; };
@@ -64,6 +65,7 @@
 		9EF6EF0CAEBB2DC9C5B0A53E /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Components.swift"; path = "Components.swift"; sourceTree = "<group>"; };
 		D2FD8ED3A7D9EB34FE361AAD /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DesignTokens.swift"; path = "DesignTokens.swift"; sourceTree = "<group>"; };
 		5174116B1AC7040F854ED76E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Models.swift"; path = "Models.swift"; sourceTree = "<group>"; };
+		9BD5AF3C520A667A67670823 /* SchemaV1_0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SchemaV1_0.swift"; path = "SchemaV1_0.swift"; sourceTree = "<group>"; };
 		68120C652F2D29CD8D493B67 /* Routes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Routes.swift"; path = "Routes.swift"; sourceTree = "<group>"; };
 		0EEEFAC3202420E66E5205AA /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PersistenceController.swift"; path = "PersistenceController.swift"; sourceTree = "<group>"; };
 		95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RepositoryProtocols.swift"; path = "RepositoryProtocols.swift"; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 			); name = "DesignSystem"; path = "DesignSystem"; sourceTree = "<group>"; };
 		DD131EC962237671D266DB34 /* Models */ = {isa = PBXGroup; children = (
 				5174116B1AC7040F854ED76E /* Models.swift */,
+				9BD5AF3C520A667A67670823 /* SchemaV1_0.swift */,
 			); name = "Models"; path = "Models"; sourceTree = "<group>"; };
 		134609B640CC3BD12399C47A /* Navigation */ = {isa = PBXGroup; children = (
 				68120C652F2D29CD8D493B67 /* Routes.swift */,
@@ -287,6 +290,7 @@
 				89619ED6FBCE59C280A5A099 /* Sources */,
 				6FC8238E6733D7F800016F4E /* Sources */,
 				776F207EA7DE6087195ACAA0 /* Sources */,
+				E3499CC6AFDAD6A9578D3106 /* Sources */,
 				DDC94EE6157E81B65E4794AF /* Sources */,
 				7585C1954B644F393942988C /* Sources */,
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
@@ -319,6 +323,7 @@
 				89619ED6FBCE59C280A5A099 /* Sources */,
 				6FC8238E6733D7F800016F4E /* Sources */,
 				776F207EA7DE6087195ACAA0 /* Sources */,
+				E3499CC6AFDAD6A9578D3106 /* Sources */,
 				DDC94EE6157E81B65E4794AF /* Sources */,
 				7585C1954B644F393942988C /* Sources */,
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,

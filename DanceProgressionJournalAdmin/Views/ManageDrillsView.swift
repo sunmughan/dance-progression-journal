@@ -15,13 +15,13 @@ struct ManageDrillsView: View {
     @Query(sort: \Drill.name) private var drills: [Drill]
 
     @State private var searchText = ""
-    @State private var selectedFocusArea: FocusArea?
+    @State private var selectedFocusArea: String?
     @State private var drillToRemove: Drill?
     @State private var errorMessage: String?
 
-    private var focusAreasInUse: [FocusArea] {
+    private var focusAreasInUse: [String] {
         let used = Set(drills.map { $0.focusArea })
-        return FocusArea.allCases.filter { used.contains($0) }
+        return Array(used).sorted()
     }
 
     var body: some View {
@@ -32,7 +32,7 @@ struct ManageDrillsView: View {
                         selectedFocusArea = nil
                     }
                     ForEach(focusAreasInUse, id: \.self) { area in
-                        FilterChip(title: area.displayName, isSelected: selectedFocusArea == area) {
+                        FilterChip(title: FocusArea.displayName(for: area), isSelected: selectedFocusArea == area) {
                             selectedFocusArea = area
                         }
                     }
@@ -74,7 +74,7 @@ struct ManageDrillsView: View {
                         HStack {
                             AppRow(
                                 title: drill.name,
-                                metadata: "\(drill.dance?.name ?? "") · \(drill.focusArea.displayName)"
+                                metadata: "\(drill.dance?.name ?? "") · \(drill.focusAreaDisplayName)"
                             )
                             Spacer()
                             NavigationLink(value: AdminRoute.drillForm(drillId: drill.id)) {

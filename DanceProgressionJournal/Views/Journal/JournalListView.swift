@@ -15,6 +15,13 @@ struct JournalListView: View {
 
     @Query(sort: \JournalEntry.entryDate, order: .reverse) private var entries: [JournalEntry]
     @Query(sort: \Dance.displayOrder) private var dances: [Dance]
+    @Query(sort: \ManagedListItem.sortOrder) private var managedItems: [ManagedListItem]
+
+    private var journalCategories: [EntryCategory] {
+        managedItems
+            .filter { $0.kind == .journalCategory && $0.isActive }
+            .compactMap { EntryCategory(rawValue: $0.name) }
+    }
 
     @State private var viewModel: JournalListViewModel?
     @State private var showingDanceFilter = false
@@ -48,11 +55,13 @@ struct JournalListView: View {
                             FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
                                 viewModel.selectedCategory = nil
                             }
-                            FilterChip(title: "Challenges", isSelected: viewModel.selectedCategory == .challenge) {
-                                viewModel.selectedCategory = .challenge
-                            }
-                            FilterChip(title: "Accomplishments", isSelected: viewModel.selectedCategory == .accomplishment) {
-                                viewModel.selectedCategory = .accomplishment
+                            ForEach(journalCategories, id: \.self) { category in
+                                FilterChip(
+                                    title: category.displayName,
+                                    isSelected: viewModel.selectedCategory == category
+                                ) {
+                                    viewModel.selectedCategory = category
+                                }
                             }
                             FilterChip(title: viewModel.activeFilterLabel, isSelected: viewModel.selectedDance != nil) {
                                 showingDanceFilter = true

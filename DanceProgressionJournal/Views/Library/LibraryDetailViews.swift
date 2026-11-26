@@ -423,7 +423,7 @@ struct DrillDetailView: View {
                     Text(drill.name)
                         .font(DesignTokens.Font.title1)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Text("\(drill.dance?.name ?? ""), \(drill.focusArea.displayName), \(drill.difficulty.displayName)")
+                    Text("\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.difficulty.displayName)")
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                     if drill.isFavourite {
