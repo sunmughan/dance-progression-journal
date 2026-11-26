@@ -781,15 +781,18 @@ struct SchemaMigrationTests {
         let v2Container = try ModelContainer(for: v2Schema, migrationPlan: AppMigrationPlan.self, configurations: [v2Configuration])
         let v2Context = v2Container.mainContext
 
-        let drills = try v2Context.fetch(FetchDescriptor<Drill>())
+        // The 1.1.0 store holds the frozen 1.1.0 types, so fetch
+        // those. The live Drill and ChecklistItem types cannot be
+        // fetched from this container: the cast traps.
+        let drills = try v2Context.fetch(FetchDescriptor<AppSchemaV1_1.Drill>())
         #expect(drills.count == 1)
         #expect(drills.first?.focusArea == "footwork")
-        #expect(drills.first?.focusAreaDisplayName == "Footwork")
-        let items = try v2Context.fetch(FetchDescriptor<ChecklistItem>())
+        #expect(drills.first.map { FocusArea.displayName(for: $0.focusArea) } == "Footwork")
+        let items = try v2Context.fetch(FetchDescriptor<AppSchemaV1_1.ChecklistItem>())
         #expect(items.count == 1)
         #expect(items.first?.category == "travel")
-        #expect(items.first?.categoryDisplayName == "Travel")
-        let settings = try v2Context.fetch(FetchDescriptor<AppSettings>())
+        #expect(items.first.map { ChecklistCategory.displayName(for: $0.category) } == "Travel")
+        let settings = try v2Context.fetch(FetchDescriptor<AppSchemaV1_1.AppSettings>())
         #expect(settings.count == 1)
         #expect(settings.first?.videoBackupEnabled == false)
         #expect(settings.first?.perVideoSizeLimitMB == 500)

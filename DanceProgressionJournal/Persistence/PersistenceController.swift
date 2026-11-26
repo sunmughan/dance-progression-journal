@@ -65,13 +65,17 @@ struct AppMigrationPlan: SchemaMigrationPlan {
                 )
             },
             didMigrate: { context in
-                let drills = try context.fetch(FetchDescriptor<Drill>())
+                // The destination store is the 1.1.0 schema, so fetch
+                // the frozen 1.1.0 types. Fetching the live Drill or
+                // ChecklistItem types here traps: SwiftData materialises
+                // the 1.1.0 rows and cannot cast them to the live types.
+                let drills = try context.fetch(FetchDescriptor<AppSchemaV1_1.Drill>())
                 for drill in drills {
                     if let value = capture.focusArea(for: drill.id) {
                         drill.focusArea = value
                     }
                 }
-                let items = try context.fetch(FetchDescriptor<ChecklistItem>())
+                let items = try context.fetch(FetchDescriptor<AppSchemaV1_1.ChecklistItem>())
                 for item in items {
                     if let value = capture.category(for: item.id) {
                         item.category = value
