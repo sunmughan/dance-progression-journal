@@ -42,6 +42,15 @@ class Section:
 
 
 def file_ref(path: Path, kind: str) -> tuple[str, str]:
+    # NOTE: the emitted path must be the bare file name, not the path
+    # relative to the repo root. A PBXFileReference with sourceTree
+    # "<group>" resolves relative to its containing group, and every
+    # group already carries its directory in its own path (app group
+    # "DanceProgressionJournal", subgroups "DesignSystem",
+    # "Views/Journal", ...). A repo relative path here resolves to a
+    # doubled path that does not exist on disk, and the build fails
+    # with "No such file or directory" at the asset catalog step.
+    # The id still hashes the repo relative path so ids stay stable.
     rel = path.relative_to(REPO).as_posix()
     fid = pbx_id("fileref:" + rel)
     if kind == "swift":
@@ -60,7 +69,7 @@ def file_ref(path: Path, kind: str) -> tuple[str, str]:
     entry = (
         f"\t\t{fid} /* {path.name} */ = {{isa = PBXFileReference; "
         f"lastKnownFileType = {last}; name = {q(path.name)}; "
-        f"path = {q(rel)}; sourceTree = \"<group>\"; }};"
+        f"path = {q(path.name)}; sourceTree = \"<group>\"; }};"
     )
     return fid, entry
 

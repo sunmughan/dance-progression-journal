@@ -132,6 +132,37 @@ component uses the root file's `ColorToken`, `FontToken`, `Layout` or
 `cardPadding` members, so nothing was lost. If a token changes, change
 it in the app file and copy it to the root file in the same commit.
 
+## CI, first runs 26 Nov 2026
+
+GitHub Actions workflow `.github/workflows/ios.yml` runs on
+macos-latest with the newest Xcode, `xcodebuild test` on the shared
+scheme `DanceProgressionJournal`, iPhone 17 simulator,
+`CODE_SIGNING_ALLOWED=NO`. Fixes applied in order:
+
+1. Runner has no iPhone 16 simulator, destination changed to iPhone 17.
+2. The AppIcon set was empty, a placeholder 1024 icon in the
+   provisional accent colour was added, then completed to the full
+   classic set (8 iPhone sizes plus 1024 marketing icon).
+3. Swift 6 fixes: `VideoFileService` drops `Sendable` (FileManager is
+   not Sendable); `RelativeDateFormatter.shared` is `@MainActor`
+   (DateFormatter is not Sendable); `fetch(byCategory:)` and
+   `fetch(byLevel:)` filter enums in memory because enum comparison is
+   not supported inside `#Predicate` on this SDK.
+4. Project file path bug, the real blocker: `tools/generate_xcodeproj.py`
+   wrote repo relative paths into every `PBXFileReference`, but a
+   file reference with sourceTree `<group>` resolves relative to its
+   containing group, and every group already carries its directory in
+   its own path. Every file resolved to a doubled path that does not
+   exist, so actool failed with "No such file or directory" and no
+   AppIcon set was found. Fixed in the generator (file references now
+   carry the bare file name) and the project file was regenerated.
+   All 26 file references now resolve to real files on disk.
+   The `INFOPLIST_FILE` build setting stays project relative
+   (`DanceProgressionJournal/Info.plist`) and is correct as is.
+
+Test count note: the test target holds 18 tests, not 16 (ModelTests
+10, CategorisationTests 4, VideoFileServiceTests 2, RepositoryTests 2).
+
 ## Needed next
 
 - A Mac with Xcode 26.1 to compile, run and fix.
