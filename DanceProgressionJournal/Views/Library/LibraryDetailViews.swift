@@ -91,9 +91,9 @@ struct VideoDetailView: View {
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
                     Text(video.title)
-                        .font(DesignTokens.Font.title1)
+                        .font(DesignTokens.Font.title3)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Text("\(RelativeDateFormatter.shared.calendarString(for: video.recordedDate)) · \(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)")
+                    Text(metadataLine(RelativeDateFormatter.shared.calendarString(for: video.recordedDate), video.dance?.name ?? "", video.videoType.displayName, video.durationLabel))
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                     if let choreographyName = video.choreographyName {
@@ -107,6 +107,13 @@ struct VideoDetailView: View {
                     Text(video.notes)
                         .font(DesignTokens.Font.body)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
+                } else {
+                    NavigationLink(value: LibraryRoute.videoForm(videoId: video.id)) {
+                        Text("Add a note")
+                            .font(DesignTokens.Font.body)
+                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
@@ -144,7 +151,7 @@ struct VideoDetailView: View {
                 }
 
                 if let instagramLink = video.instagramLink,
-                   let url = URL(string: instagramLink) {
+                   let url = usableWebLink(instagramLink) {
                     Link(destination: url) {
                         HStack(spacing: DesignTokens.Space.space2) {
                             Text("View on Instagram")
@@ -240,7 +247,7 @@ struct FigureDetailView: View {
                     Text(figure.name)
                         .font(DesignTokens.Font.title1)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Text("\(figure.dance?.name ?? "") · \(figure.level.displayName)")
+                    Text(metadataLine(figure.dance?.name ?? "", figure.level.displayName))
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                     Text("Pending the client NDCA list")
@@ -278,7 +285,7 @@ struct FigureDetailView: View {
                             .font(DesignTokens.Font.title3)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                         Text(figure.timing)
-                            .font(DesignTokens.Font.body)
+                            .font(DesignTokens.Font.callout)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                     }
                 }
@@ -289,7 +296,7 @@ struct FigureDetailView: View {
                             .font(DesignTokens.Font.title3)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                         if figure.practiceLogs.isEmpty {
-                            Text("No practice yet")
+                            Text("No practice yet. Log your first practice.")
                                 .font(DesignTokens.Font.body)
                                 .foregroundStyle(DesignTokens.Color.textSecondary)
                         } else {
@@ -302,9 +309,7 @@ struct FigureDetailView: View {
                 }
 
                 NavigationLink(value: LibraryRoute.figurePracticeForm(figureId: figure.id)) {
-                    Text("Log Practice")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(.white)
+                    PrimaryButtonLabel(title: "Log Practice")
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                 }
@@ -316,27 +321,25 @@ struct FigureDetailView: View {
                     ErrorBanner(message: errorMessage)
                 }
 
-                if !figure.practiceLogs.isEmpty {
-                    VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                        Text("Linked videos")
-                            .font(DesignTokens.Font.title3)
-                            .foregroundStyle(DesignTokens.Color.textPrimary)
-                        let linked = videos.filter { $0.linkedFigureId == figure.id }
-                        if linked.isEmpty {
-                            Text("None linked")
-                                .font(DesignTokens.Font.body)
-                                .foregroundStyle(DesignTokens.Color.textSecondary)
-                        } else {
-                            ForEach(linked) { video in
-                                NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
-                                    AppRow(
-                                        title: video.title,
-                                        metadata: "\(video.dance?.name ?? "") · \(video.durationLabel)",
-                                        leadingIcon: "play.circle"
-                                    )
-                                }
-                                .buttonStyle(.plain)
+                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                    Text("Linked videos")
+                        .font(DesignTokens.Font.title3)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    let linked = videos.filter { $0.linkedFigureId == figure.id }
+                    if linked.isEmpty {
+                        Text("None linked")
+                            .font(DesignTokens.Font.body)
+                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                    } else {
+                        ForEach(linked) { video in
+                            NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
+                                AppRow(
+                                    title: video.title,
+                                    metadata: metadataLine(video.dance?.name ?? "", video.durationLabel),
+                                    leadingIcon: "play.circle"
+                                )
                             }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -426,7 +429,7 @@ struct DrillDetailView: View {
                     Text(drill.name)
                         .font(DesignTokens.Font.title1)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    Text("\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.difficulty.displayName)")
+                    Text(metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName, drill.difficulty.displayName))
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                     if drill.isFavourite {
@@ -467,12 +470,17 @@ struct DrillDetailView: View {
                     }
                 }
 
-                PrimaryButton(title: "Mark Practiced") {
-                    do {
-                        try dependencies.drills.markPracticed(drill, on: Date())
-                        justPracticed = true
-                    } catch {
-                        errorMessage = "This practice could not be saved. Check storage and try again."
+                HStack(spacing: DesignTokens.Space.space2) {
+                    PrimaryButton(title: "Mark Practiced") {
+                        do {
+                            try dependencies.drills.markPracticed(drill, on: Date())
+                            justPracticed = true
+                        } catch {
+                            errorMessage = "This practice could not be saved. Check storage and try again."
+                        }
+                    }
+                    SecondaryButton(title: timerActive ? "Stop Timer" : "Start Timer") {
+                        timerActive.toggle()
                     }
                 }
                 if justPracticed {
@@ -480,27 +488,18 @@ struct DrillDetailView: View {
                         .font(DesignTokens.Font.subheadline)
                         .foregroundStyle(DesignTokens.Color.accentText)
                 }
-
-                AppCard {
-                    VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                        Text("Timer")
-                            .font(DesignTokens.Font.title3)
-                            .foregroundStyle(DesignTokens.Color.textPrimary)
+                if timerSeconds > 0 || timerActive {
+                    HStack(spacing: DesignTokens.Space.space2) {
                         Text(timerLabel)
                             .font(DesignTokens.Font.practiceTotals)
                             .foregroundStyle(DesignTokens.Color.textPrimary)
                             .monospacedDigit()
-                        HStack(spacing: DesignTokens.Space.space2) {
-                            SecondaryButton(title: timerActive ? "Stop Timer" : "Start Timer") {
-                                timerActive.toggle()
-                            }
-                            SecondaryButton(title: "Reset") {
-                                timerActive = false
-                                timerSeconds = 0
-                            }
+                        Spacer()
+                        AppTextButton(title: "Reset") {
+                            timerActive = false
+                            timerSeconds = 0
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 if let errorMessage {
                     ErrorBanner(message: errorMessage)
@@ -535,7 +534,7 @@ struct DrillDetailView: View {
                             NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
                                 AppRow(
                                     title: video.title,
-                                    metadata: "\(video.dance?.name ?? "") · \(video.durationLabel)",
+                                    metadata: metadataLine(video.dance?.name ?? "", video.durationLabel),
                                     leadingIcon: "play.circle"
                                 )
                             }

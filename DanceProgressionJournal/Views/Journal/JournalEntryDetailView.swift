@@ -117,7 +117,7 @@ struct JournalEntryDetailView: View {
                             NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
                                 AppRow(
                                     title: video.title,
-                                    metadata: "\(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)",
+                                    metadata: metadataLine(video.dance?.name ?? "", video.videoType.displayName, video.durationLabel),
                                     leadingIcon: "play.circle"
                                 )
                             }
@@ -127,7 +127,7 @@ struct JournalEntryDetailView: View {
                             NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
                                 AppRow(
                                     title: drill.name,
-                                    metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName)",
+                                    metadata: metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName),
                                     isFavourite: drill.isFavourite
                                 )
                             }
@@ -137,7 +137,7 @@ struct JournalEntryDetailView: View {
                             NavigationLink(value: LibraryRoute.figureDetail(figureId: figure.id)) {
                                 AppRow(
                                     title: figure.name,
-                                    metadata: "\(figure.dance?.name ?? "") · \(figure.level.displayName)",
+                                    metadata: metadataLine(figure.dance?.name ?? "", figure.level.displayName),
                                     leadingIcon: "figure.dance"
                                 )
                             }
@@ -147,7 +147,7 @@ struct JournalEntryDetailView: View {
                 }
 
                 if let instagramLink = entry.instagramLink,
-                   let url = URL(string: instagramLink) {
+                   let url = usableWebLink(instagramLink) {
                     Link(destination: url) {
                         HStack(spacing: DesignTokens.Space.space2) {
                             Text("View on Instagram")

@@ -118,29 +118,56 @@ struct VideoFormView: View {
 
                 if let pickedURL = viewModel.pickedVideoURL {
                     AppCard {
-                        HStack(spacing: DesignTokens.Space.space2) {
-                            Image(systemName: "play.circle.fill")
-                                .font(.system(size: 28))
-                                .foregroundStyle(DesignTokens.Color.accent)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(pickedURL.lastPathComponent)
-                                    .font(DesignTokens.Font.subheadline)
-                                    .foregroundStyle(DesignTokens.Color.textPrimary)
-                                    .lineLimit(1)
-                                Text("\(viewModel.pickedSizeLabel) · limit \(viewModel.sizeLimitMB) MB per video")
-                                    .font(DesignTokens.Font.footnote)
-                                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                        VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                            ZStack(alignment: .bottomTrailing) {
+                                if let thumbnail = viewModel.pickedThumbnail {
+                                    Image(uiImage: thumbnail)
+                                        .resizable()
+                                        .aspectRatio(16 / 9, contentMode: .fill)
+                                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.small))
+                                } else {
+                                    ZStack {
+                                        Rectangle().fill(DesignTokens.Color.backgroundSecondary)
+                                        Image(systemName: "play.circle.fill")
+                                            .font(.system(size: 28))
+                                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                                    }
+                                    .aspectRatio(16 / 9, contentMode: .fill)
+                                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.small))
+                                }
+                                if viewModel.pickedDurationSeconds > 0 {
+                                    Text(viewModel.pickedDurationLabel)
+                                        .font(DesignTokens.Font.caption1)
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, DesignTokens.Space.space2)
+                                        .padding(.vertical, DesignTokens.Space.space1)
+                                        .background(.black.opacity(0.6))
+                                        .clipShape(Capsule())
+                                        .padding(DesignTokens.Space.space2)
+                                }
                             }
-                            Spacer()
-                            Button("Remove") {
-                                viewModel.pickedVideoURL = nil
-                                viewModel.pickedDurationSeconds = 0
-                                viewModel.pickedFileSizeBytes = 0
+                            HStack(spacing: DesignTokens.Space.space2) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(pickedURL.lastPathComponent)
+                                        .font(DesignTokens.Font.subheadline)
+                                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                                        .lineLimit(1)
+                                    Text("\(viewModel.pickedSizeLabel) · limit \(viewModel.sizeLimitMB) MB per video")
+                                        .font(DesignTokens.Font.footnote)
+                                        .foregroundStyle(DesignTokens.Color.textSecondary)
+                                }
+                                Spacer()
+                                Button("Remove") {
+                                    viewModel.pickedVideoURL = nil
+                                    viewModel.pickedDurationSeconds = 0
+                                    viewModel.pickedFileSizeBytes = 0
+                                    viewModel.pickedThumbnail = nil
+                                }
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.danger)
                             }
-                            .font(DesignTokens.Font.subheadline)
-                            .foregroundStyle(DesignTokens.Color.danger)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
@@ -185,7 +212,7 @@ struct VideoFormView: View {
                             Text(dance.name).tag(Optional(dance))
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                     .disabled(viewModel.isEditing == false && viewModel.pickedVideoURL == nil)
                 }
 

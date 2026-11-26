@@ -37,8 +37,7 @@ struct HomeDashboardView: View {
                         AppCard {
                             CountdownView(
                                 competitionName: competition.name,
-                                targetDate: competition.startDate,
-                                isSample: competition.name == "Sample NDCA event"
+                                targetDate: competition.startDate
                             )
                         }
                     }
@@ -61,9 +60,7 @@ struct HomeDashboardView: View {
                 HStack(spacing: DesignTokens.Space.space2) {
                     SecondaryButton(title: "New Entry", action: onShowEntryForm)
                     NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
-                        Text("Add Drill")
-                            .font(DesignTokens.Font.headline)
-                            .foregroundStyle(DesignTokens.Color.accentText)
+                        SecondaryButtonLabel(title: "Add Drill")
                             .frame(maxWidth: .infinity)
                             .frame(height: 52)
                     }
@@ -75,9 +72,7 @@ struct HomeDashboardView: View {
                     )
                     .accessibilityLabel("Add Drill")
                     NavigationLink(value: LibraryRoute.videoForm(videoId: nil)) {
-                        Text("Add Video")
-                            .font(DesignTokens.Font.headline)
-                            .foregroundStyle(DesignTokens.Color.accentText)
+                        SecondaryButtonLabel(title: "Add Video")
                             .frame(maxWidth: .infinity)
                             .frame(height: 52)
                     }
@@ -108,7 +103,7 @@ struct HomeDashboardView: View {
                             NavigationLink(value: JournalRoute.entryDetail(entryId: entry.id)) {
                                 AppRow(
                                     title: entry.title,
-                                    metadata: "\(entry.dance?.name ?? "") · \(RelativeDateFormatter.shared.string(for: entry.entryDate))"
+                                    metadata: metadataLine(entry.dance?.name ?? "", RelativeDateFormatter.shared.string(for: entry.entryDate))
                                 )
                             }
                             .buttonStyle(.plain)
@@ -122,29 +117,61 @@ struct HomeDashboardView: View {
                         NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
                             AppRow(
                                 title: drill.name,
-                                metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.targetRepetitions) repetitions",
+                                metadata: metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName, "\(drill.targetRepetitions) repetitions"),
                                 isFavourite: drill.isFavourite
                             )
                         }
                         .buttonStyle(.plain)
                     } else {
-                        Text("No drills yet. Save a drill to practise it again.")
-                            .font(DesignTokens.Font.callout)
-                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                        AppCard {
+                            VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                                Text("No drills yet. Save a drill to practise it again.")
+                                    .font(DesignTokens.Font.callout)
+                                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                                NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
+                                    SecondaryButtonLabel(title: "Add Drill")
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 52)
+                                }
+                                .background(.clear)
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: DesignTokens.Radius.medium)
+                                        .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
+                                )
+                                .accessibilityLabel("Add Drill")
+                            }
+                        }
                     }
                 }
 
                 section(title: "Recent videos", seeAll: onShowVideos) {
                     if videos.isEmpty {
-                        Text("No videos yet. Upload a practice video to watch it back.")
-                            .font(DesignTokens.Font.callout)
-                            .foregroundStyle(DesignTokens.Color.textSecondary)
+                        AppCard {
+                            VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                                Text("No videos yet. Upload a practice video to watch it back.")
+                                    .font(DesignTokens.Font.callout)
+                                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                                NavigationLink(value: LibraryRoute.videoForm(videoId: nil)) {
+                                    SecondaryButtonLabel(title: "Add Video")
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 52)
+                                }
+                                .background(.clear)
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.Radius.medium))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: DesignTokens.Radius.medium)
+                                        .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
+                                )
+                                .accessibilityLabel("Add Video")
+                            }
+                        }
                     } else {
                         ForEach(videos.prefix(2)) { video in
                             NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
                                 AppRow(
                                     title: video.title,
-                                    metadata: "\(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)",
+                                    metadata: metadataLine(video.dance?.name ?? "", video.videoType.displayName, video.durationLabel),
                                     leadingIcon: "play.circle"
                                 )
                             }
@@ -157,8 +184,6 @@ struct HomeDashboardView: View {
             .padding(DesignTokens.Space.screenMargin)
         }
         .background(DesignTokens.Color.backgroundPrimary)
-        .navigationTitle("Journal")
-        .navigationBarTitleDisplayMode(.large)
     }
 
     private var greeting: String {

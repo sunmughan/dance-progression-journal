@@ -22,9 +22,7 @@ struct PrimaryButton: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Text(title)
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(.white)
+                    PrimaryButtonLabel(title: title)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -38,15 +36,28 @@ struct PrimaryButton: View {
     }
 }
 
+/// The label half of PrimaryButton, for use inside a NavigationLink
+/// where a Button cannot go. Same type, same height, same one line
+/// rule, so a link button looks exactly like a real one.
+struct PrimaryButtonLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(DesignTokens.Font.headline)
+            .foregroundStyle(.white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+    }
+}
+
 struct SecondaryButton: View {
     let title: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(DesignTokens.Font.headline)
-                .foregroundStyle(DesignTokens.Color.accentText)
+            SecondaryButtonLabel(title: title)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
         }
@@ -57,6 +68,20 @@ struct SecondaryButton: View {
                 .stroke(DesignTokens.Color.borderSubtle, lineWidth: 1)
         )
         .accessibilityLabel(title)
+    }
+}
+
+/// The label half of SecondaryButton, for use inside a NavigationLink.
+/// Same type, same height, same one line rule.
+struct SecondaryButtonLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(DesignTokens.Font.headline)
+            .foregroundStyle(DesignTokens.Color.accentText)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
     }
 }
 
@@ -330,7 +355,7 @@ struct ErrorBanner: View {
 struct CountdownView: View {
     let competitionName: String
     let targetDate: Date
-    let isSample: Bool
+    var showsName: Bool = true
 
     private var components: DateComponents {
         Calendar.current.dateComponents(
@@ -346,21 +371,13 @@ struct CountdownView: View {
 
     var body: some View {
         VStack(spacing: DesignTokens.Space.space2) {
-            HStack(spacing: DesignTokens.Space.space3) {
-                Text(competitionName)
-                    .font(DesignTokens.Font.title3)
-                    .foregroundStyle(DesignTokens.Color.textPrimary)
-                if isSample {
-                    Text("Sample data")
-                        .font(DesignTokens.Font.caption1)
-                        .tracking(0.5)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                        .padding(.horizontal, DesignTokens.Space.space2)
-                        .padding(.vertical, DesignTokens.Space.space1)
-                        .background(DesignTokens.Color.backgroundSecondary)
-                        .clipShape(Capsule())
+            if showsName {
+                HStack(spacing: DesignTokens.Space.space3) {
+                    Text(competitionName)
+                        .font(DesignTokens.Font.title3)
+                        .foregroundStyle(DesignTokens.Color.textPrimary)
+                    Spacer()
                 }
-                Spacer()
             }
             HStack(alignment: .top, spacing: DesignTokens.Space.space4) {
                 countdownUnit(value: days, unit: "Days")
@@ -468,6 +485,23 @@ struct ConfidenceSelector: View {
 }
 
 // MARK: - Relative date helper
+
+/// Joins metadata parts with a middle dot, dropping empty parts, so a
+/// row with no dance never renders a leading or doubled separator.
+func metadataLine(_ parts: String...) -> String {
+    parts.filter { !$0.isEmpty }.joined(separator: " · ")
+}
+
+/// Returns the URL only when it is a real https link with a host.
+/// URL(string:) alone accepts bare words like "foo", which open
+/// nowhere, so a mistyped link must never render a dead button.
+func usableWebLink(_ string: String) -> URL? {
+    guard let url = URL(string: string),
+          url.scheme == "https",
+          let host = url.host, !host.isEmpty
+    else { return nil }
+    return url
+}
 
 /// Shared relative date formatter for metadata lines and checklist due
 /// dates. Shows real calendar dates under the relative label in

@@ -81,7 +81,7 @@ struct DrillFormView: View {
                             Text(dance.name).tag(Optional(dance))
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
@@ -93,7 +93,7 @@ struct DrillFormView: View {
                             Text(FocusArea.displayName(for: area)).tag(area)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 // MARK: - View models
 //
@@ -405,6 +406,10 @@ final class VideoFormViewModel {
     var pickedVideoURL: URL?
     var pickedDurationSeconds: Double = 0
     var pickedFileSizeBytes: Int64 = 0
+    /// Still frame of the picked video for the preview tile, set by
+    /// inspectPickedVideo. Nil while it generates or when no frame
+    /// can be read; the preview then shows the placeholder tile.
+    var pickedThumbnail: UIImage?
 
     private(set) var dances: [Dance] = []
     private(set) var drills: [Drill] = []
@@ -453,9 +458,16 @@ final class VideoFormViewModel {
     var pickedSizeLabel: String {
         let megabytes = Double(pickedFileSizeBytes) / 1_000_000
         if megabytes < 1 {
-            return "\(pickedFileSizeBytes) KB"
+            return "\(pickedFileSizeBytes / 1_000) KB"
         }
         return String(format: "%.0f MB", megabytes)
+    }
+
+    /// Same minutes and seconds shape as Video.durationLabel, for
+    /// the picked video preview before the record exists.
+    var pickedDurationLabel: String {
+        let total = Int(pickedDurationSeconds)
+        return "\(total / 60):\(String(format: "%02d", total % 60))"
     }
 
     func load(video: Video?, dances: [Dance], drills: [Drill], sizeLimitMB: Int) {
@@ -478,12 +490,14 @@ final class VideoFormViewModel {
         pickedDurationSeconds = video.durationSeconds
     }
 
-    /// Inspects a freshly picked video file: duration and byte size.
-    /// Runs off the main actor for the asset load, then updates state.
+    /// Inspects a freshly picked video file: duration, byte size
+    /// and a still frame for the preview tile. Runs off the main
+    /// actor for the asset load, then updates state.
     func inspectPickedVideo() async {
         guard let url = pickedVideoURL else { return }
         pickedFileSizeBytes = fileService.fileSizeBytes(at: url)
         pickedDurationSeconds = await fileService.durationSeconds(for: url)
+        pickedThumbnail = fileService.thumbnailImage(for: url)
     }
 
     /// Saves and returns the saved video id, or nil when the save failed.
@@ -631,7 +645,7 @@ final class CompetitionFormViewModel {
 
     var saveDisabledReason: String? {
         if name.trimmingCharacters(in: .whitespaces).isEmpty {
-            return "Enter a name, pick a source and set a start date to save."
+            return "Enter a name to save."
         }
         return nil
     }

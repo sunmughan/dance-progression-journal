@@ -4,9 +4,9 @@ import SwiftData
 // MARK: - Competition Detail with Countdown and Checklist
 //
 // One competition with live countdown, event details and a preparation
-// checklist. Reached from the Home Dashboard countdown card. The sample
-// event is labelled sample data. Checklist items are added here with a
-// title and a category; ticking items works now.
+// checklist. Reached from the Home Dashboard countdown card. Checklist
+// items are added here with a title and a category; ticking items
+// works now. Entry status changes inline and saves at once.
 
 struct CompetitionDetailView: View {
     let competitionId: UUID
@@ -50,33 +50,63 @@ struct CompetitionDetailView: View {
     private func detailContent(_ competition: Competition) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Space.space4) {
+                Text(competition.name)
+                    .font(DesignTokens.Font.title1)
+                    .foregroundStyle(DesignTokens.Color.textPrimary)
+
                 AppCard {
                     CountdownView(
                         competitionName: competition.name,
                         targetDate: competition.startDate,
-                        isSample: competition.name == "Sample NDCA event"
+                        showsName: false
                     )
                 }
 
-                VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
-                    detailRow(label: "Source", value: competition.source.displayName)
-                    detailRow(label: "Location", value: competition.location)
-                    detailRow(label: "Venue", value: competition.venue)
-                    detailRow(
-                        label: "Starts",
-                        value: "\(RelativeDateFormatter.shared.string(for: competition.startDate)) · \(RelativeDateFormatter.shared.calendarString(for: competition.startDate))"
-                    )
-                    detailRow(
-                        label: "Ends",
-                        value: RelativeDateFormatter.shared.calendarString(for: competition.endDate)
-                    )
-                    if let deadline = competition.registrationDeadline {
+                AppCard {
+                    VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {
+                        detailRow(label: "Source", value: competition.source.displayName)
+                        detailRow(label: "Location", value: competition.location)
+                        detailRow(label: "Venue", value: competition.venue)
                         detailRow(
-                            label: "Registration deadline",
-                            value: RelativeDateFormatter.shared.string(for: deadline)
+                            label: "Starts",
+                            value: "\(RelativeDateFormatter.shared.string(for: competition.startDate)) · \(RelativeDateFormatter.shared.calendarString(for: competition.startDate))"
                         )
+                        detailRow(
+                            label: "Ends",
+                            value: RelativeDateFormatter.shared.calendarString(for: competition.endDate)
+                        )
+                        if let deadline = competition.registrationDeadline {
+                            detailRow(
+                                label: "Registration deadline",
+                                value: RelativeDateFormatter.shared.string(for: deadline)
+                            )
+                        }
+                        HStack(alignment: .top, spacing: DesignTokens.Space.space2) {
+                            Text("Entry status")
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.textSecondary)
+                                .frame(width: 160, alignment: .leading)
+                            Picker("Entry status", selection: Binding(
+                                get: { competition.entryStatus },
+                                set: { newValue in
+                                    competition.entryStatus = newValue
+                                    do {
+                                        try dependencies.competitions.save()
+                                    } catch {
+                                        errorMessage = "This competition could not be saved. Check storage and try again."
+                                    }
+                                }
+                            )) {
+                                ForEach(EntryStatus.allCases, id: \.self) { status in
+                                    Text(status.displayName).tag(status)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .font(DesignTokens.Font.body)
+                            Spacer()
+                        }
                     }
-                    detailRow(label: "Entry status", value: competition.entryStatus.displayName)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 if !competition.notes.isEmpty {
@@ -91,7 +121,7 @@ struct CompetitionDetailView: View {
                         .foregroundStyle(DesignTokens.Color.textPrimary)
                     let items = competition.checklistItems.sorted { $0.sortOrder < $1.sortOrder }
                     if items.isEmpty {
-                        Text("No checklist items yet.")
+                        Text("No checklist items yet. Add the first item below.")
                             .font(DesignTokens.Font.body)
                             .foregroundStyle(DesignTokens.Color.textSecondary)
                     } else {
@@ -180,7 +210,7 @@ struct CompetitionDetailView: View {
             Text(label)
                 .font(DesignTokens.Font.subheadline)
                 .foregroundStyle(DesignTokens.Color.textSecondary)
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 160, alignment: .leading)
             Text(value)
                 .font(DesignTokens.Font.body)
                 .foregroundStyle(DesignTokens.Color.textPrimary)

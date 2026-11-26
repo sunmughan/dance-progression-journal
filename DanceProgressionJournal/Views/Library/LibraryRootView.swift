@@ -63,6 +63,7 @@ struct VideoThumbnailView: View {
                         .font(.system(size: 28))
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 }
+                .aspectRatio(16 / 9, contentMode: .fill)
             }
         }
     }
@@ -70,6 +71,7 @@ struct VideoThumbnailView: View {
 
 struct LibraryRootView: View {
     @Binding var segment: LibrarySegment
+    var onNavigate: (LibraryRoute) -> Void = { _ in }
 
     @Query(sort: \Video.recordedDate, order: .reverse) private var videos: [Video]
     @Query(sort: \Figure.name) private var figures: [Figure]
@@ -135,9 +137,7 @@ struct LibraryRootView: View {
         .safeAreaInset(edge: .bottom) {
             if segment == .drills {
                 NavigationLink(value: LibraryRoute.drillForm(drillId: nil)) {
-                    Text("Add Drill")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(.white)
+                    PrimaryButtonLabel(title: "Add Drill")
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                 }
@@ -150,9 +150,7 @@ struct LibraryRootView: View {
             }
             if segment == .videos {
                 NavigationLink(value: LibraryRoute.videoForm(videoId: nil)) {
-                    Text("Add Video")
-                        .font(DesignTokens.Font.headline)
-                        .foregroundStyle(.white)
+                    PrimaryButtonLabel(title: "Add Video")
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
                 }
@@ -339,7 +337,9 @@ struct LibraryRootView: View {
                 EmptyStateView(
                     icon: "play.circle",
                     title: "No videos yet",
-                    helper: "Upload a practice video to watch it back."
+                    helper: "Upload a practice video to watch it back.",
+                    actionTitle: "Add Video",
+                    action: { onNavigate(.videoForm(videoId: nil)) }
                 )
             } else if filtered.isEmpty {
                 EmptyStateView(
@@ -394,7 +394,7 @@ struct LibraryRootView: View {
                                 NavigationLink(value: LibraryRoute.videoDetail(videoId: video.id)) {
                                     AppRow(
                                         title: video.title,
-                                        metadata: "\(video.dance?.name ?? "") · \(video.videoType.displayName) · \(video.durationLabel)",
+                                        metadata: metadataLine(video.dance?.name ?? "", video.videoType.displayName, video.durationLabel),
                                         leadingIcon: "play.circle"
                                     )
                                 }
@@ -413,41 +413,80 @@ struct LibraryRootView: View {
                 && matchesLevel($0.level)
                 && (!favouritesOnly || $0.isFavourite)
         }
-        return Group {
-            if filtered.isEmpty {
-                EmptyStateView(
-                    icon: "figure.dance",
-                    title: "No figures match this filter.",
-                    helper: "Try a different search or filter."
-                )
-            } else {
-                List {
-                    HStack {
-                        danceFilterChip
-                        FilterChip(
-                            title: selectedLevel?.displayName ?? "All levels",
-                            isSelected: selectedLevel != nil
-                        ) {
-                            showingLevelFilter = true
-                        }
-                        Spacer()
-                        FilterChip(
-                            title: "Favourites",
-                            isSelected: favouritesOnly
-                        ) {
-                            favouritesOnly.toggle()
+        let searchActive = !searchText.trimmingCharacters(in: .whitespaces).isEmpty
+        return VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: DesignTokens.Space.space2) {
+                    FilterChip(title: "All", isSelected: selectedDance == nil) {
+                        selectedDance = nil
+                    }
+                    ForEach(dances) { dance in
+                        FilterChip(title: dance.name, isSelected: selectedDance?.id == dance.id) {
+                            selectedDance = dance
                         }
                     }
-                    .listRowSeparator(.hidden)
-                    Text("Pending the client NDCA list")
-                        .font(DesignTokens.Font.footnote)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                        .listRowSeparator(.hidden)
+                }
+                .padding(.horizontal, DesignTokens.Space.screenMargin)
+            }
+            .padding(.bottom, DesignTokens.Space.space2)
+
+            HStack(spacing: DesignTokens.Space.space2) {
+                FilterChip(
+                    title: selectedLevel?.displayName ?? "All levels",
+                    isSelected: selectedLevel != nil
+                ) {
+                    showingLevelFilter = true
+                }
+                FilterChip(
+                    title: "Favourites",
+                    isSelected: favouritesOnly
+                ) {
+                    favouritesOnly.toggle()
+                }
+                Spacer()
+            }
+            .padding(.horizontal, DesignTokens.Space.screenMargin)
+            .padding(.bottom, DesignTokens.Space.space2)
+
+            Text("Pending the client NDCA list")
+                .font(DesignTokens.Font.footnote)
+                .foregroundStyle(DesignTokens.Color.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, DesignTokens.Space.screenMargin)
+                .padding(.bottom, DesignTokens.Space.space2)
+
+            if filtered.isEmpty {
+                if searchActive {
+                    VStack(spacing: DesignTokens.Space.space3) {
+                        EmptyStateView(
+                            icon: "magnifyingglass",
+                            title: "No figures found.",
+                            helper: "Try a different search."
+                        )
+                        AppTextButton(title: "Clear search") {
+                            searchText = ""
+                        }
+                    }
+                } else if favouritesOnly {
+                    EmptyStateView(
+                        icon: "star",
+                        title: "No favourite figures yet.",
+                        helper: "Tap the star on a figure to save it here."
+                    )
+                } else {
+                    EmptyStateView(
+                        icon: "figure.dance",
+                        title: "No figures for this dance yet.",
+                        helper: "Figures arrive with the client NDCA list."
+                    )
+                }
+            } else {
+                List {
                     ForEach(filtered) { figure in
                         NavigationLink(value: LibraryRoute.figureDetail(figureId: figure.id)) {
                             AppRow(
                                 title: figure.name,
-                                metadata: "\(figure.dance?.name ?? "") · \(figure.level.displayName) · \(figure.practiceLogs.count) sessions",
+                                metadata: metadataLine(figure.dance?.name ?? "", figure.level.displayName, "\(figure.practiceLogs.count) sessions"),
                                 isFavourite: figure.isFavourite,
                                 leadingIcon: "figure.dance"
                             )
@@ -506,7 +545,9 @@ struct LibraryRootView: View {
                 EmptyStateView(
                     icon: "timer",
                     title: "No drills yet",
-                    helper: "Save a drill to practise it again."
+                    helper: "Save a drill to practise it again.",
+                    actionTitle: "Add Drill",
+                    action: { onNavigate(.drillForm(drillId: nil)) }
                 )
             } else if filtered.isEmpty {
                 EmptyStateView(
@@ -542,7 +583,7 @@ struct LibraryRootView: View {
                     }
                     let ungrouped = others.filter { $0.dance == nil }
                     if !ungrouped.isEmpty {
-                        Section("No dance") {
+                        Section("Uncategorised") {
                             ForEach(ungrouped) { drill in
                                 drillRow(drill)
                             }
@@ -568,7 +609,7 @@ struct LibraryRootView: View {
         NavigationLink(value: LibraryRoute.drillDetail(drillId: drill.id)) {
             AppRow(
                 title: drill.name,
-                metadata: "\(drill.dance?.name ?? ""), \(drill.focusAreaDisplayName), \(drill.targetRepetitions) repetitions",
+                metadata: metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName, "\(drill.targetRepetitions) repetitions"),
                 isFavourite: drill.isFavourite
             )
         }

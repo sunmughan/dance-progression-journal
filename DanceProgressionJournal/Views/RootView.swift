@@ -44,7 +44,9 @@ struct RootView: View {
             .tag(AppTab.journal)
 
             NavigationStack(path: $libraryPath) {
-                LibraryRootView(segment: $librarySegment)
+                LibraryRootView(segment: $librarySegment, onNavigate: { route in
+                    libraryPath.append(route)
+                })
                     .navigationDestination(for: LibraryRoute.self) { route in
                         libraryDestination(route, isLibraryStack: true)
                     }
@@ -112,7 +114,9 @@ struct RootView: View {
         case .competitionDetail(let competitionId):
             CompetitionDetailView(competitionId: competitionId)
         case .competitionList:
-            CompetitionListView()
+            CompetitionListView(onNewCompetition: {
+                journalPath.append(.competitionForm(competitionId: nil))
+            })
         case .competitionForm(let competitionId):
             CompetitionFormView(competitionId: competitionId, onSaved: { savedId in
                 if !journalPath.isEmpty {

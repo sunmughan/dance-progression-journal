@@ -106,7 +106,7 @@ struct WelcomeView: View {
                             Text(level.displayName).tag(level)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
 
                 if let errorMessage {
@@ -119,7 +119,7 @@ struct WelcomeView: View {
                 ) {
                     finish(viewModel, skipped: false)
                 }
-                .padding(.top, DesignTokens.Space.space5)
+                .padding(.top, DesignTokens.Space.space6)
 
                 HStack {
                     Spacer()

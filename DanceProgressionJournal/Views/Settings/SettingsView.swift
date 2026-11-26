@@ -90,7 +90,7 @@ struct SettingsView: View {
                             Text(level.displayName).tag(level)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                     .onChange(of: experienceLevel) { saveProfile() }
                 }
 

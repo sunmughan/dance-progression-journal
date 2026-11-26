@@ -114,7 +114,7 @@ struct JournalEntryFormView: View {
                             Text(dance.name).tag(Optional(dance))
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.menu)
                 }
 
                 VStack(alignment: .leading, spacing: DesignTokens.Space.space2) {

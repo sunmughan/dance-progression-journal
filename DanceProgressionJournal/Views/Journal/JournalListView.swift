@@ -50,30 +50,33 @@ struct JournalListView: View {
             VStack(spacing: 0) {
                 VStack(spacing: DesignTokens.Space.space2) {
                     AppSearchField(placeholder: "Search entries", text: $viewModel.searchText)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: DesignTokens.Space.space2) {
-                            FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
-                                viewModel.selectedCategory = nil
-                            }
-                            ForEach(journalCategories, id: \.self) { category in
-                                FilterChip(
-                                    title: category.displayName,
-                                    isSelected: viewModel.selectedCategory == category
-                                ) {
-                                    viewModel.selectedCategory = category
+                    HStack(spacing: DesignTokens.Space.space2) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: DesignTokens.Space.space2) {
+                                FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
+                                    viewModel.selectedCategory = nil
+                                }
+                                ForEach(journalCategories, id: \.self) { category in
+                                    FilterChip(
+                                        title: category.displayName,
+                                        isSelected: viewModel.selectedCategory == category
+                                    ) {
+                                        viewModel.selectedCategory = category
+                                    }
+                                }
+                                FilterChip(title: viewModel.activeFilterLabel, isSelected: viewModel.selectedDance != nil) {
+                                    showingDanceFilter = true
                                 }
                             }
-                            FilterChip(title: viewModel.activeFilterLabel, isSelected: viewModel.selectedDance != nil) {
-                                showingDanceFilter = true
-                            }
-                            Menu {
-                                Button("Newest first") { viewModel.newestFirst = true }
-                                Button("Oldest first") { viewModel.newestFirst = false }
-                            } label: {
-                                Label(viewModel.newestFirst ? "Newest first" : "Oldest first", systemImage: "arrow.up.arrow.down")
-                                    .font(DesignTokens.Font.subheadline)
-                                    .foregroundStyle(DesignTokens.Color.textPrimary)
-                            }
+                        }
+                        Menu {
+                            Button("Newest first") { viewModel.newestFirst = true }
+                            Button("Oldest first") { viewModel.newestFirst = false }
+                        } label: {
+                            Label(viewModel.newestFirst ? "Newest first" : "Oldest first", systemImage: "arrow.up.arrow.down")
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.textPrimary)
+                                .lineLimit(1)
                         }
                     }
                 }
@@ -116,7 +119,7 @@ struct JournalListView: View {
                                         Spacer()
                                         CategoryTag(category: entry.category)
                                     }
-                                    Text("\(entry.dance?.name ?? "") · \(RelativeDateFormatter.shared.string(for: entry.entryDate))")
+                                    Text(metadataLine(entry.dance?.name ?? "", RelativeDateFormatter.shared.string(for: entry.entryDate)))
                                         .font(DesignTokens.Font.subheadline)
                                         .foregroundStyle(DesignTokens.Color.textSecondary)
                                 }

@@ -116,20 +116,29 @@ struct VideoFileService: Sendable {
     /// relative path. Returns nil when no frame can be read.
     func generateThumbnail(forRelativePath relativePath: String) throws -> String? {
         let videoURL = url(forRelativePath: relativePath)
-        let asset = AVAsset(url: videoURL)
-        let generator = AVAssetImageGenerator(asset: asset)
-        generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: 480, height: 480)
-        let time = CMTime(seconds: 0.5, preferredTimescale: 600)
-        var actualTime = CMTime.zero
-        let image = try generator.copyCGImage(at: time, actualTime: &actualTime)
-        let uiImage = UIImage(cgImage: image)
-        guard let jpeg = uiImage.jpegData(compressionQuality: 0.8) else {
+        guard let uiImage = thumbnailImage(for: videoURL),
+              let jpeg = uiImage.jpegData(compressionQuality: 0.8) else {
             return nil
         }
         try ensureVideosDirectory()
         let thumbnailPath = freshRelativePath(fileExtension: "jpg")
         try jpeg.write(to: url(forRelativePath: thumbnailPath))
         return thumbnailPath
+    }
+
+    /// A still frame from a video file, or nil when no frame can be
+    /// read. Used for the picked video preview before the file is
+    /// saved, and by generateThumbnail for stored videos.
+    func thumbnailImage(for url: URL) -> UIImage? {
+        let asset = AVAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.maximumSize = CGSize(width: 480, height: 480)
+        let time = CMTime(seconds: 0.5, preferredTimescale: 600)
+        var actualTime = CMTime.zero
+        guard let image = try? generator.copyCGImage(at: time, actualTime: &actualTime) else {
+            return nil
+        }
+        return UIImage(cgImage: image)
     }
 }

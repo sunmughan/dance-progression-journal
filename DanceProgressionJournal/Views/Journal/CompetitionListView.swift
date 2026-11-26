@@ -9,6 +9,8 @@ import SwiftData
 // public lists: no name, date, venue or price is ever invented here.
 
 struct CompetitionListView: View {
+    var onNewCompetition: () -> Void = {}
+
     @Query(sort: \Competition.startDate) private var competitions: [Competition]
 
     @State private var searchText = ""
@@ -31,37 +33,47 @@ struct CompetitionListView: View {
                 EmptyStateView(
                     icon: "calendar",
                     title: "No competitions yet",
-                    helper: "Add a competition to track its countdown and checklist."
+                    helper: "Add a competition to track its countdown and checklist.",
+                    actionTitle: "Add Competition",
+                    action: onNewCompetition
                 )
             } else if filtered.isEmpty {
-                EmptyStateView(
-                    icon: "magnifyingglass",
-                    title: "No competitions match this filter.",
-                    helper: "Try a different search or filter."
-                )
-            } else {
-                List {
-                    HStack {
-                        FilterChip(
-                            title: selectedSource?.displayName ?? "All sources",
-                            isSelected: selectedSource != nil
-                        ) {
-                            showingSourceFilter = true
-                        }
-                        Spacer()
-                        Picker("When", selection: $upcomingOnly) {
-                            Text("Upcoming").tag(true)
-                            Text("Past").tag(false)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 180)
+                VStack(spacing: DesignTokens.Space.space3) {
+                    EmptyStateView(
+                        icon: "magnifyingglass",
+                        title: "No competitions match this filter.",
+                        helper: "Try a different search or filter."
+                    )
+                    AppTextButton(title: "Clear filters") {
+                        searchText = ""
+                        selectedSource = nil
+                        upcomingOnly = true
                     }
-                    .listRowSeparator(.hidden)
+                }
+            } else {
+                HStack(spacing: DesignTokens.Space.space2) {
+                    FilterChip(
+                        title: selectedSource?.displayName ?? "All sources",
+                        isSelected: selectedSource != nil
+                    ) {
+                        showingSourceFilter = true
+                    }
+                    Spacer()
+                    Picker("When", selection: $upcomingOnly) {
+                        Text("Upcoming").tag(true)
+                        Text("Past").tag(false)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                }
+                .padding(.horizontal, DesignTokens.Space.screenMargin)
+                .padding(.bottom, DesignTokens.Space.space2)
+                List {
                     ForEach(filtered) { competition in
                         NavigationLink(value: JournalRoute.competitionDetail(competitionId: competition.id)) {
                             AppRow(
                                 title: competition.name,
-                                metadata: "\(competition.source.displayName) · \(RelativeDateFormatter.shared.calendarString(for: competition.startDate)) · \(competition.daysRemaining) days to go"
+                                metadata: rowMetadata(competition)
                             )
                         }
                     }
@@ -108,9 +120,7 @@ struct CompetitionListView: View {
         }
         .safeAreaInset(edge: .bottom) {
             NavigationLink(value: JournalRoute.competitionForm(competitionId: nil)) {
-                Text("Add Competition")
-                    .font(DesignTokens.Font.headline)
-                    .foregroundStyle(.white)
+                PrimaryButtonLabel(title: "Add Competition")
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
             }
@@ -121,6 +131,23 @@ struct CompetitionListView: View {
             .background(DesignTokens.Color.backgroundPrimary)
             .accessibilityLabel("Add Competition")
         }
+    }
+
+    private func rowMetadata(_ competition: Competition) -> String {
+        let isUpcoming = competition.startDate >= Calendar.current.startOfDay(for: Date())
+        let countdown: String
+        if isUpcoming {
+            let days = competition.daysRemaining
+            countdown = days == 1 ? "1 day to go" : "\(days) days to go"
+        } else {
+            countdown = "Ended"
+        }
+        return metadataLine(
+            competition.source.displayName,
+            competition.entryStatus.displayName,
+            RelativeDateFormatter.shared.calendarString(for: competition.startDate),
+            countdown
+        )
     }
 
     private func matchesSearch(_ competition: Competition) -> Bool {
