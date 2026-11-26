@@ -12,6 +12,7 @@ import Testing
 struct ModelTests {
     private func seededContext() throws -> ModelContext {
         let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         return persistence.mainContext
@@ -222,6 +223,7 @@ struct RepositoryTests {
     @Test("Journal repository fetches by dance and by category")
     func journalRepositoryFilters() throws {
         let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
@@ -237,6 +239,7 @@ struct RepositoryTests {
     @Test("Drill repository marks a drill practiced")
     func drillMarkPracticed() throws {
         let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
         SeedData.seed(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)

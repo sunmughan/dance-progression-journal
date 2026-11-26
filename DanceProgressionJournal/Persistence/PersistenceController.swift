@@ -81,8 +81,18 @@ final class PersistenceController {
     /// Test and preview helper. Never used by the app itself. Throws
     /// instead of trapping so a bad schema fails a test with its error
     /// instead of killing the test host.
+    /// A single shared in memory container for tests. SwiftData traps
+    /// (EXC_BREAKPOINT inside SwiftData, same PC every run) when several
+    /// in memory containers with this versioned schema are created in
+    /// one process, so tests share one container and reset its data
+    /// before seeding instead of building a fresh container per test.
+    private static var sharedTestInstance: PersistenceController?
+
     static func inMemory() throws -> PersistenceController {
-        try PersistenceController(inMemory: true)
+        if let sharedTestInstance { return sharedTestInstance }
+        let instance = try PersistenceController(inMemory: true)
+        sharedTestInstance = instance
+        return instance
     }
 
     private init(inMemory: Bool) throws {
