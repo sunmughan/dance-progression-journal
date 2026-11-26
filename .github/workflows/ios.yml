@@ -42,13 +42,26 @@ jobs:
             python3 - "$NEWEST" <<'PY'
           import json, sys
           raw = open(sys.argv[1]).read()
-          d, _ = json.JSONDecoder().raw_decode(raw)
-          print("exception:", d.get("exception", {}).get("type"), d.get("exception", {}).get("signal"))
-          print("termination:", d.get("termination", {}))
-          for t in d.get("threads", []):
-              if t.get("triggered"):
-                  print("crashed thread:", t.get("id"))
-                  for f in t.get("frames", [])[:25]:
-                      print(" ", f.get("symbol"), "|", f.get("image"), "+", f.get("offset"))
+          dec = json.JSONDecoder()
+          objs, idx = [], 0
+          while idx < len(raw):
+              try:
+                  obj, end = dec.raw_decode(raw, idx)
+                  objs.append(obj)
+                  idx = end
+              except json.JSONDecodeError:
+                  idx += 1
+          print("json objects:", len(objs), "top keys:", [sorted(o.keys())[:8] if isinstance(o, dict) else type(o).__name__ for o in objs])
+          for d in objs:
+              if not isinstance(d, dict) or "threads" not in d:
+                  continue
+              ex = d.get("exception", {})
+              print("exception:", ex.get("type"), ex.get("signal"), ex.get("codes"))
+              print("termination:", d.get("termination", {}))
+              for t in d.get("threads", []):
+                  if t.get("triggered"):
+                      print("crashed thread:", t.get("id"), t.get("name"))
+                      for f in t.get("frames", [])[:30]:
+                          print(" ", f.get("symbol"), "|", f.get("image"), "+", f.get("offset"))
           PY
           fi
