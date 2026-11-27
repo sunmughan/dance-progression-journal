@@ -297,8 +297,7 @@ final class PersistenceController {
         func dance(named name: String) -> Dance? {
             dances.first { $0.name == name }
         }
-        guard let chaCha = dance(named: "Cha cha"),
-              let rumba = dance(named: "Rumba"),
+        guard let rumba = dance(named: "Rumba"),
               let samba = dance(named: "Samba") else { return }
 
         if !exists(Figure.self, id: ScreenshotSeedIDs.figure, keyPath: \.id) {
