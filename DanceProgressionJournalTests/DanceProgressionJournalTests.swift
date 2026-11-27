@@ -4,7 +4,237 @@ import Testing
 
 @testable import DanceProgressionJournal
 
-// MARK: - Model and seed tests
+// MARK: - Test fixtures
+//
+// Test-only rows built inline in this file. Nothing here ships in the
+// app: a fresh install holds only the five dance taxonomy rows, and
+// every other record is created by the dancer. These fixtures exist
+// only so the model, repository and export tests can check links,
+// totals and the countdown against known rows.
+@MainActor
+private func insertTestFixtures(into context: ModelContext) {
+    let today = Date()
+    func daysAgo(_ days: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: -days, to: today) ?? today
+    }
+    func daysAhead(_ days: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: days, to: today) ?? today
+    }
+
+    let chaCha = Dance(name: "Cha cha", displayOrder: 1)
+    let samba = Dance(name: "Samba", displayOrder: 2)
+    let rumba = Dance(name: "Rumba", displayOrder: 3)
+    let pasoDoble = Dance(name: "Paso doble", displayOrder: 4)
+    let jive = Dance(name: "Jive", displayOrder: 5)
+    let dances = [chaCha, samba, rumba, pasoDoble, jive]
+    dances.forEach { context.insert($0) }
+
+    let alemana = Figure(
+        name: "Alemana",
+        dance: rumba,
+        level: .bronze,
+        descriptionText: "Open turn to the right with a forward walk into the turn.",
+        stepsText: """
+            Forward walk into the turn
+            Turn under the raised arm
+            Close and settle the weight
+            Step out to finish
+            """,
+        timing: "Counts 2 3 4 1 across the figure at rumba tempo.",
+        beatCount: 4
+    )
+    let fan = Figure(name: "Fan", dance: rumba, level: .bronze, descriptionText: "Standard syllabus figure.")
+    let newYork = Figure(name: "New York", dance: chaCha, level: .silver, descriptionText: "Standard syllabus figure.")
+    let whisk = Figure(name: "Whisk", dance: samba, level: .silver, descriptionText: "Standard syllabus figure.")
+    let promenade = Figure(name: "Promenade", dance: pasoDoble, level: .gold, descriptionText: "Standard syllabus figure.")
+    let changeOfPlaces = Figure(name: "Change of Places", dance: jive, level: .bronze, descriptionText: "Standard syllabus figure.")
+    let figures = [alemana, fan, newYork, whisk, promenade, changeOfPlaces]
+    figures.forEach { context.insert($0) }
+
+    let alemanaSessions: [(daysAgo: Int, confidence: Int)] = [
+        (0, 4), (1, 4), (2, 4), (3, 3), (5, 4), (6, 5)
+    ]
+    for (index, session) in alemanaSessions.enumerated() {
+        let log = FigurePracticeLog(
+            figure: alemana,
+            dance: rumba,
+            practiceDate: daysAgo(session.daysAgo),
+            repetitions: 8,
+            durationMinutes: 12,
+            confidenceRating: session.confidence,
+            notes: index == 0 ? "Turn felt steadier on the last set." : ""
+        )
+        context.insert(log)
+    }
+    for days in [1, 4] {
+        let log = FigurePracticeLog(
+            figure: fan,
+            dance: rumba,
+            practiceDate: daysAgo(days),
+            repetitions: 5,
+            durationMinutes: 10,
+            confidenceRating: 3
+        )
+        context.insert(log)
+    }
+
+    let rumbaWalks = Drill(
+        name: "Rumba Walks",
+        dance: rumba,
+        focusArea: FocusArea.footwork.rawValue,
+        descriptionText: "Slow forward and back walks with full weight transfer on every count.",
+        targetRepetitions: 20,
+        targetDurationMinutes: 15,
+        difficulty: .intermediate,
+        isFavourite: true,
+        lastPracticedDate: daysAgo(1)
+    )
+    let sambaBounce = Drill(
+        name: "Samba Bounce Basics",
+        dance: samba,
+        focusArea: FocusArea.timing.rawValue,
+        descriptionText: "Low even bounce through the basic step.",
+        targetRepetitions: 12,
+        targetDurationMinutes: 10,
+        difficulty: .beginner,
+        isFavourite: false,
+        lastPracticedDate: daysAgo(2)
+    )
+    let chaChaLocks = Drill(
+        name: "Cha Cha Lock Steps",
+        dance: chaCha,
+        focusArea: FocusArea.footwork.rawValue,
+        descriptionText: "Sharp lock steps with a settled weight on every count.",
+        targetRepetitions: 16,
+        targetDurationMinutes: 10,
+        difficulty: .intermediate,
+        isFavourite: true,
+        lastPracticedDate: daysAgo(3)
+    )
+    let drills = [rumbaWalks, sambaBounce, chaChaLocks]
+    drills.forEach { context.insert($0) }
+
+    let rumbaVideoId = UUID()
+    let rumbaVideoFileName = "\(rumbaVideoId.uuidString).mov"
+    let rumbaVideo = Video(
+        id: rumbaVideoId,
+        title: "Rumba routine run through",
+        fileName: rumbaVideoFileName,
+        relativePath: "Videos/\(rumbaVideoFileName)",
+        durationSeconds: 130,
+        recordedDate: today,
+        dance: rumba,
+        videoType: .choreography,
+        choreographyName: "Rumba routine",
+        drillId: rumbaWalks.id,
+        notes: "Full run through, timing held after the turn.",
+        linkedFigureId: alemana.id
+    )
+    let sambaVideoId = UUID()
+    let sambaVideoFileName = "\(sambaVideoId.uuidString).mov"
+    let sambaVideo = Video(
+        id: sambaVideoId,
+        title: "Samba basic practice",
+        fileName: sambaVideoFileName,
+        relativePath: "Videos/\(sambaVideoFileName)",
+        durationSeconds: 84,
+        recordedDate: daysAgo(1),
+        dance: samba,
+        videoType: .drill,
+        drillId: sambaBounce.id,
+        notes: "Bounce practice, drill set only."
+    )
+    let videos = [rumbaVideo, sambaVideo]
+    videos.forEach { context.insert($0) }
+
+    let sambaEntry = JournalEntry(
+        title: "Samba bounce finally clicked",
+        bodyText: "The bounce stayed low and even through the whole basic today. The knees kept working on every count and the rhythm finally felt natural instead of forced.",
+        entryDate: today,
+        dance: samba,
+        category: .accomplishment,
+        aiConfidence: 0.8,
+        aiTags: ["breakthrough"],
+        linkedDrillIds: [sambaBounce.id]
+    )
+    let rumbaEntry = JournalEntry(
+        title: "Rumba walk timing",
+        bodyText: "Slow walks stayed even through the turn today. Weight transfer felt full on every count and the timing held across the figure. The close still needs work on the last step.",
+        entryDate: daysAgo(1),
+        dance: rumba,
+        category: .challenge,
+        aiConfidence: 0.8,
+        aiTags: ["timing", "weight transfer"],
+        linkedVideoIds: [rumbaVideo.id],
+        linkedDrillIds: [rumbaWalks.id],
+        linkedFigureIds: [alemana.id]
+    )
+    let chaChaEntry = JournalEntry(
+        title: "Cha cha lock step footwork",
+        bodyText: "Lock steps felt sharp today. The feet stayed under the body and the weight settled cleanly on every lock. Still to work on keeping the knees soft through the chasse.",
+        entryDate: daysAgo(2),
+        dance: chaCha,
+        category: .accomplishment,
+        aiConfidence: 0.7,
+        aiTags: ["sharp"]
+    )
+    let entries = [sambaEntry, rumbaEntry, chaChaEntry]
+    entries.forEach { context.insert($0) }
+
+    rumbaVideo.linkedJournalEntryId = rumbaEntry.id
+
+    let testCompetition = Competition(
+        name: "Test NDCA event",
+        source: .ndca,
+        location: "Test location",
+        venue: "Test venue",
+        startDate: daysAhead(42),
+        endDate: daysAhead(44),
+        registrationDeadline: daysAhead(28),
+        entryStatus: .interested,
+        notes: "Test notes"
+    )
+    context.insert(testCompetition)
+    let checklist: [(title: String, category: ChecklistCategory, dueInDays: Int, isDone: Bool)] = [
+        ("Confirm entry", .registration, 28, true),
+        ("Book travel", .travel, 35, false),
+        ("Costume fitting", .costume, 30, false),
+        ("Music check", .music, 21, false),
+        ("Practice plan", .practice, 14, false)
+    ]
+    for (index, item) in checklist.enumerated() {
+        let row = ChecklistItem(
+            competition: testCompetition,
+            title: item.title,
+            dueDate: daysAhead(item.dueInDays),
+            category: item.category.rawValue,
+            isDone: item.isDone,
+            doneDate: item.isDone ? daysAgo(2) : nil,
+            sortOrder: index
+        )
+        context.insert(row)
+    }
+
+    let settings = AppSettings(
+        defaultVideoType: .choreography,
+        remindersEnabled: false,
+        preferredDateFormat: "",
+        storageLimitWarning: true,
+        videoQuality: .p1080,
+        perVideoSizeLimitMB: 500
+    )
+    let profile = LocalProfile(
+        dancerName: "Test Dancer",
+        experienceLevel: .competitionDancer,
+        preferredDances: dances
+    )
+    profile.appSettings = settings
+    settings.profile = profile
+    context.insert(profile)
+    context.insert(settings)
+}
+
+// MARK: - Model and fixture tests
 //
 // Run against an in memory store. No files, no network, no device.
 
@@ -13,12 +243,12 @@ struct ModelTests {
     private func seededContext() throws -> ModelContext {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         return persistence.mainContext
     }
 
-    @Test("Seed creates five International Latin dances")
+    @Test("Fixture creates five International Latin dances")
     func seedCreatesFiveDances() throws {
         let context = try seededContext()
         let dances = try context.fetch(FetchDescriptor<Dance>(sortBy: [SortDescriptor(\.displayOrder)]))
@@ -27,7 +257,24 @@ struct ModelTests {
         #expect(dances.allSatisfy { $0.style == .internationalLatin })
     }
 
-    @Test("Seed creates three journal entries with the right categories")
+    @Test("Fresh install holds only the five dance taxonomy rows, no sample content")
+    func freshInstallHoldsNoSampleContent() throws {
+        let persistence = try PersistenceController.inMemory()
+        try persistence.deleteAllData()
+        persistence.ensureDanceTaxonomy()
+        let context = persistence.mainContext
+        #expect(try context.fetchCount(FetchDescriptor<Dance>()) == 5)
+        #expect(try context.fetchCount(FetchDescriptor<JournalEntry>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Drill>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Video>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Figure>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<FigurePracticeLog>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<Competition>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<ChecklistItem>()) == 0)
+        #expect(try context.fetchCount(FetchDescriptor<LocalProfile>()) == 0)
+    }
+
+    @Test("Fixture creates three journal entries with the right categories")
     func seedCreatesThreeEntries() throws {
         let context = try seededContext()
         let entries = try context.fetch(FetchDescriptor<JournalEntry>())
@@ -42,7 +289,7 @@ struct ModelTests {
         #expect(rumbaEntry?.linkedFigureIds.count == 1)
     }
 
-    @Test("Seed creates three drills with the right targets")
+    @Test("Fixture creates three drills with the right targets")
     func seedCreatesThreeDrills() throws {
         let context = try seededContext()
         let drills = try context.fetch(FetchDescriptor<Drill>())
@@ -54,7 +301,7 @@ struct ModelTests {
         #expect(drills.filter { $0.isFavourite }.count == 2)
     }
 
-    @Test("Seed creates two videos with relative paths only")
+    @Test("Fixture creates two videos with relative paths only")
     func seedCreatesTwoVideos() throws {
         let context = try seededContext()
         let videos = try context.fetch(FetchDescriptor<Video>())
@@ -67,7 +314,7 @@ struct ModelTests {
         #expect(rumbaVideo?.choreographyName == "Rumba routine")
     }
 
-    @Test("Seed creates six figures, Alemana with six sessions")
+    @Test("Fixture creates six figures, Alemana with six sessions")
     func seedCreatesSixFigures() throws {
         let context = try seededContext()
         let figures = try context.fetch(FetchDescriptor<Figure>())
@@ -81,7 +328,7 @@ struct ModelTests {
         #expect(alemana?.steps.count == 4)
     }
 
-    @Test("Seed practice totals are 8 sessions, 58 repetitions, 92 minutes")
+    @Test("Fixture practice totals are 8 sessions, 58 repetitions, 92 minutes")
     func seedPracticeTotals() throws {
         let context = try seededContext()
         let logs = try context.fetch(FetchDescriptor<FigurePracticeLog>())
@@ -90,13 +337,13 @@ struct ModelTests {
         #expect(logs.reduce(0) { $0 + $1.durationMinutes } == 92)
     }
 
-    @Test("Seed competition is a sample NDCA event 42 days out with 5 checklist items")
+    @Test("Fixture competition is a test NDCA event 42 days out with 5 checklist items")
     func seedCompetition() throws {
         let context = try seededContext()
         let competitions = try context.fetch(FetchDescriptor<Competition>())
         #expect(competitions.count == 1)
         let competition = competitions.first
-        #expect(competition?.name == "Sample NDCA event")
+        #expect(competition?.name == "Test NDCA event")
         #expect(competition?.source == .ndca)
         #expect(competition?.entryStatus == .interested)
         #expect(competition?.daysRemaining == 42)
@@ -104,12 +351,12 @@ struct ModelTests {
         #expect(competition?.checklistItems.filter { $0.isDone }.count == 1)
     }
 
-    @Test("Seed profile is May, competition dancer, all five dances")
+    @Test("Fixture profile is a competition dancer with all five dances")
     func seedProfile() throws {
         let context = try seededContext()
         let profiles = try context.fetch(FetchDescriptor<LocalProfile>())
         #expect(profiles.count == 1)
-        #expect(profiles.first?.dancerName == "May")
+        #expect(profiles.first?.dancerName == "Test Dancer")
         #expect(profiles.first?.experienceLevel == .competitionDancer)
         #expect(profiles.first?.preferredDances.count == 5)
         let settings = try context.fetch(FetchDescriptor<AppSettings>())
@@ -196,12 +443,12 @@ struct CategorisationTests {
     /// category of every real journal entry in the sample set. The
     /// "Cha cha lock step footwork" entry failed this check before the
     /// bare "still" rule fix: it tied 1 to 1 and landed uncategorised.
-    @Test("Categoriser matches the stored category of every seeded entry")
+    @Test("Categoriser matches the stored category of every fixture entry")
     @MainActor
     func categoriserMatchesSeededEntries() throws {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         let entries = try persistence.mainContext.fetch(FetchDescriptor<JournalEntry>())
         #expect(entries.count == 3)
@@ -249,7 +496,7 @@ struct RepositoryTests {
     func journalRepositoryFilters() throws {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
         let repository = SwiftDataJournalEntryRepository(store: store)
@@ -265,7 +512,7 @@ struct RepositoryTests {
     func drillMarkPracticed() throws {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
         let repository = SwiftDataDrillRepository(store: store)
@@ -279,7 +526,7 @@ struct RepositoryTests {
     func markPracticedWritesSession() throws {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         let store = SwiftDataStore(context: persistence.mainContext)
         let repository = SwiftDataDrillRepository(store: store)
@@ -767,7 +1014,7 @@ struct SchemaMigrationTests {
         let v1Context = v1Container.mainContext
         let oldDrill = AppSchemaV1_0.Drill(name: "Rumba Walks", focusArea: .footwork, targetRepetitions: 20)
         v1Context.insert(oldDrill)
-        let oldCompetition = AppSchemaV1_0.Competition(name: "Sample NDCA event", source: .ndca, location: "Sample", venue: "Sample", startDate: Date(), endDate: Date())
+        let oldCompetition = AppSchemaV1_0.Competition(name: "Test NDCA event", source: .ndca, location: "Test", venue: "Test", startDate: Date(), endDate: Date())
         v1Context.insert(oldCompetition)
         let oldItem = AppSchemaV1_0.ChecklistItem(competition: oldCompetition, title: "Book travel", category: .travel)
         v1Context.insert(oldItem)
@@ -1159,11 +1406,11 @@ struct SyncNoConfigTests {
         #expect(try videos.fetch(byId: UUID()) == nil)
     }
 
-    @Test("Export writes one JSON file with every seeded record")
+    @Test("Export writes one JSON file with every fixture record")
     func exportWritesSeededRecords() throws {
         let persistence = try PersistenceController.inMemory()
         try persistence.deleteAllData()
-        SeedData.seed(into: persistence.mainContext)
+        insertTestFixtures(into: persistence.mainContext)
         try persistence.mainContext.save()
         let context = persistence.mainContext
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)

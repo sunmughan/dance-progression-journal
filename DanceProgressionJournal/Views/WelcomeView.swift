@@ -56,7 +56,7 @@ struct WelcomeView: View {
                     Text("Your name")
                         .font(DesignTokens.Font.headline)
                         .foregroundStyle(DesignTokens.Color.textPrimary)
-                    TextField("May", text: $viewModel.dancerName)
+                    TextField("Your name", text: $viewModel.dancerName)
                         .font(DesignTokens.Font.body)
                         .padding(DesignTokens.Space.space3)
                         .frame(height: 52)

@@ -4,10 +4,9 @@ import SwiftData
 // MARK: - Library tab
 //
 // Root is Video Library, with a top segment that switches the list to
-// Figure Library Browse or Drill List. Video upload and recording arrive
-// in Phase 3. Drill create and edit are wired in Phase 2: the Add Drill
-// button opens the drill form, and each drill row opens its detail with
-// Edit and Delete.
+// Figure Library Browse or Drill List. The Add Video button opens the
+// upload form, and the Add Drill button opens the drill form. Each row
+// opens its detail with Edit and Delete.
 
 enum LibrarySegment: String, CaseIterable {
     case videos
@@ -448,12 +447,14 @@ struct LibraryRootView: View {
             .padding(.horizontal, DesignTokens.Space.screenMargin)
             .padding(.bottom, DesignTokens.Space.space2)
 
-            Text("Pending the client NDCA list")
-                .font(DesignTokens.Font.footnote)
-                .foregroundStyle(DesignTokens.Color.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, DesignTokens.Space.screenMargin)
-                .padding(.bottom, DesignTokens.Space.space2)
+            if figures.isEmpty {
+                Text("Pending the client NDCA list")
+                    .font(DesignTokens.Font.footnote)
+                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, DesignTokens.Space.screenMargin)
+                    .padding(.bottom, DesignTokens.Space.space2)
+            }
 
             if filtered.isEmpty {
                 if searchActive {

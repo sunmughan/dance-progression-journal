@@ -179,7 +179,7 @@ struct AppSettingsManagementView: View {
             sizeLimitText = "\(settings.perVideoSizeLimitMB)"
             videoQuality = settings.videoQuality
         } else {
-            // No settings row yet: start from the spec sample default
+            // No settings row yet: start from the spec default
             // dance, read from the taxonomy, and the model defaults,
             // not literals. The other fields already start at the
             // model defaults.

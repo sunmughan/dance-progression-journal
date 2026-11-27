@@ -17,7 +17,6 @@
 		7585C1954B644F393942988C /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEEFAC3202420E66E5205AA /* PersistenceController.swift */; };
 		F4C2D5C6EBA2319B2FD9FB24 /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */; };
 		3779E0CDBAED21466D2EA413 /* SwiftDataRepositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 709E9F8DECB5BF62840FFEFD /* SwiftDataRepositories.swift */; };
-		ED5B2652EAD4B1E2E4310EEA /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B47DCF3CC373D3D8B92C669 /* SeedData.swift */; };
 		94780FBADAB73D7D54AEC0C5 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32FBAF36B12E191DCAA88523 /* AuthService.swift */; };
 		BADB2C0D139290D00543A282 /* CategorisationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FCACE4B4496EA8C436A217A /* CategorisationService.swift */; };
 		BB3941C5C5117A8733A9E413 /* DataExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5875413355EB56E9A0BF3198 /* DataExportService.swift */; };
@@ -81,7 +80,6 @@
 		0EEEFAC3202420E66E5205AA /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "PersistenceController.swift"; path = "PersistenceController.swift"; sourceTree = "<group>"; };
 		95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "RepositoryProtocols.swift"; path = "RepositoryProtocols.swift"; sourceTree = "<group>"; };
 		709E9F8DECB5BF62840FFEFD /* SwiftDataRepositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SwiftDataRepositories.swift"; path = "SwiftDataRepositories.swift"; sourceTree = "<group>"; };
-		0B47DCF3CC373D3D8B92C669 /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "SeedData.swift"; path = "SeedData.swift"; sourceTree = "<group>"; };
 		32FBAF36B12E191DCAA88523 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AuthService.swift"; path = "AuthService.swift"; sourceTree = "<group>"; };
 		8FCACE4B4496EA8C436A217A /* CategorisationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CategorisationService.swift"; path = "CategorisationService.swift"; sourceTree = "<group>"; };
 		5875413355EB56E9A0BF3198 /* DataExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "DataExportService.swift"; path = "DataExportService.swift"; sourceTree = "<group>"; };
@@ -170,9 +168,6 @@
 				95F5A4F5FD4BF5821E5AAC0A /* RepositoryProtocols.swift */,
 				709E9F8DECB5BF62840FFEFD /* SwiftDataRepositories.swift */,
 			); name = "Repositories"; path = "Repositories"; sourceTree = "<group>"; };
-		D1AA783793465A58EE08E399 /* Seed */ = {isa = PBXGroup; children = (
-				0B47DCF3CC373D3D8B92C669 /* SeedData.swift */,
-			); name = "Seed"; path = "Seed"; sourceTree = "<group>"; };
 		985CEF4416785ACB588F8DB4 /* Services */ = {isa = PBXGroup; children = (
 				32FBAF36B12E191DCAA88523 /* AuthService.swift */,
 				8FCACE4B4496EA8C436A217A /* CategorisationService.swift */,
@@ -223,7 +218,6 @@
 				134609B640CC3BD12399C47A /* Navigation */,
 				506CF20FB8D46F550F16EA46 /* Persistence */,
 				B7AA5CBFC6C24A31BF517064 /* Repositories */,
-				D1AA783793465A58EE08E399 /* Seed */,
 				985CEF4416785ACB588F8DB4 /* Services */,
 				88A1FCEFDEAB7A65D51A627F /* ViewModels */,
 				0CCEE07ECE9D2EC579E24F2E /* Views */,
@@ -332,7 +326,6 @@
 				7585C1954B644F393942988C /* Sources */,
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
 				3779E0CDBAED21466D2EA413 /* Sources */,
-				ED5B2652EAD4B1E2E4310EEA /* Sources */,
 				94780FBADAB73D7D54AEC0C5 /* Sources */,
 				BADB2C0D139290D00543A282 /* Sources */,
 				BB3941C5C5117A8733A9E413 /* Sources */,
@@ -373,7 +366,6 @@
 				7585C1954B644F393942988C /* Sources */,
 				F4C2D5C6EBA2319B2FD9FB24 /* Sources */,
 				3779E0CDBAED21466D2EA413 /* Sources */,
-				ED5B2652EAD4B1E2E4310EEA /* Sources */,
 				94780FBADAB73D7D54AEC0C5 /* Sources */,
 				BADB2C0D139290D00543A282 /* Sources */,
 				BB3941C5C5117A8733A9E413 /* Sources */,

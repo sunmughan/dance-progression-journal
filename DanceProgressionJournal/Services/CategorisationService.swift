@@ -24,7 +24,7 @@ protocol CategorisationServiceProtocol: Sendable {
 /// Bare "still" is deliberately not a challenge word: it appears in
 /// forward looking notes ("still to work on the knees") after positive
 /// text, and genuine challenge phrasing is covered by "needs work".
-/// Verified against the three seeded journal entries in the tests.
+/// Verified against the three fixture journal entries in the tests.
 struct LocalRulesCategorisationService: CategorisationServiceProtocol {
     private let challengeWords: [String: String] = [
         "struggle": "struggle",

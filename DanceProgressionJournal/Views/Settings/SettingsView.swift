@@ -94,7 +94,7 @@ struct SettingsView: View {
             }
 
             Section("Local profile") {
-                TextField("May", text: $dancerName)
+                TextField("Your name", text: $dancerName)
                     .font(DesignTokens.Font.body)
                     .foregroundStyle(DesignTokens.Color.textPrimary)
                     .autocorrectionDisabled()

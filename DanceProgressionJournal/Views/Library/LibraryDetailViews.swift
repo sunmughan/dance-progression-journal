@@ -205,9 +205,8 @@ struct VideoDetailView: View {
 // MARK: - Figure Detail
 //
 // One NDCA figure with steps, timing, level and practice summary.
-// Figures are pending the client NDCA list, due 9 Dec 2026, and the
-// screen says so. The favourite star toggles the figure as a
-// favourite. Log Practice opens the practice form.
+// The favourite star toggles the figure as a favourite. Log Practice
+// opens the practice form.
 
 struct FigureDetailView: View {
     let figureId: UUID
@@ -249,9 +248,6 @@ struct FigureDetailView: View {
                         .foregroundStyle(DesignTokens.Color.textPrimary)
                     Text(metadataLine(figure.dance?.name ?? "", figure.level.displayName))
                         .font(DesignTokens.Font.subheadline)
-                        .foregroundStyle(DesignTokens.Color.textSecondary)
-                    Text("Pending the client NDCA list")
-                        .font(DesignTokens.Font.footnote)
                         .foregroundStyle(DesignTokens.Color.textSecondary)
                 }
 
