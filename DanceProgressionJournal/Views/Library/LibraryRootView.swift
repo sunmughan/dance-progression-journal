@@ -394,7 +394,8 @@ struct LibraryRootView: View {
                                     AppRow(
                                         title: video.title,
                                         metadata: metadataLine(video.dance?.name ?? "", video.videoType.displayName, video.durationLabel),
-                                        leadingIcon: "play.circle"
+                                        leadingIcon: "play.circle",
+                                        showsChevron: false
                                     )
                                 }
                             }
@@ -489,7 +490,8 @@ struct LibraryRootView: View {
                                 title: figure.name,
                                 metadata: metadataLine(figure.dance?.name ?? "", figure.level.displayName, "\(figure.practiceLogs.count) sessions"),
                                 isFavourite: figure.isFavourite,
-                                leadingIcon: "figure.dance"
+                                leadingIcon: "figure.dance",
+                                showsChevron: false
                             )
                         }
                     }
@@ -611,7 +613,8 @@ struct LibraryRootView: View {
             AppRow(
                 title: drill.name,
                 metadata: metadataLine(drill.dance?.name ?? "", drill.focusAreaDisplayName, "\(drill.targetRepetitions) repetitions"),
-                isFavourite: drill.isFavourite
+                isFavourite: drill.isFavourite,
+                showsChevron: false
             )
         }
     }

@@ -566,10 +566,13 @@ private enum DemoClipPixelBuffer {
         defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
         guard let base = CVPixelBufferGetBaseAddress(buffer) else { return nil }
         let bytesPerRow = CVPixelBufferGetBytesPerRow(buffer)
+        // 32ARGB is stored little-endian, so the bytes in memory are
+        // B, G, R, A: teal #2E6B62 is 0x626B2EFF, not 0xFF2E6B62,
+        // which renders purple-blue instead.
         for row in 0..<360 {
             let ptr = base.advanced(by: row * bytesPerRow).assumingMemoryBound(to: UInt32.self)
             for col in 0..<640 {
-                ptr[col] = 0xFF2E6B62
+                ptr[col] = 0x626B2EFF
             }
         }
         return buffer

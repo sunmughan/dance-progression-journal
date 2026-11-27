@@ -17,6 +17,7 @@ struct ManageDrillsView: View {
     @State private var searchText = ""
     @State private var selectedFocusArea: String?
     @State private var drillToRemove: Drill?
+    @State private var editingDrillId: UUID?
     @State private var showingAddForm = false
     @State private var errorMessage: String?
 
@@ -78,12 +79,12 @@ struct ManageDrillsView: View {
                                 showsChevron: false
                             )
                             Spacer()
-                            NavigationLink(value: AdminRoute.drillForm(drillId: drill.id)) {
-                                Text("Edit")
-                                    .font(DesignTokens.Font.subheadline)
-                                    .foregroundStyle(DesignTokens.Color.accent)
-                            }
-                            .buttonStyle(.plain)
+                            // A Button, not an inline NavigationLink: the
+                            // List added its own chevron to the link row,
+                            // which squeezed the name to a truncated stub.
+                            Button("Edit") { editingDrillId = drill.id }
+                                .font(DesignTokens.Font.subheadline)
+                                .foregroundStyle(DesignTokens.Color.accent)
                             DestructiveButton(title: "Remove") { drillToRemove = drill }
                         }
                         .frame(minHeight: 52)
@@ -98,6 +99,9 @@ struct ManageDrillsView: View {
             }
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .navigationDestination(item: $editingDrillId) { drillId in
+            DrillFormView(drillId: drillId, onSaved: { _ in editingDrillId = nil })
+        }
         .navigationTitle("Manage Drills")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingAddForm) {

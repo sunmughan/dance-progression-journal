@@ -5,8 +5,9 @@ import SwiftData
 //
 // All journal entries in date order, with search and filters. Filter
 // chips: All, Challenges, Accomplishments, then a dance filter chip that
-// opens a sheet with the five dances. Sort control: Newest first or
-// Oldest first. New Entry button pinned above the tab bar.
+// opens a sheet with the five dances. Sort control lives in the toolbar,
+// so the chips get the full row width. New Entry button pinned above the
+// tab bar.
 
 struct JournalListView: View {
     var onNewEntry: () -> Void
@@ -50,33 +51,25 @@ struct JournalListView: View {
             VStack(spacing: 0) {
                 VStack(spacing: DesignTokens.Space.space2) {
                     AppSearchField(placeholder: "Search entries", text: $viewModel.searchText)
-                    HStack(spacing: DesignTokens.Space.space2) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: DesignTokens.Space.space2) {
-                                FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
-                                    viewModel.selectedCategory = nil
-                                }
-                                ForEach(journalCategories, id: \.self) { category in
-                                    FilterChip(
-                                        title: category.displayName,
-                                        isSelected: viewModel.selectedCategory == category
-                                    ) {
-                                        viewModel.selectedCategory = category
-                                    }
-                                }
-                                FilterChip(title: viewModel.activeFilterLabel, isSelected: viewModel.selectedDance != nil) {
-                                    showingDanceFilter = true
+                    // Chips get the full row width. The sort control used
+                    // to sit beside them and clipped the last chip
+                    // mid-word; it lives in the toolbar now.
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: DesignTokens.Space.space2) {
+                            FilterChip(title: "All", isSelected: viewModel.selectedCategory == nil) {
+                                viewModel.selectedCategory = nil
+                            }
+                            ForEach(journalCategories, id: \.self) { category in
+                                FilterChip(
+                                    title: category.displayName,
+                                    isSelected: viewModel.selectedCategory == category
+                                ) {
+                                    viewModel.selectedCategory = category
                                 }
                             }
-                        }
-                        Menu {
-                            Button("Newest first") { viewModel.newestFirst = true }
-                            Button("Oldest first") { viewModel.newestFirst = false }
-                        } label: {
-                            Label(viewModel.newestFirst ? "Newest first" : "Oldest first", systemImage: "arrow.up.arrow.down")
-                                .font(DesignTokens.Font.subheadline)
-                                .foregroundStyle(DesignTokens.Color.textPrimary)
-                                .lineLimit(1)
+                            FilterChip(title: viewModel.activeFilterLabel, isSelected: viewModel.selectedDance != nil) {
+                                showingDanceFilter = true
+                            }
                         }
                     }
                 }
@@ -145,6 +138,11 @@ struct JournalListView: View {
             .padding(.bottom, DesignTokens.Space.space2)
             .background(DesignTokens.Color.backgroundPrimary)
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                sortMenu(viewModel)
+            }
+        }
         .background(DesignTokens.Color.backgroundPrimary)
         .sheet(isPresented: $showingDanceFilter) {
             danceFilterSheet(viewModel)
@@ -164,6 +162,18 @@ struct JournalListView: View {
             Button("Cancel", role: .cancel) {
                 entryToDelete = nil
             }
+        }
+    }
+
+    private func sortMenu(_ viewModel: JournalListViewModel) -> some View {
+        Menu {
+            Button("Newest first") { viewModel.newestFirst = true }
+            Button("Oldest first") { viewModel.newestFirst = false }
+        } label: {
+            Label(viewModel.newestFirst ? "Newest first" : "Oldest first", systemImage: "arrow.up.arrow.down")
+                .font(DesignTokens.Font.subheadline)
+                .foregroundStyle(DesignTokens.Color.textPrimary)
+                .lineLimit(1)
         }
     }
 

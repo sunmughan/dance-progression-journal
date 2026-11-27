@@ -73,7 +73,8 @@ struct CompetitionListView: View {
                         NavigationLink(value: JournalRoute.competitionDetail(competitionId: competition.id)) {
                             AppRow(
                                 title: competition.name,
-                                metadata: rowMetadata(competition)
+                                metadata: rowMetadata(competition),
+                                showsChevron: false
                             )
                         }
                     }
@@ -142,9 +143,10 @@ struct CompetitionListView: View {
         } else {
             countdown = "Ended"
         }
+        // Entry status lives on the detail screen. Four metadata parts
+        // truncated the countdown to "42 da..."; three fit.
         return metadataLine(
             competition.source.displayName,
-            competition.entryStatus.displayName,
             RelativeDateFormatter.shared.calendarString(for: competition.startDate),
             countdown
         )

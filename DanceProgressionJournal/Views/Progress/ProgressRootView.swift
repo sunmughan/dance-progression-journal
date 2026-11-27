@@ -195,6 +195,9 @@ struct ProgressRootView: View {
                             }
                         }
                     }
+                    // Trailing inset, so the last chip can sit fully in
+                    // view with a margin instead of flush at the edge.
+                    .padding(.trailing, DesignTokens.Space.screenMargin)
                 }
 
                 if monthFiltered.isEmpty {

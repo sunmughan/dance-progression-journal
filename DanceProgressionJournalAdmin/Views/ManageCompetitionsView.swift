@@ -15,6 +15,7 @@ struct ManageCompetitionsView: View {
     @Query(sort: \Competition.startDate) private var competitions: [Competition]
 
     @State private var competitionToRemove: Competition?
+    @State private var editingCompetitionId: UUID?
     @State private var showingAddForm = false
     @State private var errorMessage: String?
 
@@ -31,7 +32,11 @@ struct ManageCompetitionsView: View {
             } else {
                 List {
                     ForEach(competitions) { competition in
-                        HStack {
+                        // Name and metadata take the full row width; the
+                        // countdown and Edit/Remove sit on a second line.
+                        // Everything in one row squeezed the name to a
+                        // truncated stub and crammed the actions together.
+                        VStack(alignment: .leading, spacing: DesignTokens.Space.space1) {
                             AppRow(
                                 title: competition.name,
                                 metadata: metadataLine(
@@ -40,18 +45,18 @@ struct ManageCompetitionsView: View {
                                 ),
                                 showsChevron: false
                             )
-                            Spacer()
-                            Text(countdownLabel(for: competition))
-                                .font(DesignTokens.Font.subheadline)
-                                .foregroundStyle(DesignTokens.Color.textSecondary)
-                                .lineLimit(1)
-                            NavigationLink(value: AdminRoute.competitionForm(competitionId: competition.id)) {
-                                Text("Edit")
+                            HStack(spacing: DesignTokens.Space.space2) {
+                                Text(countdownLabel(for: competition))
+                                    .font(DesignTokens.Font.subheadline)
+                                    .foregroundStyle(DesignTokens.Color.textSecondary)
+                                    .lineLimit(1)
+                                Spacer()
+                                Button("Edit") { editingCompetitionId = competition.id }
                                     .font(DesignTokens.Font.subheadline)
                                     .foregroundStyle(DesignTokens.Color.accent)
+                                DestructiveButton(title: "Remove") { competitionToRemove = competition }
                             }
-                            .buttonStyle(.plain)
-                            DestructiveButton(title: "Remove") { competitionToRemove = competition }
+                            .padding(.horizontal, DesignTokens.Space.space3)
                         }
                         .frame(minHeight: 52)
                     }
@@ -65,6 +70,12 @@ struct ManageCompetitionsView: View {
             }
         }
         .background(DesignTokens.Color.backgroundPrimary)
+        .navigationDestination(item: $editingCompetitionId) { competitionId in
+            // A Button drives this instead of an inline NavigationLink:
+            // the List added its own chevron to the link row, which is
+            // what squeezed the name and crammed the actions.
+            CompetitionFormView(competitionId: competitionId, onSaved: { _ in editingCompetitionId = nil })
+        }
         .navigationTitle("Manage Competitions")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingAddForm) {
