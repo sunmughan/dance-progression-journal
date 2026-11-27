@@ -32,7 +32,12 @@ for screen in $SCREENS; do
   xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" \
     -screenshotSeed -screenshotScreen "$screen" \
     -DanceProgressionJournal.hasCompletedSetup "$SETUP_FLAG"
-  sleep 5
+  # First launch builds the store and encodes the demo clip, needs longer.
+  if [ "$screen" = welcome ]; then
+    sleep 15
+  else
+    sleep 5
+  fi
   xcrun simctl io "$SIM_UDID" screenshot "$OUT/$screen.png"
   echo "captured $APP_KIND/$screen"
 done

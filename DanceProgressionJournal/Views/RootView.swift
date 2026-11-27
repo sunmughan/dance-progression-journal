@@ -36,13 +36,13 @@ struct RootView: View {
             _journalPath = State(initialValue: [.competitionForm(competitionId: nil)])
         case "competitionFormEdit":
             _journalPath = State(initialValue: [.competitionForm(competitionId: ScreenshotSeedIDs.competition)])
-        case "libraryVideos":
+        case "videoLibrary":
             _selectedTab = State(initialValue: .library)
             _librarySegment = State(initialValue: .videos)
-        case "libraryFigures":
+        case "figureLibrary":
             _selectedTab = State(initialValue: .library)
             _librarySegment = State(initialValue: .figures)
-        case "libraryDrills":
+        case "drillList":
             _selectedTab = State(initialValue: .library)
             _librarySegment = State(initialValue: .drills)
         case "videoDetail":
