@@ -16,6 +16,78 @@ struct RootView: View {
     @State private var settingsPath: [SettingsRoute] = []
     @State private var librarySegment: LibrarySegment = .videos
 
+    /// Screenshot launches open one screen directly. No argument means
+    /// the home dashboard, exactly as before.
+    init() {
+        switch ScreenshotLaunch.screen {
+        case "journalList":
+            _journalPath = State(initialValue: [.journalList])
+        case "entryDetail":
+            _journalPath = State(initialValue: [.entryDetail(entryId: ScreenshotSeedIDs.entry)])
+        case "entryFormNew":
+            _journalPath = State(initialValue: [.entryForm(entryId: nil)])
+        case "entryFormEdit":
+            _journalPath = State(initialValue: [.entryForm(entryId: ScreenshotSeedIDs.entry)])
+        case "competitionList":
+            _journalPath = State(initialValue: [.competitionList])
+        case "competitionDetail":
+            _journalPath = State(initialValue: [.competitionDetail(competitionId: ScreenshotSeedIDs.competition)])
+        case "competitionFormNew":
+            _journalPath = State(initialValue: [.competitionForm(competitionId: nil)])
+        case "competitionFormEdit":
+            _journalPath = State(initialValue: [.competitionForm(competitionId: ScreenshotSeedIDs.competition)])
+        case "libraryVideos":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .videos)
+        case "libraryFigures":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .figures)
+        case "libraryDrills":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .drills)
+        case "videoDetail":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .videos)
+            _libraryPath = State(initialValue: [.videoDetail(videoId: ScreenshotSeedIDs.video)])
+        case "videoFormNew":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .videos)
+            _libraryPath = State(initialValue: [.videoForm(videoId: nil)])
+        case "videoFormEdit":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .videos)
+            _libraryPath = State(initialValue: [.videoForm(videoId: ScreenshotSeedIDs.video)])
+        case "figureDetail":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .figures)
+            _libraryPath = State(initialValue: [.figureDetail(figureId: ScreenshotSeedIDs.figure)])
+        case "figurePracticeForm":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .figures)
+            _libraryPath = State(initialValue: [.figurePracticeForm(figureId: ScreenshotSeedIDs.figure)])
+        case "drillDetail":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .drills)
+            _libraryPath = State(initialValue: [.drillDetail(drillId: ScreenshotSeedIDs.drill)])
+        case "drillFormNew":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .drills)
+            _libraryPath = State(initialValue: [.drillForm(drillId: nil)])
+        case "drillFormEdit":
+            _selectedTab = State(initialValue: .library)
+            _librarySegment = State(initialValue: .drills)
+            _libraryPath = State(initialValue: [.drillForm(drillId: ScreenshotSeedIDs.drill)])
+        case "insights":
+            _selectedTab = State(initialValue: .progress)
+        case "practiceHistory":
+            _selectedTab = State(initialValue: .progress)
+        case "settings":
+            _selectedTab = State(initialValue: .settings)
+        default:
+            break
+        }
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack(path: $journalPath) {

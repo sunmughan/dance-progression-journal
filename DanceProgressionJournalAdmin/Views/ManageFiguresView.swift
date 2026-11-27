@@ -21,6 +21,7 @@ struct ManageFiguresView: View {
     @State private var showingAddForm = false
     @State private var figureToRemove: Figure?
     @State private var errorMessage: String?
+    @State private var didApplyScreenshotSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -133,6 +134,17 @@ struct ManageFiguresView: View {
                 .padding(.horizontal, DesignTokens.Space.screenMargin)
                 .padding(.vertical, DesignTokens.Space.space2)
                 .background(DesignTokens.Color.backgroundPrimary)
+        }
+        .onAppear {
+            // Screenshot launches open the figure form sheet directly,
+            // once. Any other launch behaves exactly as before.
+            guard !didApplyScreenshotSheet else { return }
+            didApplyScreenshotSheet = true
+            if ScreenshotLaunch.screen == "figureFormNew" {
+                showingAddForm = true
+            } else if ScreenshotLaunch.screen == "figureFormEdit" {
+                editingFigureId = ScreenshotSeedIDs.figure
+            }
         }
     }
 

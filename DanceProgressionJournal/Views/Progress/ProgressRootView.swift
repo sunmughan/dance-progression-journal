@@ -24,7 +24,8 @@ enum ProgressSegment: String, CaseIterable {
 struct ProgressRootView: View {
     var onBrowseFigures: () -> Void = {}
 
-    @State private var segment: ProgressSegment = .insights
+    // Screenshot launches open the Practice History segment directly.
+    @State private var segment: ProgressSegment = ScreenshotLaunch.screen == "practiceHistory" ? .practiceHistory : .insights
     @State private var selectedMonth: Date = ProgressRootView.currentMonth
     @State private var didAdjustMonth = false
 

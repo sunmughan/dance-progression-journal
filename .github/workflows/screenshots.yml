@@ -1,0 +1,63 @@
+name: Screenshots
+
+# Real screenshots of every app screen, on demand. The workflow boots an
+# iPhone simulator, launches the real app once per screen with screenshot
+# launch arguments, and captures each screen with simctl. Demo records are
+# seeded inside the simulator run only, never in a shipped store.
+# Triggered by hand: Actions tab, Screenshots, Run workflow.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Capture app screenshots
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          LATEST=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          echo "Using Xcode at $LATEST"
+          sudo xcode-select -s "$LATEST/Contents/Developer"
+          xcodebuild -version
+
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys; ds=[d for r in json.load(sys.stdin)['devices'].values() for d in r if d['name']=='iPhone 17' and d['isAvailable']]; print(ds[0]['udid'])")
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Build user app
+        run: |
+          xcodebuild build \
+            -project DanceProgressionJournal.xcodeproj \
+            -scheme DanceProgressionJournal \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Capture user app screens
+        run: bash tools/capture-screens.sh user
+
+      - name: Build admin app
+        run: |
+          xcodebuild build \
+            -project DanceProgressionJournal.xcodeproj \
+            -scheme DanceProgressionJournalAdmin \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -derivedDataPath DerivedDataAdmin \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Capture admin app screens
+        run: bash tools/capture-screens.sh admin
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: dance-screenshots
+          path: screenshots/
+          if-no-files-found: error

@@ -14,6 +14,29 @@ struct AdminRootView: View {
     @State private var adminPath: [AdminRoute] = []
     @State private var didLoad = false
 
+    /// Screenshot launches open one screen directly. No argument means
+    /// the dashboard, exactly as before.
+    init() {
+        switch ScreenshotLaunch.screen {
+        case "manageFigures", "figureFormNew", "figureFormEdit":
+            _adminPath = State(initialValue: [.manageFigures])
+        case "manageCompetitions":
+            _adminPath = State(initialValue: [.manageCompetitions])
+        case "competitionFormEdit":
+            _adminPath = State(initialValue: [.manageCompetitions, .competitionForm(competitionId: ScreenshotSeedIDs.competition)])
+        case "manageDrills":
+            _adminPath = State(initialValue: [.manageDrills])
+        case "drillFormEdit":
+            _adminPath = State(initialValue: [.manageDrills, .drillForm(drillId: ScreenshotSeedIDs.drill)])
+        case "contentCategories":
+            _adminPath = State(initialValue: [.contentCategories])
+        case "appSettings":
+            _adminPath = State(initialValue: [.appSettings])
+        default:
+            break
+        }
+    }
+
     @Query private var entries: [JournalEntry]
     @Query private var drills: [Drill]
     @Query private var videos: [Video]

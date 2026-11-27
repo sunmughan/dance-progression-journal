@@ -33,7 +33,10 @@ private struct LaunchView: View {
         Group {
             if let persistence, let dependencies {
                 Group {
-                    if hasCompletedSetup {
+                    // Screenshot launches open the requested screen
+                    // directly, except the welcome screen itself.
+                    let screenshotScreen = ScreenshotLaunch.screen
+                    if hasCompletedSetup || (screenshotScreen != nil && screenshotScreen != "welcome") {
                         RootView()
                     } else {
                         WelcomeView()
@@ -57,6 +60,7 @@ private struct LaunchView: View {
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.ensureDanceTaxonomy() }
             await MainActor.run { controller.ensureManagedLists() }
+            await MainActor.run { controller.seedScreenshotData() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }
             await MainActor.run {
                 persistence = controller

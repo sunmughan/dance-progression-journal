@@ -47,6 +47,7 @@ private struct AdminLaunchView: View {
             let controller = await MainActor.run { PersistenceController.shared }
             await MainActor.run { controller.ensureDanceTaxonomy() }
             await MainActor.run { controller.ensureManagedLists() }
+            await MainActor.run { controller.seedScreenshotData() }
             let built = await MainActor.run { AppDependencies(persistence: controller) }
             await MainActor.run {
                 persistence = controller
